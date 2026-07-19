@@ -82,3 +82,19 @@ test_that('askllmClass 存在且為 R6 類別產生器,繼承 askllmBase', {
     expect_true(inherits(askllmClass, 'R6ClassGenerator'))
     expect_equal(askllmClass$inherit, as.name('askllmBase'))
 })
+
+# ---- .askllm_waiting_text:送出後、回覆前顯示的等待訊息 ---------------------
+
+test_that('waiting_text 含 provider 顯示名稱與模型名,並標明等候中', {
+    txt <- .askllm_waiting_text('NVIDIA NIM', 'meta/llama-3.1-8b-instruct')
+    expect_true(is.character(txt))
+    expect_length(txt, 1)
+    expect_true(grepl('NVIDIA NIM', txt, fixed = TRUE))
+    expect_true(grepl('meta/llama-3.1-8b-instruct', txt, fixed = TRUE))
+    expect_true(grepl('等候', txt))
+    expect_true(grepl('Waiting', txt, ignore.case = TRUE))
+})
+
+test_that('waiting_text 對空模型名不炸', {
+    expect_error(.askllm_waiting_text('Ollama (local)', ''), NA)
+})

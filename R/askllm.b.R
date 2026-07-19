@@ -65,6 +65,21 @@
         sep = ' ')
 }
 
+#' 送出後、回覆前顯示的等待訊息(繁中 + 英文)
+#'
+#' 搭配 ResultsElement$setStatus('running') 與 private$.checkpoint() 推送到
+#' 畫面,使用者才知道分析正在等 LLM,而不是當掉。
+.askllm_waiting_text <- function(provider_name, model) {
+    paste(
+        sprintf('正在等候 %s 回覆…', provider_name),
+        sprintf('Waiting for a response from %s…', provider_name),
+        '',
+        sprintf('模型 / model: %s', model %||% ''),
+        '視模型與網路狀況,通常需要數秒至數十秒。',
+        'This usually takes a few seconds, depending on the model and network.',
+        sep = '\n')
+}
+
 #' 引導/教學文字(繁中 + 英文對照),零網路,供 .init() 與守門顯示
 .askllm_guide_text <- function() {
     paste(
@@ -180,7 +195,19 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 api_key <- kv$key
             }
 
-            # --- 5. 呼叫 --------------------------------------------------
+            # --- 5. 等待狀態:先把「等候中」推送到畫面 --------------------
+            # ResultsElement$setStatus('running') 對應 jamovi 的
+            # ANALYSIS_RUNNING(與 Bayes 類分析同一個等待指示);
+            # private$.checkpoint() 立即序列化並送出當下結果,
+            # 否則畫面要等 .run() 整個結束才更新。
+            waiting <- .askllm_waiting_text(
+                .askllm_provider_name(opt$provider), model)
+            self$results$instructions$setContent(waiting)
+            self$results$answer$setStatus('running')
+            self$results$meta$setStatus('running')
+            private$.checkpoint()
+
+            # --- 6. 呼叫 --------------------------------------------------
             res <- ask_llm(
                 question      = question,
                 summary_text  = summary_text,
@@ -188,9 +215,12 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 model         = model,
                 api_key       = api_key,
                 system_prompt = .askllm_system_prompt(),
-                max_tokens    = 1024)
+                max_tokens    = 4096)
 
-            # --- 6. 呈現 --------------------------------------------------
+            # --- 7. 呈現 --------------------------------------------------
+            self$results$answer$setStatus('complete')
+            self$results$meta$setStatus('complete')
+
             if (isTRUE(res$ok)) {
                 self$results$answer$setContent(res$text)
                 meta_line <- .askllm_meta_line(model, res$elapsed_s)
