@@ -1,7 +1,7 @@
 Package: askLLM
 Type: Package
 Title: Ask LLM about your data
-Version: 0.0.1
+Version: 1.0.0
 Author: Sau-Chin Chen <pmsp96@gmail.com>
 Maintainer: Sau-Chin Chen <pmsp96@gmail.com>
 Description: More about what it does (maybe more than one line)

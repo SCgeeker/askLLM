@@ -9,8 +9,62 @@ options:
     - name: data
       type: Data
 
-    - name: run
-      title: 'Run smoke test (calls NVIDIA NIM)'
+    - name: vars
+      title: Variables to describe
+      type: Variables
+      suggested:
+        - continuous
+        - nominal
+        - ordinal
+      permitted:
+        - numeric
+        - factor
+
+    - name: question
+      title: Your question
+      type: String
+      default: ''
+
+    - name: includeSummary
+      title: Attach data summary to prompt
+      type: Bool
+      default: true
+
+    - name: submit
+      title: 'Submit (call the LLM)'
       type: Bool
       default: false
+
+    - name: provider
+      title: Provider
+      type: List
+      options:
+        - name: nim
+          title: NVIDIA NIM
+        - name: gemini
+          title: Google Gemini (free tier)
+        - name: github
+          title: GitHub Models
+        - name: ollama
+          title: Ollama (local)
+        - name: custom
+          title: Custom OpenAI-compatible
+      default: nim
+
+    - name: model
+      title: Model
+      type: String
+      default: 'meta/llama-3.1-8b-instruct'
+
+    - name: baseUrl
+      title: Base URL (custom provider)
+      type: String
+      default: ''
+
+    - name: maxLevels
+      title: Max factor levels shown
+      type: Integer
+      default: 10
+      min: 3
+      max: 50
 ...

@@ -4,8 +4,19 @@ title: Ask LLM about your data
 jrs:   '1.1'
 
 items:
-    - name:  text
-      title: Smoke test output
+    - name:  instructions
+      title: Instructions
       type:  Preformatted
+      clearWith: []
+
+    - name:  answer
+      title: Response
+      type:  Preformatted
+      clearWith: []
+
+    - name:  meta
+      title: ''
+      type:  Preformatted
+      clearWith: []
 
 ...

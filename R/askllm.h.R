@@ -6,7 +6,14 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     inherit = jmvcore::Options,
     public = list(
         initialize = function(
-            run = FALSE, ...) {
+            vars = NULL,
+            question = "",
+            includeSummary = TRUE,
+            submit = FALSE,
+            provider = "nim",
+            model = "meta/llama-3.1-8b-instruct",
+            baseUrl = "",
+            maxLevels = 10, ...) {
 
             super$initialize(
                 package="askLLM",
@@ -14,24 +21,89 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 requiresData=TRUE,
                 ...)
 
-            private$..run <- jmvcore::OptionBool$new(
-                "run",
-                run,
+            private$..vars <- jmvcore::OptionVariables$new(
+                "vars",
+                vars,
+                suggested=list(
+                    "continuous",
+                    "nominal",
+                    "ordinal"),
+                permitted=list(
+                    "numeric",
+                    "factor"))
+            private$..question <- jmvcore::OptionString$new(
+                "question",
+                question,
+                default="")
+            private$..includeSummary <- jmvcore::OptionBool$new(
+                "includeSummary",
+                includeSummary,
+                default=TRUE)
+            private$..submit <- jmvcore::OptionBool$new(
+                "submit",
+                submit,
                 default=FALSE)
+            private$..provider <- jmvcore::OptionList$new(
+                "provider",
+                provider,
+                options=list(
+                    "nim",
+                    "gemini",
+                    "github",
+                    "ollama",
+                    "custom"),
+                default="nim")
+            private$..model <- jmvcore::OptionString$new(
+                "model",
+                model,
+                default="meta/llama-3.1-8b-instruct")
+            private$..baseUrl <- jmvcore::OptionString$new(
+                "baseUrl",
+                baseUrl,
+                default="")
+            private$..maxLevels <- jmvcore::OptionInteger$new(
+                "maxLevels",
+                maxLevels,
+                default=10,
+                min=3,
+                max=50)
 
-            self$.addOption(private$..run)
+            self$.addOption(private$..vars)
+            self$.addOption(private$..question)
+            self$.addOption(private$..includeSummary)
+            self$.addOption(private$..submit)
+            self$.addOption(private$..provider)
+            self$.addOption(private$..model)
+            self$.addOption(private$..baseUrl)
+            self$.addOption(private$..maxLevels)
         }),
     active = list(
-        run = function() private$..run$value),
+        vars = function() private$..vars$value,
+        question = function() private$..question$value,
+        includeSummary = function() private$..includeSummary$value,
+        submit = function() private$..submit$value,
+        provider = function() private$..provider$value,
+        model = function() private$..model$value,
+        baseUrl = function() private$..baseUrl$value,
+        maxLevels = function() private$..maxLevels$value),
     private = list(
-        ..run = NA)
+        ..vars = NA,
+        ..question = NA,
+        ..includeSummary = NA,
+        ..submit = NA,
+        ..provider = NA,
+        ..model = NA,
+        ..baseUrl = NA,
+        ..maxLevels = NA)
 )
 
 askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "askllmResults",
     inherit = jmvcore::Group,
     active = list(
-        text = function() private$.items[["text"]]),
+        instructions = function() private$.items[["instructions"]],
+        answer = function() private$.items[["answer"]],
+        meta = function() private$.items[["meta"]]),
     private = list(),
     public=list(
         initialize=function(options) {
@@ -41,8 +113,19 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="Ask LLM about your data")
             self$add(jmvcore::Preformatted$new(
                 options=options,
-                name="text",
-                title="Smoke test output"))}))
+                name="instructions",
+                title="Instructions",
+                clearWith=list()))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="answer",
+                title="Response",
+                clearWith=list()))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="meta",
+                title="",
+                clearWith=list()))}))
 
 askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "askllmBase",
@@ -69,27 +152,52 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'
 #' 
 #' @param data .
-#' @param run .
+#' @param vars .
+#' @param question .
+#' @param includeSummary .
+#' @param submit .
+#' @param provider .
+#' @param model .
+#' @param baseUrl .
+#' @param maxLevels .
 #' @return A results object containing:
 #' \tabular{llllll}{
-#'   \code{results$text} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$instructions} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$answer} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$meta} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'
 #' @export
 askllm <- function(
     data,
-    run = FALSE) {
+    vars,
+    question = "",
+    includeSummary = TRUE,
+    submit = FALSE,
+    provider = "nim",
+    model = "meta/llama-3.1-8b-instruct",
+    baseUrl = "",
+    maxLevels = 10) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("askllm requires jmvcore to be installed (restart may be required)")
 
+    if ( ! missing(vars)) vars <- jmvcore::resolveQuo(jmvcore::enquo(vars))
     if (missing(data))
         data <- jmvcore::marshalData(
-            parent.frame())
+            parent.frame(),
+            `if`( ! missing(vars), vars, NULL))
 
 
     options <- askllmOptions$new(
-        run = run)
+        vars = vars,
+        question = question,
+        includeSummary = includeSummary,
+        submit = submit,
+        provider = provider,
+        model = model,
+        baseUrl = baseUrl,
+        maxLevels = maxLevels)
 
     analysis <- askllmClass$new(
         options = options,
