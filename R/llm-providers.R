@@ -24,7 +24,7 @@ provider_spec <- function(name, base_url_option = '') {
             base_url = 'https://generativelanguage.googleapis.com/v1beta/openai',
             env_vars = c('GEMINI_API_KEY', 'GOOGLE_API_KEY'),
             needs_key = TRUE,
-            default_model = 'gemini-2.0-flash',
+            default_model = 'gemini-flash-latest',
             signup_url = 'https://aistudio.google.com/apikey'))
     }
 

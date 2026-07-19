@@ -10,7 +10,7 @@ const LABEL_TEXT = 'Your question';
 // 各 provider 的預設模型(與 R/llm-providers.R 對照表一致)
 const PROVIDER_DEFAULTS = {
     nim: 'meta/llama-3.1-8b-instruct',
-    gemini: 'gemini-2.0-flash',
+    gemini: 'gemini-flash-latest',
     github: 'openai/gpt-4o-mini',
     ollama: 'llama3.2',
     custom: ''
@@ -74,14 +74,19 @@ function findQuestionInput(ui, root) {
     return result;
 }
 
-function buildTextarea(ui, initial) {
+function buildTextarea(ui, root, initial) {
+    // 寬度依面板實寬計算:塞得下面板、拉伸把手保持可見;
+    // 用固定 px(而非 %)以脫離所在窄 cell 的寬度限制。
+    let panelWidth = (root && root.clientWidth) ? root.clientWidth : 560;
+    let width = Math.max(260, Math.min(560, panelWidth - 70));
+
     let ta = document.createElement('textarea');
     ta.id = AREA_ID;
     ta.rows = 5;
     ta.value = initial || '';
     ta.placeholder = 'Type your question here / 在此輸入問題(可多行)';
     ta.style.cssText = [
-        'width: 520px',
+        'width: ' + width + 'px',
         'max-width: none',
         'box-sizing: border-box',
         'min-height: 6em',
@@ -116,16 +121,11 @@ function init(ui) {
     if (initial === '__askllm_locator__')
         initial = '';
 
-    let ta = buildTextarea(ui, initial);
+    let ta = buildTextarea(ui, root, initial);
 
-    if (inp)
+    if (inp) {
+        // 放回原輸入框位置(垂直排版正確);寬度以固定 px 突破窄 cell 限制
         inp.style.display = 'none';
-
-    // 放置位置優先序:Label 之後(脫離窄欄位 cell,寬度不受限)→ 原輸入框
-    // 原位 → 面板最上方保底
-    if (found.label) {
-        found.label.insertAdjacentElement('afterend', ta);
-    } else if (inp) {
         inp.insertAdjacentElement('afterend', ta);
     } else {
         root.insertAdjacentElement('afterbegin', ta);

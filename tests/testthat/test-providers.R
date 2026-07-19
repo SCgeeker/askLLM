@@ -15,7 +15,7 @@ test_that('gemini provider 全欄位正確', {
     expect_equal(spec$base_url, 'https://generativelanguage.googleapis.com/v1beta/openai')
     expect_equal(spec$env_vars, c('GEMINI_API_KEY', 'GOOGLE_API_KEY'))
     expect_true(spec$needs_key)
-    expect_equal(spec$default_model, 'gemini-2.0-flash')
+    expect_equal(spec$default_model, 'gemini-flash-latest')
     expect_equal(spec$signup_url, 'https://aistudio.google.com/apikey')
 })
 
