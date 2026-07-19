@@ -46,6 +46,8 @@ children:
         children:
           - type: ComboBox
             name: provider
+            events:
+                change: onProviderChanged
           - type: TextBox
             name: model
             format: string

@@ -7,6 +7,15 @@
 const AREA_ID = 'askllm-question-area';
 const LABEL_TEXT = 'Your question';
 
+// 各 provider 的預設模型(與 R/llm-providers.R 對照表一致)
+const PROVIDER_DEFAULTS = {
+    nim: 'meta/llama-3.1-8b-instruct',
+    gemini: 'gemini-2.0-flash',
+    github: 'openai/gpt-4o-mini',
+    ollama: 'llama3.2',
+    custom: ''
+};
+
 function getOption(ui, name) {
     try {
         let opt = ui[name];
@@ -22,24 +31,30 @@ function getOption(ui, name) {
 // C) 哨兵值定位:只在 Submit 未勾時使用(setValue 會觸發重跑,勾著時可能計費)
 function findQuestionInput(ui, root) {
     let inputs = Array.from(root.querySelectorAll('input'));
+    let result = { input: null, label: null };
 
     // A. Label 錨點
     let all = Array.from(root.querySelectorAll('*'));
     let label = all.find((el) =>
         el.children.length === 0 && el.textContent.trim() === LABEL_TEXT);
     if (label) {
+        result.label = label;
         let after = inputs.find((inp) =>
             label.compareDocumentPosition(inp) & Node.DOCUMENT_POSITION_FOLLOWING);
-        if (after)
-            return after;
+        if (after) {
+            result.input = after;
+            return result;
+        }
     }
 
     // B. 唯一值比對
     let orig = getOption(ui, 'question');
     if (orig !== null && orig !== '') {
         let matches = inputs.filter((i) => i.value === orig);
-        if (matches.length === 1)
-            return matches[0];
+        if (matches.length === 1) {
+            result.input = matches[0];
+            return result;
+        }
     }
 
     // C. 哨兵(僅 Submit 未勾)
@@ -49,12 +64,14 @@ function findQuestionInput(ui, root) {
             ui.question.setValue(SENTINEL);
             let inp = inputs.find((i) => i.value === SENTINEL);
             ui.question.setValue(orig);
-            if (inp)
-                return inp;
+            if (inp) {
+                result.input = inp;
+                return result;
+            }
         } catch (e) { }
     }
 
-    return null;
+    return result;
 }
 
 function buildTextarea(ui, initial) {
@@ -64,16 +81,19 @@ function buildTextarea(ui, initial) {
     ta.value = initial || '';
     ta.placeholder = 'Type your question here / 在此輸入問題(可多行)';
     ta.style.cssText = [
-        'width: 98%',
+        'width: 520px',
+        'max-width: none',
         'box-sizing: border-box',
         'min-height: 6em',
-        'resize: vertical',
+        'resize: both',          // 水平+垂直都可拉伸
         'font: inherit',
         'padding: 6px',
         'margin: 4px 0 8px 0',
         'border: 1px solid #bbb',
         'border-radius: 3px',
-        'display: block'
+        'display: block',
+        'position: relative',
+        'z-index: 5'
     ].join(';');
     let sync = () => {
         try { ui.question.setValue(ta.value); } catch (e) { }
@@ -88,7 +108,8 @@ function init(ui) {
     if (!root || root.querySelector('#' + AREA_ID))
         return;
 
-    let inp = findQuestionInput(ui, root);
+    let found = findQuestionInput(ui, root);
+    let inp = found.input;
     let initial = getOption(ui, 'question');
     if ((initial === null || initial === '') && inp)
         initial = inp.value;
@@ -97,15 +118,37 @@ function init(ui) {
 
     let ta = buildTextarea(ui, initial);
 
-    if (inp) {
+    if (inp)
         inp.style.display = 'none';
+
+    // 放置位置優先序:Label 之後(脫離窄欄位 cell,寬度不受限)→ 原輸入框
+    // 原位 → 面板最上方保底
+    if (found.label) {
+        found.label.insertAdjacentElement('afterend', ta);
+    } else if (inp) {
         inp.insertAdjacentElement('afterend', ta);
     } else {
         root.insertAdjacentElement('afterbegin', ta);
     }
 }
 
+// provider 切換時,若 model 仍是「某個 provider 的預設值」(或空白),
+// 自動帶入新 provider 的預設模型;使用者自訂的 model 值不動。
+function onProviderChanged(ui) {
+    try {
+        let provider = getOption(ui, 'provider');
+        if (provider === null || !(provider in PROVIDER_DEFAULTS))
+            return;
+        let current = getOption(ui, 'model');
+        let known = Object.values(PROVIDER_DEFAULTS);
+        if (current === null || current === '' || known.indexOf(current) >= 0)
+            ui.model.setValue(PROVIDER_DEFAULTS[provider]);
+    } catch (e) { }
+}
+
 module.exports = {
+
+    onProviderChanged,
 
     loaded(ui) {
         // 控制項可能尚未渲染完成,延後一輪事件迴圈再注入
