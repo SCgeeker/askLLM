@@ -1,0 +1,11 @@
+---
+name:  askllm
+title: Ask LLM about your data
+jrs:   '1.1'
+
+items:
+    - name:  text
+      title: Smoke test output
+      type:  Preformatted
+
+...

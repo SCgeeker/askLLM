@@ -1,0 +1,16 @@
+---
+name:  askllm
+title: Ask LLM about your data
+menuGroup: askLLM
+version: '1.0.0'
+jas: '1.2'
+
+options:
+    - name: data
+      type: Data
+
+    - name: run
+      title: 'Run smoke test (calls NVIDIA NIM)'
+      type: Bool
+      default: false
+...
