@@ -4,8 +4,13 @@ Title: Ask LLM about your data
 Version: 1.0.0
 Author: Sau-Chin Chen <pmsp96@gmail.com>
 Maintainer: Sau-Chin Chen <pmsp96@gmail.com>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: Ask a large language model questions about the dataset you
+    have open in jamovi. Select the variables you care about and the module
+    attaches their summary statistics (never the raw rows) to your question,
+    so the answer is grounded in your data. Works with NVIDIA NIM, Google
+    Gemini, GitHub Models, a local Ollama server, or any OpenAI-compatible
+    endpoint. API keys are read from your environment and are never stored
+    in the .omv file.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

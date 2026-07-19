@@ -1,0 +1,58 @@
+# 設定 GitHub Models API 金鑰
+
+## 這是什麼
+
+GitHub Models 讓擁有 GitHub 帳號的使用者以個人存取權杖(Personal Access Token)呼叫多款模型(含 OpenAI GPT 系列)。**有免費用量、不需另外的信用卡**,但需要一個 GitHub 帳號。金鑰經雲端 API 呼叫,問題與資料摘要會傳送到 GitHub/Azure 的伺服器。
+
+## 取得金鑰
+
+1. 前往 <https://github.com/settings/tokens>(需先登入 GitHub 帳號)。
+2. 建立一個新的 Personal Access Token(Fine-grained 或 Classic 皆可;確保權杖具備存取 GitHub Models 的權限)。
+3. 複製產生的權杖(僅顯示一次,請立即保存)。
+
+## 設定金鑰
+
+askLLM 依序嘗試環境變數 **`GITHUB_TOKEN`**、**`GITHUB_PAT`**(有一個即可)。以下擇一方法設定,方法 A 較簡單。
+
+### 方法 A:Windows 環境變數(推薦)
+
+開啟 PowerShell,執行(引號內換成你的權杖):
+
+```powershell
+setx GITHUB_TOKEN "你的權杖"
+```
+
+或由「設定 > 系統 > 關於 > 進階系統設定 > 環境變數」新增使用者變數 `GITHUB_TOKEN`。
+
+> 若你的系統已因其他工具(如 git、gh CLI)設定過 `GITHUB_TOKEN`,askLLM 會直接沿用,不需重複設定。
+
+### 方法 B:寫入 .Renviron 檔案
+
+用純文字編輯器開啟(若不存在則新建)以下其中一個檔案:
+
+- `%USERPROFILE%\.Renviron`
+- `%USERPROFILE%\OneDrive\文件\.Renviron`
+- `%USERPROFILE%\OneDrive\Documents\.Renviron`(視 OneDrive 語系資料夾名稱而定,兩者擇一存在即可)
+
+加入一行:
+
+```
+GITHUB_TOKEN=你的權杖
+```
+
+**設定後,務必完全關閉並重新啟動 jamovi,新的環境變數才會生效。**
+
+## 在 askLLM 中使用
+
+- **Provider** 下拉選單選「GitHub Models」。
+- **Model** 欄位預設為 `openai/gpt-4o-mini`;可依需要更換為 GitHub Models 目錄中其他可用模型名稱。
+
+## 常見問題
+
+| 畫面訊息 | 代表意義 | 處理方式 |
+|---|---|---|
+| 尚未設定 ... 的 API 金鑰 | 找不到 `GITHUB_TOKEN` 或 `GITHUB_PAT` | 依「設定金鑰」重新設定並重啟 jamovi |
+| 金鑰無效或過期,請檢查 .Renviron | 權杖打錯字、已過期或權限不足 | 回 github.com/settings/tokens 重新建立權杖 |
+| 端點或模型名錯誤(model: ...) | Model 欄位打的模型名稱不存在 | 檢查拼字,或改回預設值 |
+| 已達用量上限,稍後再試 | 免費用量用盡或觸發速率限制 | 稍候再試 |
+| 無法連線,請檢查網路 | 網路或防火牆阻擋 | 檢查網路連線,或稍後再試 |

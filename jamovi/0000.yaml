@@ -1,16 +1,19 @@
 ---
-title: What the Package Does (Title Case)
+title: Ask LLM about your data
 name: askLLM
 version: 1.0.0
 jms: '1.0'
 authors:
-  - Who wrote it
-maintainer: The package maintainer <yourself@somewhere.net>
-date: '1970-01-01'
+  - Sau-Chin Chen
+maintainer: Sau-Chin Chen <pmsp96@gmail.com>
+date: '2026-07-20'
 type: R
 description: >-
-  More about what it does (maybe more than one line) Use four spaces when
-  indenting paragraphs within the Description.
+  Ask a large language model questions about the dataset you have open in
+  jamovi. Selected variables' summary statistics (never raw rows) are attached
+  to your question so answers are grounded in your data. Supports NVIDIA NIM,
+  Google Gemini, GitHub Models, local Ollama, and any OpenAI-compatible
+  endpoint.
 analyses:
   - title: Ask LLM about your data
     name: askllm
