@@ -83,6 +83,59 @@ test_that('不存在的 .Renviron 檔案不會造成 readRenviron 出錯', {
     expect_error(load_api_key('ASKLLM_TEST_KEY_NOFILE'), NA)
 })
 
+test_that('第 2 段:Windows 使用者層登錄檔環境變數命中', {
+    withr::local_envvar(ASKLLM_TEST_KEY_RU = NA, USERPROFILE = '', HOME = '')
+    testthat::local_mocked_bindings(
+        .read_registry_env = function(scope) {
+            if (scope == 'user') list(ASKLLM_TEST_KEY_RU = 'sk-registry-user') else NULL
+        })
+    result <- load_api_key('ASKLLM_TEST_KEY_RU')
+    expect_equal(result$key, 'sk-registry-user')
+    expect_equal(result$source, 'registry:user')
+})
+
+test_that('第 3 段:Windows 系統層登錄檔命中(使用者層無值)', {
+    withr::local_envvar(ASKLLM_TEST_KEY_RS = NA, USERPROFILE = '', HOME = '')
+    testthat::local_mocked_bindings(
+        .read_registry_env = function(scope) {
+            if (scope == 'system') list(ASKLLM_TEST_KEY_RS = 'sk-registry-system') else NULL
+        })
+    result <- load_api_key('ASKLLM_TEST_KEY_RS')
+    expect_equal(result$key, 'sk-registry-system')
+    expect_equal(result$source, 'registry:system')
+})
+
+test_that('登錄檔段:多 env_vars 依序取第一個有值者', {
+    withr::local_envvar(ASKLLM_TEST_KEY_RA = NA, ASKLLM_TEST_KEY_RB = NA,
+        USERPROFILE = '', HOME = '')
+    testthat::local_mocked_bindings(
+        .read_registry_env = function(scope) {
+            if (scope == 'user') list(ASKLLM_TEST_KEY_RB = 'sk-rb') else NULL
+        })
+    result <- load_api_key(c('ASKLLM_TEST_KEY_RA', 'ASKLLM_TEST_KEY_RB'))
+    expect_equal(result$key, 'sk-rb')
+    expect_equal(result$source, 'registry:user')
+})
+
+test_that('登錄檔讀取拋錯(如非 Windows)時靜默略過,落到 .Renviron 段', {
+    withr::local_envvar(ASKLLM_TEST_KEY_RF = NA)
+    tmp <- withr::local_tempdir()
+    writeLines('ASKLLM_TEST_KEY_RF=sk-file-after-registry-fail',
+        file.path(tmp, '.Renviron'))
+    withr::local_envvar(USERPROFILE = tmp)
+    testthat::local_mocked_bindings(
+        .read_registry_env = function(scope) stop('registry unavailable'))
+    result <- load_api_key('ASKLLM_TEST_KEY_RF')
+    expect_equal(result$key, 'sk-file-after-registry-fail')
+    expect_equal(result$source, file.path(tmp, '.Renviron'))
+})
+
+test_that('key_setup_text() 以 Windows 環境變數為主要設定方式', {
+    txt <- key_setup_text('nim', 'NVIDIA_API_KEY', 'https://build.nvidia.com')
+    expect_true(grepl('環境變數', txt))
+    expect_true(grepl('setx', txt))
+})
+
 test_that('key_setup_text() 含金鑰申請網址、.Renviron 路徑、重啟提醒等關鍵字', {
     withr::local_envvar(USERPROFILE = 'C:\\Users\\testuser')
     txt <- key_setup_text('nim', 'NVIDIA_API_KEY', 'https://build.nvidia.com')
