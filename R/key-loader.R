@@ -88,11 +88,14 @@ load_api_key <- function(env_vars) {
 #' 產生金鑰申請與設定教學文字(繁體中文)
 #'
 #' @param provider_name provider 顯示名稱
-#' @param env_var 要寫入 .Renviron 的環境變數名稱
+#' @param env_var 要設定的環境變數名稱
 #' @param signup_url 金鑰申請網址
-#' @return 繁體中文教學字串
+#' @param key_example 該 provider 的金鑰格式範例(見 [provider_spec()] 的
+#'   `key_example`);未給時用通用佔位符
+#' @return 中英雙語教學字串(與介面其他引導文字一致)
 #' @export
-key_setup_text <- function(provider_name, env_var, signup_url) {
+key_setup_text <- function(provider_name, env_var, signup_url,
+                           key_example = '<your-api-key>') {
     userprofile <- Sys.getenv('USERPROFILE', unset = '')
     path_root <- file.path(userprofile, '.Renviron')
     path_onedrive_wenjian <- file.path(userprofile, 'OneDrive', '文件', '.Renviron')
@@ -100,27 +103,40 @@ key_setup_text <- function(provider_name, env_var, signup_url) {
 
     paste(
         sprintf('尚未設定 %s 的 API 金鑰。', provider_name),
+        sprintf('No API key configured for %s.', provider_name),
         '',
         sprintf('1. 前往 %s 申請金鑰。', signup_url),
+        sprintf('   Get a key at %s', signup_url),
         '',
-        '2. 設定金鑰(擇一,方法 A 較簡單):',
+        '2. 設定金鑰(兩種方式擇一,方法 A 較簡單)',
+        '   Set the key (either way; Method A is simpler):',
         '',
-        '   方法 A:設定 Windows 環境變數(推薦)',
+        '   方法 A:Windows 環境變數(推薦)',
+        '   Method A: Windows environment variable (recommended)',
         '   開啟 PowerShell,執行(引號內換成你的金鑰):',
-        sprintf('       setx %s "nvapi-xxxxxxxxxxxxxxxxxxxxxxxx"', env_var),
-        '   或由「設定 > 系統 > 關於 > 進階系統設定 > 環境變數」新增',
-        sprintf('   使用者變數 %s。', env_var),
+        '   Run this in PowerShell, with your own key inside the quotes:',
+        sprintf('       setx %s "%s"', env_var, key_example),
+        '   或由「設定 > 系統 > 關於 > 進階系統設定 > 環境變數」新增使用者變數。',
+        '   Or add a user variable via Settings > System > About >',
+        '   Advanced system settings > Environment Variables.',
         '',
         '   方法 B:寫入 .Renviron 檔案',
+        '   Method B: write it into an .Renviron file',
         '   用純文字編輯器開啟(若不存在則新建)以下其中一個檔案:',
+        '   Open (or create) one of these files in a plain-text editor:',
         sprintf('   - %s', path_root),
         sprintf('   - %s', path_onedrive_wenjian),
-        sprintf('   - %s(視 OneDrive 語系資料夾名稱而定)', path_onedrive_documents),
-        '   加入一行:',
-        sprintf('       %s=nvapi-xxxxxxxxxxxxxxxxxxxxxxxx', env_var),
+        sprintf('   - %s', path_onedrive_documents),
+        '   (視 OneDrive 語系資料夾名稱而定 / depending on your OneDrive folder name)',
+        '   加入一行 / Add one line:',
+        sprintf('       %s=%s', env_var, key_example),
         '',
         '3. 設定後,完全關閉並重啟 jamovi 才會生效。',
+        '   Fully quit and restart jamovi for the change to take effect.',
         '',
-        '隱私提醒:金鑰只會存在你的本機(環境變數或檔案),不會被上傳或分享。',
+        '隱私提醒:金鑰只會存在你的本機(環境變數或檔案),',
+        '不會被上傳、分享,也不會寫入 .omv 檔。',
+        'Privacy: the key stays on your machine (environment variable or file).',
+        'It is never uploaded, shared, or saved into the .omv file.',
         sep = '\n')
 }

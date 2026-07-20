@@ -5,7 +5,7 @@
 #'
 #' @param name provider 名稱:'nim'、'gemini'、'github'、'ollama'、'custom'
 #' @param base_url_option custom provider 專用的 base URL(來自 baseUrl 選項)
-#' @return list(base_url, env_vars, needs_key, default_model, signup_url);
+#' @return list(base_url, env_vars, needs_key, default_model, signup_url, key_example);
 #'   custom 缺 base_url_option 時多帶 error 欄位
 #' @export
 provider_spec <- function(name, base_url_option = '') {
@@ -16,7 +16,8 @@ provider_spec <- function(name, base_url_option = '') {
             env_vars = 'NVIDIA_API_KEY',
             needs_key = TRUE,
             default_model = 'meta/llama-3.1-8b-instruct',
-            signup_url = 'https://build.nvidia.com'))
+            signup_url = 'https://build.nvidia.com',
+            key_example = 'nvapi-xxxxxxxxxxxxxxxxxxxxxxxx'))
     }
 
     if (name == 'gemini') {
@@ -25,7 +26,8 @@ provider_spec <- function(name, base_url_option = '') {
             env_vars = c('GEMINI_API_KEY', 'GOOGLE_API_KEY'),
             needs_key = TRUE,
             default_model = 'gemini-flash-latest',
-            signup_url = 'https://aistudio.google.com/apikey'))
+            signup_url = 'https://aistudio.google.com/apikey',
+            key_example = 'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXX'))
     }
 
     if (name == 'github') {
@@ -34,7 +36,8 @@ provider_spec <- function(name, base_url_option = '') {
             env_vars = c('GITHUB_TOKEN', 'GITHUB_PAT'),
             needs_key = TRUE,
             default_model = 'openai/gpt-4o-mini',
-            signup_url = 'https://github.com/settings/tokens'))
+            signup_url = 'https://github.com/settings/tokens',
+            key_example = 'ghp_xxxxxxxxxxxxxxxxxxxxxxxx'))
     }
 
     if (name == 'ollama') {
@@ -43,7 +46,8 @@ provider_spec <- function(name, base_url_option = '') {
             env_vars = character(0),
             needs_key = FALSE,
             default_model = 'llama3.2',
-            signup_url = 'https://ollama.com'))
+            signup_url = 'https://ollama.com',
+            key_example = '(not required)'))
     }
 
     if (name == 'custom') {
@@ -54,6 +58,7 @@ provider_spec <- function(name, base_url_option = '') {
                 needs_key = TRUE,
                 default_model = '',
                 signup_url = '',
+            key_example = '<your-api-key>',
                 error = 'custom provider 需要填寫 baseUrl 選項'))
         }
         return(list(
@@ -61,7 +66,8 @@ provider_spec <- function(name, base_url_option = '') {
             env_vars = 'LLM_API_KEY',
             needs_key = TRUE,
             default_model = '',
-            signup_url = ''))
+            signup_url = '',
+            key_example = '<your-api-key>'))
     }
 
     stop(sprintf("provider_spec(): unknown provider name '%s'", name))

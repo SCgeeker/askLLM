@@ -144,8 +144,25 @@ test_that('key_setup_text() 含金鑰申請網址、.Renviron 路徑、重啟提
     expect_true(grepl('https://build.nvidia.com', txt, fixed = TRUE))
     expect_true(grepl('.Renviron', txt, fixed = TRUE))
     expect_true(grepl('NVIDIA_API_KEY', txt, fixed = TRUE))
-    expect_true(grepl('nvapi-', txt, fixed = TRUE))
+    expect_true(grepl('your-api-key', txt, fixed = TRUE))  # 未給範例時用通用佔位
     expect_true(grepl('C:\\Users\\testuser', txt, fixed = TRUE))
     expect_true(grepl('重啟', txt))  # 重啟
     expect_true(grepl('本機', txt))  # 本機(隱私提醒)
+})
+
+test_that('key_setup_text() 為中英雙語(與介面其他文字一致)', {
+    txt <- key_setup_text('NVIDIA NIM', 'NVIDIA_API_KEY',
+        'https://build.nvidia.com', 'nvapi-xxxxxxxx')
+    expect_true(grepl('環境變數', txt))
+    expect_true(grepl('environment variable', txt, ignore.case = TRUE))
+    expect_true(grepl('PowerShell', txt, fixed = TRUE))
+    expect_true(grepl('restart jamovi', txt, ignore.case = TRUE))
+    expect_true(grepl('Privacy', txt, ignore.case = TRUE))
+})
+
+test_that('key_setup_text() 使用傳入的金鑰範例,不寫死 NVIDIA 前綴', {
+    txt <- key_setup_text('GitHub Models', 'GITHUB_TOKEN',
+        'https://github.com/settings/tokens', 'ghp_xxxxxxxxxxxx')
+    expect_true(grepl('ghp_xxxxxxxxxxxx', txt, fixed = TRUE))
+    expect_false(grepl('nvapi-', txt, fixed = TRUE))
 })

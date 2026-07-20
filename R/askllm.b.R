@@ -189,7 +189,8 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                     self$results$instructions$setContent(key_setup_text(
                         .askllm_provider_name(opt$provider),
                         spec$env_vars[1],
-                        spec$signup_url))
+                        spec$signup_url,
+                        spec$key_example %||% '<your-api-key>'))
                     return()
                 }
                 api_key <- kv$key
