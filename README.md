@@ -6,9 +6,26 @@ Select the variables you care about, type a question in plain English (or Chines
 
 [中文版 README](README.zh-TW.md)
 
-## Screenshot
+## Screenshots
 
-_Screenshot placeholder — to be added at `docs/img/`._
+![Pick variables, ask a question, and the LLM answers about your dataset — with concrete jamovi menu paths](docs/img/hero.en.png)
+
+<details>
+<summary>More screens</summary>
+
+**Guidance and privacy notice when the analysis opens**
+
+![Three-step guidance and privacy notice](docs/img/guide.en.png)
+
+**Waiting state after you submit**
+
+![Waiting for a response from the LLM](docs/img/waiting.en.png)
+
+**Key setup instructions when no API key is configured (bilingual)**
+
+![API key setup instructions](docs/img/key-setup.en.png)
+
+</details>
 
 ## Installation
 

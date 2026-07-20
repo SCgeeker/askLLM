@@ -8,7 +8,24 @@
 
 ## 螢幕截圖
 
-_截圖待補——將放置於 `docs/img/`。_
+![勾選變項、輸入問題,LLM 針對你的資料回答,並給出具體的 jamovi 選單路徑](docs/img/hero.zh-TW.png)
+
+<details>
+<summary>更多畫面</summary>
+
+**開啟分析時的引導與隱私提醒**
+
+![三步驟教學與隱私提醒](docs/img/guide.zh-TW.png)
+
+**送出後的等待狀態**
+
+![正在等候 LLM 回覆](docs/img/waiting.zh-TW.png)
+
+**尚未設定金鑰時的教學畫面(中英雙語)**
+
+![金鑰設定教學](docs/img/key-setup.zh-TW.png)
+
+</details>
 
 ## 安裝方式
 
