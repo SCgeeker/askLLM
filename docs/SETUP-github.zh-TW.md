@@ -17,19 +17,28 @@ GitHub Models 讓擁有 GitHub 帳號的使用者以個人存取權杖(Personal 
 
 ## 設定金鑰
 
-askLLM 依序嘗試環境變數 **`GITHUB_TOKEN`**、**`GITHUB_PAT`**(有一個即可)。以下擇一方法設定,方法 A 較簡單。
+askLLM 依序嘗試環境變數 **`GITHUB_MODELS_TOKEN`** → **`GITHUB_PAT`** → **`GITHUB_TOKEN`**(有一個即可)。
+
+> ⚠️ **請用 `GITHUB_MODELS_TOKEN`,不要用 `GITHUB_TOKEN`。**
+> `GITHUB_TOKEN` 是 git 與 GitHub CLI(`gh`)會優先讀取的變數名。若你把「只有 Models 權限」的權杖設在這個名稱下,你自己的 `git push`、`gh` 指令會改用這顆權杖而被拒絕(`Permission to ... denied`)。用專用名稱可完全避開這個衝突。
+>
+> 已經設成 `GITHUB_TOKEN` 了?改名即可:
+> ```powershell
+> setx GITHUB_MODELS_TOKEN "你的權杖"
+> reg delete "HKCU\Environment" /v GITHUB_TOKEN /f
+> ```
+
+以下擇一方法設定,方法 A 較簡單。
 
 ### 方法 A:Windows 環境變數(推薦)
 
 開啟 PowerShell,執行(引號內換成你的權杖):
 
 ```powershell
-setx GITHUB_TOKEN "你的權杖"
+setx GITHUB_MODELS_TOKEN "你的權杖"
 ```
 
-或由「設定 > 系統 > 關於 > 進階系統設定 > 環境變數」新增使用者變數 `GITHUB_TOKEN`。
-
-> 若你的系統已因其他工具(如 git、gh CLI)設定過 `GITHUB_TOKEN`,askLLM 會直接沿用,不需重複設定。
+或由「設定 > 系統 > 關於 > 進階系統設定 > 環境變數」新增使用者變數 `GITHUB_MODELS_TOKEN`。
 
 ### 方法 B:寫入 .Renviron 檔案
 
@@ -42,7 +51,7 @@ setx GITHUB_TOKEN "你的權杖"
 加入一行:
 
 ```
-GITHUB_TOKEN=你的權杖
+GITHUB_MODELS_TOKEN=你的權杖
 ```
 
 **設定後,務必完全關閉並重新啟動 jamovi,新的環境變數才會生效。**
@@ -56,7 +65,7 @@ GITHUB_TOKEN=你的權杖
 
 | 畫面訊息 | 代表意義 | 處理方式 |
 |---|---|---|
-| 尚未設定 ... 的 API 金鑰 | 找不到 `GITHUB_TOKEN` 或 `GITHUB_PAT` | 依「設定金鑰」重新設定並重啟 jamovi |
+| 尚未設定 ... 的 API 金鑰 | 找不到 `GITHUB_MODELS_TOKEN`、`GITHUB_PAT` 或 `GITHUB_TOKEN` | 依「設定金鑰」重新設定並重啟 jamovi |
 | 金鑰有效,但沒有使用此模型的權限 | 權杖缺少 Models 權限(最常見) | 編輯權杖,在 Account permissions 加上 Models(Read-only) |
 | 金鑰無效或過期 | 權杖打錯字或已過期 | 回 github.com/settings/tokens 重新建立權杖 |
 | 端點或模型名錯誤(model: ...) | Model 欄位打的模型名稱不存在 | 檢查拼字,或改回預設值 |

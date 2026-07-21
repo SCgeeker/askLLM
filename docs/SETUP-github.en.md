@@ -17,19 +17,28 @@ GitHub Models lets anyone with a GitHub account call a range of models (includin
 
 ## Set the key
 
-askLLM tries the environment variables **`GITHUB_TOKEN`** then **`GITHUB_PAT`**, in that order (either one is enough). Pick one method below — Method A is simpler.
+askLLM tries **`GITHUB_MODELS_TOKEN`** → **`GITHUB_PAT`** → **`GITHUB_TOKEN`**, in that order (any one is enough).
+
+> ⚠️ **Use `GITHUB_MODELS_TOKEN`, not `GITHUB_TOKEN`.**
+> `GITHUB_TOKEN` is the variable git and the GitHub CLI (`gh`) read first. If you store a Models-only token under that name, your own `git push` and `gh` commands will start using it and get rejected (`Permission to ... denied`). A dedicated name avoids the clash entirely.
+>
+> Already set it as `GITHUB_TOKEN`? Rename it:
+> ```powershell
+> setx GITHUB_MODELS_TOKEN "your-token-here"
+> reg delete "HKCU\Environment" /v GITHUB_TOKEN /f
+> ```
+
+Pick one method below — Method A is simpler.
 
 ### Method A: Windows environment variable (recommended)
 
 Open PowerShell and run (replace the quoted text with your token):
 
 ```powershell
-setx GITHUB_TOKEN "your-token-here"
+setx GITHUB_MODELS_TOKEN "your-token-here"
 ```
 
-Or add a user variable `GITHUB_TOKEN` via "Settings > System > About > Advanced system settings > Environment Variables".
-
-> If `GITHUB_TOKEN` is already set by another tool (e.g. git, gh CLI), askLLM will reuse it — no need to set it again.
+Or add a user variable `GITHUB_MODELS_TOKEN` via "Settings > System > About > Advanced system settings > Environment Variables".
 
 ### Method B: write it to a .Renviron file
 
@@ -42,7 +51,7 @@ Open (create if missing) one of the following files in a plain-text editor:
 Add a line:
 
 ```
-GITHUB_TOKEN=your-token-here
+GITHUB_MODELS_TOKEN=your-token-here
 ```
 
 **After setting the key, fully quit and restart jamovi** for the new environment variable to take effect.
@@ -56,7 +65,7 @@ GITHUB_TOKEN=your-token-here
 
 | Message shown | Meaning | What to do |
 |---|---|---|
-| API key not yet set for ... | Neither `GITHUB_TOKEN` nor `GITHUB_PAT` was found | Follow "Set the key" above and restart jamovi |
+| API key not yet set for ... | None of `GITHUB_MODELS_TOKEN` / `GITHUB_PAT` / `GITHUB_TOKEN` was found | Follow "Set the key" above and restart jamovi |
 | Key is valid but lacks permission for this model | Token is missing the Models permission (most common) | Edit the token and add Models (Read-only) under Account permissions |
 | Invalid or expired key | Token mistyped or expired | Create a new token at github.com/settings/tokens |
 | Wrong endpoint or model name (model: ...) | The Model field names a model that doesn't exist | Check spelling, or revert to the default |

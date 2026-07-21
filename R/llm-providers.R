@@ -33,11 +33,15 @@ provider_spec <- function(name, base_url_option = '') {
     if (name == 'github') {
         return(list(
             base_url = 'https://models.github.ai/inference',
-            env_vars = c('GITHUB_TOKEN', 'GITHUB_PAT'),
+            # GITHUB_MODELS_TOKEN 排第一是刻意的:gh CLI 與 git credential
+            # helper 會優先讀 GITHUB_TOKEN,若使用者把「只有 Models 權限」的
+            # token 設在該變數,自己的 git push / gh 操作會被 403 擋下。
+            # 專用名稱不與任何工具相撞;後兩者保留與既有設定的相容性。
+            env_vars = c('GITHUB_MODELS_TOKEN', 'GITHUB_PAT', 'GITHUB_TOKEN'),
             needs_key = TRUE,
             default_model = 'openai/gpt-4o-mini',
             signup_url = 'https://github.com/settings/tokens',
-            key_example = 'ghp_xxxxxxxxxxxxxxxxxxxxxxxx'))
+            key_example = 'github_pat_xxxxxxxxxxxxxxxxxxxxxxxx'))
     }
 
     if (name == 'ollama') {

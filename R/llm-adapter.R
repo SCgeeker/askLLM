@@ -81,7 +81,9 @@ translate_error <- function(msg, model) {
     if (grepl('403|forbidden|no_access|permission|not authorized|access denied', lower)) {
         friendly <- paste0(
             '金鑰有效,但沒有使用此模型的權限(model: ', model, ')。',
-            'GitHub Models 請確認 token 已勾選 Models 權限;',
+            'GitHub Models:到 github.com/settings/tokens 開啟該 token,',
+            '在「Account permissions」(不是 Repository permissions)加入 ',
+            'Models = Read-only,再按 Update,然後重啟 jamovi;',
             '其他服務請確認帳號已開通此模型')
     } else if (grepl('401|unauthor|invalid.*(api.?)?key|incorrect api key', lower)) {
         friendly <- '金鑰無效或過期,請檢查環境變數或 .Renviron 設定'
