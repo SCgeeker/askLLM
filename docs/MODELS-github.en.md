@@ -30,9 +30,9 @@ Limits depend on the model's **tier**, not its size:
 | `mistral-ai/ministral-3b` | Mistral AI | Very small, speed first |
 | `mistral-ai/codestral-2501` | Mistral AI | Code-oriented |
 | `cohere/cohere-command-a` | Cohere | General purpose |
-| `meta/meta-llama-3.1-8b-instruct` | Meta | Lightweight open model |
+| `meta/meta-llama-3.1-8b-instruct` | Meta | ⚠ Listed in the catalog but returns 400 `Unknown model` (tested 2026-07-21) |
 | `meta/llama-3.2-11b-vision-instruct` | Meta | Accepts image input |
-| `microsoft/phi-4` | Microsoft | Small but strong at reasoning |
+| `microsoft/phi-4` | Microsoft | Strong reasoning, but **measured at 5 minutes per reply** — unsuitable for live demos |
 | `microsoft/phi-4-mini-instruct` | Microsoft | Lighter still |
 | `microsoft/phi-4-mini-reasoning` | Microsoft | Reasoning-oriented |
 | `microsoft/phi-4-reasoning` | Microsoft | Reasoning-oriented |
@@ -66,7 +66,7 @@ The repo ships a comparison script that puts the same dataset and question throu
 source('tools/compare-models.R')
 compare_models(
     models = c('openai/gpt-4o-mini', 'openai/gpt-4.1-mini',
-               'microsoft/phi-4', 'meta/meta-llama-3.1-8b-instruct'),
+               'openai/gpt-4.1', 'mistral-ai/mistral-medium-2505'),
     provider = 'github')
 ```
 

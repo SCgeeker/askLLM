@@ -66,6 +66,12 @@ A GitHub account alone unlocks **35 free models** (OpenAI, Meta Llama, Microsoft
 
 To compare how different models answer the same question about the same data, use [`tools/compare-models.R`](tools/compare-models.R): it runs several models in a row and writes a side-by-side report on accuracy and completeness.
 
+## Limitations
+
+**LLMs produce confident-sounding content that is wrong.** In testing, every model got jamovi **menu paths** wrong at least once — including menus that do not exist in jamovi at all — while the statistical suggestions themselves were broadly sensible. Treat answers as a starting point for brainstorming and verify paths against the actual jamovi interface.
+
+Full test notes and teaching suggestions: **[Limitations and usage advice](docs/LIMITATIONS.en.md)**.
+
 ## Privacy
 
 - What is sent to the LLM is **summary statistics of the variables you selected** (counts, means, SDs, factor level frequencies, etc.) — **never the raw data rows**.

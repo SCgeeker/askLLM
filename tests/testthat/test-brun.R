@@ -98,3 +98,15 @@ test_that('waiting_text 含 provider 顯示名稱與模型名,並標明等候中
 test_that('waiting_text 對空模型名不炸', {
     expect_error(.askllm_waiting_text('Ollama (local)', ''), NA)
 })
+
+# ---- .askllm_caveat_text:回覆成功後顯示的查證提醒 -------------------------
+
+test_that('caveat_text 提醒使用者查證,且中英雙語', {
+    txt <- .askllm_caveat_text()
+    expect_true(is.character(txt))
+    expect_length(txt, 1)
+    expect_true(grepl('查證|核對', txt))
+    expect_true(grepl('選單路徑', txt))          # 實測最常出錯之處
+    expect_true(grepl('verify', txt, ignore.case = TRUE))
+    expect_true(grepl('menu path', txt, ignore.case = TRUE))
+})
