@@ -7,8 +7,13 @@ GitHub Models 讓擁有 GitHub 帳號的使用者以個人存取權杖(Personal 
 ## 取得金鑰
 
 1. 前往 <https://github.com/settings/tokens>(需先登入 GitHub 帳號)。
-2. 建立一個新的 Personal Access Token(Fine-grained 或 Classic 皆可;確保權杖具備存取 GitHub Models 的權限)。
-3. 複製產生的權杖(僅顯示一次,請立即保存)。
+2. 建立一個新的 Personal Access Token。
+3. ⚠️ **務必勾選 Models 權限**——這是最常見的失敗原因:
+   - **Fine-grained token**(`github_pat_...`):在 **Account permissions** 區塊找到 **Models**,設為 **Read-only**。沒有這一步,權杖雖然能通過認證、也查得到模型清單,但實際呼叫會回 **HTTP 403 `no_access`**。
+   - **Classic token**(`ghp_...`):勾選 `read:user`(GitHub Models 目前以此判定存取權)。
+4. 複製產生的權杖(僅顯示一次,請立即保存)。
+
+> 已經建好但忘了勾權限?回到權杖頁面點該權杖 → 編輯權限 → 加上 Models(Read-only)→ 儲存,不必重新產生。
 
 ## 設定金鑰
 
@@ -52,7 +57,8 @@ GITHUB_TOKEN=你的權杖
 | 畫面訊息 | 代表意義 | 處理方式 |
 |---|---|---|
 | 尚未設定 ... 的 API 金鑰 | 找不到 `GITHUB_TOKEN` 或 `GITHUB_PAT` | 依「設定金鑰」重新設定並重啟 jamovi |
-| 金鑰無效或過期,請檢查 .Renviron | 權杖打錯字、已過期或權限不足 | 回 github.com/settings/tokens 重新建立權杖 |
+| 金鑰有效,但沒有使用此模型的權限 | 權杖缺少 Models 權限(最常見) | 編輯權杖,在 Account permissions 加上 Models(Read-only) |
+| 金鑰無效或過期 | 權杖打錯字或已過期 | 回 github.com/settings/tokens 重新建立權杖 |
 | 端點或模型名錯誤(model: ...) | Model 欄位打的模型名稱不存在 | 檢查拼字,或改回預設值 |
 | 已達用量上限,稍後再試 | 免費用量用盡或觸發速率限制 | 稍候再試 |
 | 無法連線,請檢查網路 | 網路或防火牆阻擋 | 檢查網路連線,或稍後再試 |

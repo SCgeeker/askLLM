@@ -7,8 +7,13 @@ GitHub Models lets anyone with a GitHub account call a range of models (includin
 ## Get a key
 
 1. Go to <https://github.com/settings/tokens> (sign in to GitHub first).
-2. Create a new Personal Access Token (Fine-grained or Classic both work; make sure it has access to GitHub Models).
-3. Copy the generated token immediately — it is shown only once.
+2. Create a new Personal Access Token.
+3. ⚠️ **Grant the Models permission** — this is the most common cause of failure:
+   - **Fine-grained token** (`github_pat_...`): under **Account permissions**, find **Models** and set it to **Read-only**. Without this the token authenticates and can even list the model catalog, but every inference call returns **HTTP 403 `no_access`**.
+   - **Classic token** (`ghp_...`): tick `read:user` (GitHub Models currently keys access off that scope).
+4. Copy the generated token immediately — it is shown only once.
+
+> Already created a token without the permission? Open it from the token page, edit permissions, add Models (Read-only), and save — no need to generate a new one.
 
 ## Set the key
 
@@ -52,7 +57,8 @@ GITHUB_TOKEN=your-token-here
 | Message shown | Meaning | What to do |
 |---|---|---|
 | API key not yet set for ... | Neither `GITHUB_TOKEN` nor `GITHUB_PAT` was found | Follow "Set the key" above and restart jamovi |
-| Invalid or expired key, please check .Renviron | Token is mistyped, expired, or lacks permission | Create a new token at github.com/settings/tokens |
+| Key is valid but lacks permission for this model | Token is missing the Models permission (most common) | Edit the token and add Models (Read-only) under Account permissions |
+| Invalid or expired key | Token mistyped or expired | Create a new token at github.com/settings/tokens |
 | Wrong endpoint or model name (model: ...) | The Model field names a model that doesn't exist | Check spelling, or revert to the default |
 | Usage limit reached, try again later | Free quota exhausted or rate-limited | Wait and retry |
 | Could not connect, please check your network | Network or firewall is blocking the request | Check your connection and retry |

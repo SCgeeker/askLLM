@@ -75,8 +75,16 @@ build_prompt <- function(question, summary_text = NULL) {
 translate_error <- function(msg, model) {
     lower <- tolower(msg)
 
-    if (grepl('401|403|unauthor|forbidden|invalid.*(api.?)?key|incorrect api key', lower)) {
-        friendly <- '金鑰無效或過期,請檢查 .Renviron'
+    # 403 與 401 意義不同:401 是金鑰本身不被接受;403 是金鑰有效但缺少
+    # 使用該模型/端點的權限(如 GitHub fine-grained token 未勾 Models 權限)。
+    # 混為一談會讓使用者一直去檢查金鑰,卻找不到真正原因。
+    if (grepl('403|forbidden|no_access|permission|not authorized|access denied', lower)) {
+        friendly <- paste0(
+            '金鑰有效,但沒有使用此模型的權限(model: ', model, ')。',
+            'GitHub Models 請確認 token 已勾選 Models 權限;',
+            '其他服務請確認帳號已開通此模型')
+    } else if (grepl('401|unauthor|invalid.*(api.?)?key|incorrect api key', lower)) {
+        friendly <- '金鑰無效或過期,請檢查環境變數或 .Renviron 設定'
     } else if (grepl('404|not found', lower)) {
         friendly <- paste0('端點或模型名錯誤(model: ', model, ')')
     } else if (grepl('429|rate.?limit|quota|too many request', lower)) {
