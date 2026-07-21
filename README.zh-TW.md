@@ -62,6 +62,10 @@
 | Ollama(本機) | 完全免費,無需金鑰 | 你的電腦 | [SETUP-ollama.zh-TW.md](docs/SETUP-ollama.zh-TW.md) |
 | Custom(自訂端點) | 視端點而定 | 自訂 | [SETUP-custom.zh-TW.md](docs/SETUP-custom.zh-TW.md) |
 
+只要有 GitHub 帳號就能免費使用 **35 個模型**(OpenAI、Meta Llama、Microsoft Phi、Mistral、DeepSeek、Cohere)——完整清單、免費額度與挑選建議見 **[GitHub Models 模型清單](docs/MODELS-github.zh-TW.md)**。
+
+想比較不同模型回答的準確性與完整性,可用 [`tools/compare-models.R`](tools/compare-models.R):同一份資料與問題連續問多個模型,產出並排報告。
+
 ## 隱私聲明
 
 - 送出給 LLM 的是**你所選變項的摘要統計**(如筆數、平均數、標準差、類別變項各水準次數等),**不是原始資料列**。

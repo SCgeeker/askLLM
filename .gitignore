@@ -62,3 +62,6 @@ tests/testthat/Rplots.pdf
 
 
 # dist: keep the READMEs, ignore built modules (already covered by *.jmo)
+
+# 模型比較報告(本機測試產物)
+dev-notes/model-comparison-*.md
