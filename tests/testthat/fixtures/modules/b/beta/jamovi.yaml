@@ -1,0 +1,6 @@
+name: beta
+title: Beta Module
+analyses:
+  - name: betaOne
+    menuGroup: Beta
+    menuTitle: Beta One

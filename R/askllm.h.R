@@ -9,6 +9,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             vars = NULL,
             question = "",
             includeSummary = TRUE,
+            includeCatalog = TRUE,
             submit = FALSE,
             provider = "nim",
             model = "meta/llama-3.1-8b-instruct",
@@ -38,6 +39,10 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..includeSummary <- jmvcore::OptionBool$new(
                 "includeSummary",
                 includeSummary,
+                default=TRUE)
+            private$..includeCatalog <- jmvcore::OptionBool$new(
+                "includeCatalog",
+                includeCatalog,
                 default=TRUE)
             private$..submit <- jmvcore::OptionBool$new(
                 "submit",
@@ -71,6 +76,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..vars)
             self$.addOption(private$..question)
             self$.addOption(private$..includeSummary)
+            self$.addOption(private$..includeCatalog)
             self$.addOption(private$..submit)
             self$.addOption(private$..provider)
             self$.addOption(private$..model)
@@ -81,6 +87,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         vars = function() private$..vars$value,
         question = function() private$..question$value,
         includeSummary = function() private$..includeSummary$value,
+        includeCatalog = function() private$..includeCatalog$value,
         submit = function() private$..submit$value,
         provider = function() private$..provider$value,
         model = function() private$..model$value,
@@ -90,6 +97,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..vars = NA,
         ..question = NA,
         ..includeSummary = NA,
+        ..includeCatalog = NA,
         ..submit = NA,
         ..provider = NA,
         ..model = NA,
@@ -155,6 +163,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param vars .
 #' @param question .
 #' @param includeSummary .
+#' @param includeCatalog .
 #' @param submit .
 #' @param provider .
 #' @param model .
@@ -173,6 +182,7 @@ askllm <- function(
     vars,
     question = "",
     includeSummary = TRUE,
+    includeCatalog = TRUE,
     submit = FALSE,
     provider = "nim",
     model = "meta/llama-3.1-8b-instruct",
@@ -193,6 +203,7 @@ askllm <- function(
         vars = vars,
         question = question,
         includeSummary = includeSummary,
+        includeCatalog = includeCatalog,
         submit = submit,
         provider = provider,
         model = model,

@@ -1,0 +1,15 @@
+source_url: https://example.com/modules.yaml
+retrieved_date: '2026-01-01'
+modules:
+  - name: Alpha
+    title: Alpha Title
+    provides: Alpha provides descriptive statistics.
+    tags: [descriptives]
+  - name: Beta
+    title: Beta Title
+    provides: Beta provides regression tools.
+    tags: [regression]
+  - name: Gamma
+    title: Gamma Title
+    provides: Gamma provides classification tools.
+    tags: [classification]

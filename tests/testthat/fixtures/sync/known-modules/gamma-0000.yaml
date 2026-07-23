@@ -1,0 +1,6 @@
+title: Gamma Module
+name: gamma
+analyses:
+  - name: g1
+    menuGroup: Exploration
+    menuTitle: Gamma Thing

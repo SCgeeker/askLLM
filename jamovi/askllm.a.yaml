@@ -30,6 +30,11 @@ options:
       type: Bool
       default: true
 
+    - name: includeCatalog
+      title: Include installed modules
+      type: Bool
+      default: true
+
     - name: submit
       title: 'Submit (call the LLM)'
       type: Bool

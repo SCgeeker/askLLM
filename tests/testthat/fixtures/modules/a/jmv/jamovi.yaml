@@ -1,0 +1,6 @@
+name: jmv
+title: jamovi
+analyses:
+  - name: jmvDescriptives
+    menuGroup: Exploration
+    menuTitle: Descriptives

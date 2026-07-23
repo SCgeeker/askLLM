@@ -99,6 +99,46 @@ PLATFORM_TAG  <- 'win64'
     fresh[order(file.info(fresh)$mtime, decreasing = TRUE)][1]
 }
 
+# ---- known-modules.yaml 新鮮度(提醒閘,不是硬閘;永不 stop()) --------------
+#
+# inst/catalog/known-modules.yaml 是 tools/sync-known-modules.R 抓取官方
+# jamovi library 產生的快照,會隨上游更新而過時。此檢查只提醒重跑同步腳本,
+# 從不阻擋發佈。規格依據:specs/v1.1-module-aware.zh-TW.md §4.5。
+
+check_known_modules_freshness <- function(path = 'inst/catalog/known-modules.yaml',
+                                          today = Sys.Date(), threshold_days = 60) {
+    warn_line <- function(detail) {
+        msg <- sprintf('WARN: %s -- run tools/sync-known-modules.R (sync-known-modules) to refresh',
+                       detail)
+        cat(msg, '\n', sep = '')
+        invisible(msg)
+    }
+
+    if (!file.exists(path))
+        return(warn_line(sprintf('known-modules.yaml not found (%s)', path)))
+
+    doc <- tryCatch(yaml::read_yaml(path), error = function(e) NULL)
+    rd <- if (!is.null(doc)) doc$retrieved_date else NULL
+    d <- if (!is.null(rd))
+        suppressWarnings(tryCatch(as.Date(as.character(rd)), error = function(e) NA))
+    else
+        NA
+
+    if (is.null(doc) || is.null(rd) || is.na(d))
+        return(warn_line(sprintf(
+            'known-modules.yaml retrieved_date unreadable (%s)', path)))
+
+    age <- as.integer(as.Date(today) - d)
+    if (age > threshold_days)
+        return(warn_line(sprintf(
+            'known-modules.yaml is %d days old (> %d)', age, threshold_days)))
+
+    msg <- sprintf('OK: known-modules.yaml retrieved %d day(s) ago (<= %d)',
+                   age, threshold_days)
+    cat(msg, '\n', sep = '')
+    invisible(msg)
+}
+
 # ---- 主流程 -----------------------------------------------------------------
 
 release_check <- function(root = getwd(),

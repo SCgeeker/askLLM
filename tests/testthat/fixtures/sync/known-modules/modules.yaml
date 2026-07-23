@@ -1,0 +1,11 @@
+modules:
+    - name: alpha
+      url: https://github.com/testowner/alpha.git
+      commit: aaa1111
+    - name: beta
+      url: https://github.com/testowner/beta.git
+      commit: bbb2222
+      hidden: true
+    - name: gamma
+      url: https://github.com/testowner/gamma.git
+      commit: ccc3333

@@ -36,6 +36,8 @@ children:
       - type: CheckBox
         name: includeSummary
       - type: CheckBox
+        name: includeCatalog
+      - type: CheckBox
         name: submit
   - type: CollapseBox
     label: LLM settings

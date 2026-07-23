@@ -1,0 +1,4 @@
+name: badmod
+title: [unterminated flow sequence
+analyses:
+  - name: brokenOne

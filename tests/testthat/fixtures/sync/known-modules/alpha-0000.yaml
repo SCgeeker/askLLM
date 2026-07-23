@@ -1,0 +1,11 @@
+title: Alpha Module
+name: alpha
+description: "Alpha module does <b>alpha</b>   things.    It also does more stuff that should be cut off after the first sentence."
+analyses:
+  - name: a1
+    menuGroup: Regression
+    menuTitle: Alpha Analysis
+  - name: a2
+    menuGroup: regression
+    menuTitle: Alpha Analysis Two
+    hidden: true

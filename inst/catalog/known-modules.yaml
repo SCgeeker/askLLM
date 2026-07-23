@@ -1,0 +1,176 @@
+source_url: https://raw.githubusercontent.com/jonathon-love/jamovi-library/master/modules.yaml
+retrieved_date: '2026-07-23'
+modules:
+- name: ClinicoPathDescriptives
+  title: Descriptives Functions for Clinicopathological Research
+  provides: Descriptives Functions for Clinicopathological Research Descriptive functions
+    from ClinicoPath jamovi module.
+  tags: exploration
+- name: MAJOR
+  title: Meta-Analysis for JAMOVI
+  provides: An interface for Jamovi and the R package Metafor
+  tags: major
+- name: MEDA
+  title: Multivariate Exploratory Data Analysis
+  provides: This module allows you to perform multivariate exploratory analyses the
+    French way.
+  tags: meda
+- name: QM
+  title: Analysis of data from Q-methodology
+  provides: This module allows you to analyze Q-methodology data, the French way.
+  tags: qm
+- name: Randomizer
+  title: Randomize common experimental designs
+  provides: Randomize balanced single factor or full factorial experiments using Completely
+    Randomized, Randomized Complete Block, or Latin Square designs.
+  tags: randomizer
+- name: Rj
+  title: Rj - Editor to run R code inside jamovi
+  provides: Provides an editor allowing you to enter R code, and analyse your data
+    using R inside jamovi.
+  tags: r
+- name: SimplyAgree
+  title: Flexible and Robust Agreement and Reliability Analyses
+  provides: Agreement and Reliability Analyses for nested designs.
+  tags: simplyagree
+- name: Statkat
+  title: Statkat - Method Selection Tool
+  provides: This tool will help you to find an appropriate statistical method given
+    your research question and the measurement level of your data.
+  tags: statkat
+- name: TOSTER
+  title: TOSTER
+  provides: Two one-sided tests (TOST) procedures to test equivalence for t-tests
+    and correlations.
+  tags: toster
+- name: blandr
+  title: Bland-Altman Method Comparison
+  provides: This module provides Bland-Altman method comparison analysis, and is also
+    available as an R package from CRAN
+  tags: blandr
+- name: cNORMj
+  title: Continuous Norming
+  provides: Conventional and regression-based continuous norming methods for psychometric,
+    biometric and medical test construction.
+  tags: cnormj
+- name: clt
+  title: Demonstrations
+  provides: 'Simple simulations to help students visualize first lessons in probability:
+    how and when binomial distribution approximates normal and how Law of big numbers
+    a…'
+  tags: demonstrations
+- name: deathwatch
+  title: Death Watch
+  provides: Survival analysis
+  tags: survival
+- name: distrACTION
+  title: distrACTION - Quantiles and Probabilities of Continuous and Discrete Distributions
+  provides: A tool for calculating and plotting the cumulative distribution function
+    (CDF) and the quantile function (Inverse CDF) for a number of discrete and continuous
+    …
+  tags: distraction
+- name: esci
+  title: Effect Sizes and Confidence Intervals for R and Jamovi
+  provides: This module is for estimation, providing analyses that focus on effect
+    sizes, uncertainty, and synthesis.
+  tags: esci
+- name: flexplot
+  title: Flexplot - Graphically Based Data Analysis
+  provides: The flexplot suite is a graphically-based set of tools for doing data
+    analysis.
+  tags: flexplot
+- name: gamlj
+  title: General Analyses for Linear Models in jamovi
+  provides: A suite for estimation of linear models, such as the general linear model,
+    linear mixed model, generalized linear models and generalized mixed models.
+  tags: linear models
+- name: jamm
+  title: Advanced Mediation Models
+  provides: A suite for the estimation of mediational models, including multiple mediators,
+    and conditional mediation
+  tags: medmod
+- name: jjstatsplot
+  title: Wrapper for ggstatsplot
+  provides: 'A wrapper for ggstatsplot: jjstatsplot help researchers to generate plots
+    in jamovi based on ggstatsplot package.'
+  tags: jjstatsplot
+- name: jmvarcade
+  title: jamovi Arcade
+  provides: There's a time for work and there's a time for play.
+  tags: arcade
+- name: jmvbaseR
+  title: Base R
+  provides: A simple module which makes the analyses from the stats package (included
+    with R) useable from jamovi.
+  tags: base r
+- name: jpower
+  title: 'jpower: Power Analysis for Common Research Designs'
+  provides: Power analysis for common research designs
+  tags: jpower
+- name: jsq
+  title: jsq - Bayesian Methods
+  provides: A suite of Bayesian statistical methods, including t-tests, ANOVAs, linear
+    models, and contingency tables.
+  tags:
+  - anova
+  - frequencies
+  - regression
+  - t-tests
+- name: jsurvival
+  title: Survival Module of ClinicoPath for jamovi
+  provides: Analysis for Clinicopathological Research Survival Module of ClinicoPath
+    for jamovi ClinicoPath help researchers to generate natural language summaries
+    of thei…
+  tags: survival
+- name: meddecide
+  title: Functions for Medical Decision in ClinicoPath jamovi Module
+  provides: This module contains functions for interobserver and intraobserver reliability
+    and decision tests (sensitivity, specificity, PPV, NPV).
+  tags: meddecide
+- name: medmod
+  title: medmod
+  provides: This module allows you to do simple mediation and moderation analysis.
+  tags: medmod
+- name: moretests
+  title: moretests - Adds more tests to the jamovi analyses
+  provides: Adds additional normality tests (Kolmogorov-Smirnov and Anderson-Darling)
+    and homogeneity of variances (Bartlett's) to the jamovi t-tests, One-way ANOVA,
+    ANOVA…
+  tags: moretests
+- name: scatr
+  title: scatr
+  provides: Allows you to produce several types of explorative plots such as scatter
+    plots and pareto charts.
+  tags: exploration
+- name: seolmatrix
+  title: Correlations suite for jamovi
+  provides: This module is a tool for calculating correlations such as Pearson, Partial,
+    Tetrachoric, Polychoric, Spearman, Intraclass correlation, Bootstrap agreement,
+    Mu…
+  tags: seolmatrix
+- name: snowCluster
+  title: Cluster Analysis
+  provides: This module allows users to analyze k-means and hierarchical clustering,Correspondence
+    and Multiple Correspondence Analysis, Multiple Factor Analysis, Discrimi…
+  tags: snowcluster
+- name: snowIRT
+  title: Item Response Theory for jamovi
+  provides: This module includes item and person Statistics, Model fit, Differential
+    Item Functioning, Wright Map, Expected Scores Curve,and Item Characteristic Curves
+    for…
+  tags: snowirt
+- name: snowRMM
+  title: Rasch Mixture Model for jamovi
+  provides: This module allows users to conduct Latent class analysis, Rasch model,
+    and Rasch mixture model including model information,fit statistics,and bootstrap
+    fit ba…
+  tags: snowrmm
+- name: surveymv
+  title: Survey Plots
+  provides: Generates summary plots for your survey data.
+  tags: exploration
+- name: walrus
+  title: Walrus - Robust Statistical Methods
+  provides: A toolbox of common robust statistical tests, including robust descriptives,
+    robust t-tests, and robust ANOVA.
+  tags: walrus

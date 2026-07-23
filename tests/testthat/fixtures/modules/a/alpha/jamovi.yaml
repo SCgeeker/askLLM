@@ -1,0 +1,14 @@
+name: alpha
+title: Alpha Module
+analyses:
+  - name: alphaOne
+    menuGroup: Alpha
+    menuSubgroup: Basic
+    menuTitle: Alpha One
+    menuSubtitle: First analysis
+  - name: alphaTwo
+    menuGroup: Alpha
+    menuTitle: Alpha Two
+  - name: alphaHidden
+    menuGroup: hidden
+    menuTitle: Should Not Appear

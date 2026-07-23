@@ -31,3 +31,11 @@ askLLM 暫不納入 jamovi library。明確聲明「not because of anything wron
 - [ ] 回信:致謝、分享 LIMITATIONS 實測、表達願任 security review 測試案例、願參與模組端 API 設計討論
 - [ ] 追蹤 jamovi 對「模組取得分析輸出」的進展(升級 jamovi 版本時檢查 release notes)
 - [ ] README 安裝節維持 sideload 為主,「上架後」措辭不變(仍是計畫)
+
+
+## Human Author responses
+
+- 同意core team的第一點關切，這也是目前開發MCP遇到的限制。所以重心轉向迭代askLLM。
+- 目前的迭代方向是讓askLLM成為駐在jamovi內的統計諮詢員：使用者載入資料，LLM根據提示詞給予適配的統計分析方法建議。如果askLLM能將各筆資料變項描述，以及已上架的模組資訊與使用者的提示詞一起包裝給LLM處理，也許能給予更適合使用者需要的建議。
+- 長期迭代想法(可能之後會改變)：雖然askLLM不能讀取jamovi的Results，askLLM可以幫助模組開發者優化Results的輸出設計，讓使用者可以更容易理解報表與如何選擇進一步的分析方法或報告。
+- 以上迭代需要收集大量使用資訊，如果在網路社群推廣jamovi使用者與開發者協助測試及回饋，適切表達我與core team的想法及立場是重點。

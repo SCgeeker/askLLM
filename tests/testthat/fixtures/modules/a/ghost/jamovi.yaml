@@ -1,0 +1,6 @@
+name: ghost
+title: Ghost Module
+analyses:
+  - name: ghostOnly
+    menuGroup: hidden
+    menuTitle: Ghost Only
