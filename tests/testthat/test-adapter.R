@@ -127,3 +127,105 @@ test_that('401 仍譯為金鑰無效', {
     expect_true(grepl('金鑰', out))
     expect_false(grepl('權限不足', out, fixed = TRUE))
 })
+
+# ---- v1.1:build_prompt 的 catalog/available 區塊(規格 §5.3、S5a、S13)------
+
+# 固定輸入(S5a / S13 共用)
+.tp_q  <- 'Which analysis should I run?'
+.tp_s  <- 'age: mean=30, sd=5'
+.tp_ct <- paste0(
+    'jmv (jamovi core):\n',
+    '  Analyses > T-Tests > Independent Samples T-Test\n\n',
+    'scatr (Scatter Plots):\n',
+    '  Analyses > Exploration > Scatter Plot')
+.tp_av <- paste0(
+    '- jpower (jpower): Power analysis for common research designs.\n',
+    '- medmod (medmod): Mediation and moderation analysis.')
+
+# v1.0 期望字串(寫死;S5a 降級逐字基準)
+.tp_v10 <- paste0(
+    'Here is a summary of the dataset:\n',
+    '<summary>\n', .tp_s, '\n</summary>\n\n',
+    'Answer the user question about THIS dataset. Be concise.\n\n',
+    'Question: ', .tp_q)
+
+test_that('build_prompt embeds catalog block', {
+    # S5a (a):情形 B——catalog 非空、available 為 NULL
+    expected <- paste0(
+        'Here is a summary of the dataset:\n',
+        '<summary>\n', .tp_s, '\n</summary>\n\n',
+        'Installed jamovi analyses on this machine (real menu paths):\n',
+        '<installed_analyses>\n', .tp_ct, '\n</installed_analyses>\n\n',
+        'Answer the user question about THIS dataset. Be concise.\n',
+        'Recommend analyses ONLY from <installed_analyses> and quote each menu path EXACTLY as written there.\n',
+        'If no installed analysis fits the question, say so plainly. NEVER invent module names or menu paths.\n\n',
+        'Question: ', .tp_q)
+    expect_identical(build_prompt(.tp_q, .tp_s, catalog_text = .tp_ct), expected)
+
+    # 無 summary 時:summary 段連同其後空行整段省略,catalog 段照舊
+    expected_nosum <- paste0(
+        'Installed jamovi analyses on this machine (real menu paths):\n',
+        '<installed_analyses>\n', .tp_ct, '\n</installed_analyses>\n\n',
+        'Answer the user question about THIS dataset. Be concise.\n',
+        'Recommend analyses ONLY from <installed_analyses> and quote each menu path EXACTLY as written there.\n',
+        'If no installed analysis fits the question, say so plainly. NEVER invent module names or menu paths.\n\n',
+        'Question: ', .tp_q)
+    expect_identical(build_prompt(.tp_q, catalog_text = .tp_ct), expected_nosum)
+})
+
+test_that('build_prompt without catalog is identical to v1.0', {
+    # S5a (b):不帶 catalog → 與 v1.0 期望字串逐字相同
+    expect_identical(build_prompt(.tp_q, .tp_s), .tp_v10)
+
+    # S5a (c):catalog 為 NULL 時 available 被忽略,仍與 (b) 逐字相同
+    expect_identical(
+        build_prompt(.tp_q, .tp_s, catalog_text = NULL, available_text = .tp_av),
+        .tp_v10)
+
+    # 空字串 catalog 同樣觸發降級(規格 §4.2.1:NULL 或空字串)
+    expect_identical(
+        build_prompt(.tp_q, .tp_s, catalog_text = '', available_text = .tp_av),
+        .tp_v10)
+
+    # 無 summary、無 catalog:輸出即問題本身(v1.0 行為)
+    expect_identical(build_prompt(.tp_q, catalog_text = NULL, available_text = .tp_av),
+                     .tp_q)
+})
+
+test_that('build_prompt embeds available block', {
+    # S13 (a):情形 C——catalog 與 available 皆非空
+    expected <- paste0(
+        'Here is a summary of the dataset:\n',
+        '<summary>\n', .tp_s, '\n</summary>\n\n',
+        'Installed jamovi analyses on this machine (real menu paths):\n',
+        '<installed_analyses>\n', .tp_ct, '\n</installed_analyses>\n\n',
+        'Official jamovi library modules NOT currently installed:\n',
+        '<available_modules>\n', .tp_av, '\n</available_modules>\n\n',
+        'Answer the user question about THIS dataset. Be concise.\n',
+        'Recommend analyses ONLY from <installed_analyses> and quote each menu path EXACTLY as written there.\n',
+        'If no installed analysis fits, suggest installing a module ONLY from <available_modules> (Modules > jamovi library in jamovi). If neither list has a suitable option, say plainly that you do not know. NEVER invent module names or menu paths.\n\n',
+        'Question: ', .tp_q)
+    expect_identical(build_prompt(.tp_q, .tp_s, .tp_ct, .tp_av), expected)
+
+    # S13 (b):available 為 NULL → 逐字符合情形 B,全文不含 <available_modules>
+    out_b <- build_prompt(.tp_q, .tp_s, .tp_ct, available_text = NULL)
+    expect_identical(out_b, build_prompt(.tp_q, .tp_s, catalog_text = .tp_ct))
+    expect_false(grepl('<available_modules>', out_b, fixed = TRUE))
+
+    # 邊界:available 為空字串亦視同 NULL(不出現空區塊)
+    out_e <- build_prompt(.tp_q, .tp_s, .tp_ct, available_text = '')
+    expect_identical(out_e, out_b)
+})
+
+test_that('ask_llm 透傳 catalog_text 與 available_text 給 build_prompt', {
+    captured <- new.env()
+    ctor <- fake_ctor(captured, function(prompt) { captured$prompt <- prompt; 'x' })
+    ask_llm(question = .tp_q, summary_text = .tp_s,
+            catalog_text = .tp_ct, available_text = .tp_av,
+            base_url = 'B', model = 'M', api_key = 'K', ctor = ctor)
+
+    expect_identical(captured$prompt,
+                     build_prompt(.tp_q, .tp_s, .tp_ct, .tp_av))
+    expect_match(captured$prompt, '<installed_analyses>', fixed = TRUE)
+    expect_match(captured$prompt, '<available_modules>', fixed = TRUE)
+})
