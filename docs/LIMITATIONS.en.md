@@ -2,7 +2,9 @@
 
 askLLM lets an LLM read a summary of your data and suggest analyses, but **LLMs produce confident-sounding content that is wrong (hallucination)**. This page records the error types observed in testing and the usage advice that follows from them.
 
-How it was tested: `tools/compare-models.R` asked one question each about `iris` and `mtcars`, comparing `openai/gpt-4o-mini`, `openai/gpt-4.1`, `openai/gpt-4.1-mini`, and `microsoft/phi-4` on GitHub Models (2026-07-21).
+**This document's v1.0 baseline testing motivated the v1.1 catalog mechanism; each section now includes a v1.1 mitigation note.**
+
+Original v1.0 test method: `tools/compare-models.R` asked one question each about `iris` and `mtcars`, comparing `openai/gpt-4o-mini`, `openai/gpt-4.1`, `openai/gpt-4.1-mini`, and `microsoft/phi-4` on GitHub Models (2026-07-21). v1.1 validation appears in the v1.1 Mitigation sections below.
 
 ## Observed error types
 
@@ -20,6 +22,23 @@ This deserves the most caution: a model can correctly conclude "you should run a
 | `Regression > General Linear Model > Linear Regression` | Invented nesting |
 
 **Advice**: treat the analysis *name* in the answer as a starting point and take the *path* from the actual jamovi interface. In teaching, this is a ready-made demonstration that an LLM's confidence is unrelated to its correctness.
+
+### v1.1 Mitigation (2026-07-23)
+
+**Background**: The path hallucinations recorded in §1.1 were the most dangerous failure mode for statistical beginners in v1.0, and the core benefit challenge jamovi's team raised when considering official library inclusion.
+
+**v1.1 mechanism**: askLLM now scans the user's machine for installed jamovi modules (with their real menu trees) and sends the list of uninstalled modules from the official jamovi library alongside the data summary. The system prompt instructs the model to "cite each menu path exactly as written"; the user prompt demands "quote each menu path EXACTLY as written there."
+
+**Acceptance results** (2026-07-23, `tools/compare-models.R`, 2 questions × 2 models × 2 versions = 8 calls):
+- v1.0: 0 mechanically verifiable paths (models did not adopt the `Analyses > ...` format); manual review estimates ~70% semantic correctness, but at least 3 items show structural fabrication (invented submenu, flattened hierarchy, generic rewrite)
+- v1.1: **18/18 = 100% zero fabrication** — all 18 extracted paths matched the scanned catalog verbatim
+
+Full data: [`dev-notes/catalog-hit-rate.md`](../dev-notes/catalog-hit-rate.md).
+
+**Caveats**:
+- Sample is small (8 calls, 18 paths, 2 models) — not enough to guarantee zero misses globally, but directionally consistent with spec intent
+- Disabling the `includeCatalog` option reverts to v1.0 behavior
+- In-app guidance ("verify paths against the actual jamovi interface") remains, encouraging user verification
 
 ### 2. Statistical suggestions are broadly sensible but need your judgement
 

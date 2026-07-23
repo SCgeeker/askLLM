@@ -2,7 +2,9 @@
 
 askLLM 讓 LLM 讀你的資料摘要並提出統計建議,但 **LLM 會產生看似合理卻錯誤的內容(幻覺)**。本頁記錄實測觀察到的錯誤類型,以及據此建議的使用方式。
 
-實測方式:以 `tools/compare-models.R` 對 iris 與 mtcars 各問一題,比較 GitHub Models 上的 `openai/gpt-4o-mini`、`openai/gpt-4.1`、`openai/gpt-4.1-mini`、`microsoft/phi-4`(2026-07-21)。
+**本文件的原始實測(v1.0)促成了 v1.1 的目錄機制;各節新增 v1.1 現況註記。**
+
+實測方式:v1.0 原實測以 `tools/compare-models.R` 對 iris 與 mtcars 各問一題,比較 GitHub Models 上的 `openai/gpt-4o-mini`、`openai/gpt-4.1`、`openai/gpt-4.1-mini`、`microsoft/phi-4`(2026-07-21)。v1.1 驗證見下方各節 v1.1 緩解註記。
 
 ## 觀察到的錯誤類型
 
@@ -21,6 +23,23 @@ askLLM 讓 LLM 讀你的資料摘要並提出統計建議,但 **LLM 會產生看
 | `迴歸 → 線性線性(Linear Regression)` | 連中文標籤都出現錯字 |
 
 **建議**:把回覆中的分析**名稱**當作起點,**路徑**一律以 jamovi 實際介面為準。教學時可刻意用這點示範「AI 的自信與正確性無關」。
+
+### v1.1 緩解 (2026-07-23)
+
+**背景**: §1.1 記錄的路徑幻覺是 v1.0 對統計初學者最危險的失效模式,也是 jamovi 專案在考慮官方收錄時的核心效益質疑。
+
+**v1.1 機制**: askLLM 現已掃描本機實際安裝的 jamovi 模組(及其真實選單樹),連同官方 jamovi library 的未安裝模組清單一併送給 LLM。system prompt 明確指示「cite each menu path exactly as written」,user prompt 要求「quote each menu path EXACTLY as written there」。
+
+**驗收結果** (2026-07-23, `tools/compare-models.R`, 2 題×2 模型×2 版本 = 8 次呼叫):
+- v1.0: 0 條可機械核對的路徑(模型未採用 `Analyses > ...` 格式);人工判讀估計語意正確率約 7/10,但至少 3 條屬結構性虛構(虛構子選單、壓扁多層、通用化改寫)
+- v1.1: **18/18 = 100% 零虛構** — 提取到的 18 條路徑全數逐字命中掃描清單
+
+詳細數據見 [`dev-notes/catalog-hit-rate.md`](../dev-notes/catalog-hit-rate.md)。
+
+**保留注意事項**:
+- 樣本規模有限(8 次呼叫、18 條路徑、2 個模型),不足以宣稱零 miss 是全球穩定保證,但方向與規格預期一致
+- `includeCatalog` 選項關閉時退回 v1.0 行為
+- 應用內警語(「verify paths against the actual jamovi interface」)仍常駐,鼓勵使用者自行核對
 
 ### 2. 統計建議大致合理,但需自行判斷適用性
 

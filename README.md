@@ -2,7 +2,7 @@
 
 **Ask an LLM about *your* data — right inside jamovi.**
 
-Select the variables you care about, type a question in plain English (or Chinese), and askLLM sends a summary of those variables to an LLM of your choice, which answers with your dataset in mind — including concrete jamovi menu paths for the analysis it suggests.
+Select the variables you care about, type a question in plain English (or Chinese), and askLLM sends a summary of those variables to an LLM of your choice, which answers with your dataset in mind — including concrete jamovi menu paths for the analysis it suggests. v1.1 scans your installed jamovi modules and attaches the real menu tree to the LLM, ensuring that suggested paths reference only what actually exists on your machine (tested: 18/18 verbatim hits).
 
 [中文版 README](README.zh-TW.md)
 
@@ -42,7 +42,7 @@ If askLLM isn't in the library yet, or you have a locally built `.jmo`:
 3. Choose the `.jmo` file (see [`dist/`](dist/) in this repo).
 4. Wait for installation to finish.
 
-Note: a `.jmo` file is built for a specific **OS × CPU architecture × jamovi series** combination (see the filename, e.g. `askLLM_1.0.0_win64_jamovi-2.7.jmo`). It will only install on a matching jamovi. See [`dist/README.md`](dist/README.md) for details.
+Note: a `.jmo` file is built for a specific **OS × CPU architecture × jamovi series** combination (see the filename, e.g. `askLLM_1.1.0_win64_jamovi-2.7.jmo`). It will only install on a matching jamovi. See [`dist/README.md`](dist/README.md) for details.
 
 ## Quick start
 
@@ -51,6 +51,8 @@ Note: a `.jmo` file is built for a specific **OS × CPU architecture × jamovi s
 3. Tick **Submit** to send. The answer appears in a few seconds, along with the model name and elapsed time.
 
 Untick **Submit** before editing your question, then re-tick it — this avoids triggering a new (billable) call on every keystroke.
+
+**Include installed modules** (enabled by default) automatically scans your jamovi modules and feeds them to the LLM, so path suggestions accurately match your installed analyses. Untick this option to revert to v1.0 behavior.
 
 ## Supported providers
 
@@ -68,7 +70,7 @@ To compare how different models answer the same question about the same data, us
 
 ## Limitations
 
-**LLMs produce confident-sounding content that is wrong.** In testing, every model got jamovi **menu paths** wrong at least once — including menus that do not exist in jamovi at all — while the statistical suggestions themselves were broadly sensible. Treat answers as a starting point for brainstorming and verify paths against the actual jamovi interface.
+**LLMs produce confident-sounding content that is wrong.** In v1.0 testing, every model got jamovi **menu paths** wrong at least once — including menus that do not exist in jamovi at all. v1.1 has substantially mitigated this problem via module directory scanning (tested: 100% hit rate, 18/18 with zero fabrication). Statistical suggestions remain broadly sensible, but other limitations (applicability of suggestions, numerical verification) still require your own judgment.
 
 Full test notes and teaching suggestions: **[Limitations and usage advice](docs/LIMITATIONS.en.md)**.
 
@@ -76,6 +78,7 @@ Full test notes and teaching suggestions: **[Limitations and usage advice](docs/
 
 - What is sent to the LLM is **summary statistics of the variables you selected** (counts, means, SDs, factor level frequencies, etc.) — **never the raw data rows**.
 - API keys are read from your local environment variables or a local `.Renviron` file. They are **never written into the `.omv` file** and are not visible anywhere in the jamovi UI.
+- **The names and menu lists of your installed modules** (environmental metadata, no data values) are sent along with the summary to help the LLM ensure suggestions reference only real paths. You can disable this with the "Include installed modules" option.
 - If you need **zero data to leave your machine**, choose the **Ollama (local)** provider — everything, including the LLM itself, runs on your own computer.
 
 ## For developers
