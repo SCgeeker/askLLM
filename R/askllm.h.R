@@ -143,7 +143,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 package = "askLLM",
                 name = "askllm",
-                version = c(1,1,0),
+                version = c(1,1,1),
                 options = options,
                 results = askllmResults$new(options=options),
                 data = data,
