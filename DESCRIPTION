@@ -1,7 +1,7 @@
 Package: askLLM
 Type: Package
 Title: Ask LLM about your data
-Version: 1.1.0
+Version: 1.1.1
 Author: Sau-Chin Chen <pmsp96@gmail.com>
 Maintainer: Sau-Chin Chen <pmsp96@gmail.com>
 Description: Ask a large language model questions about the dataset you

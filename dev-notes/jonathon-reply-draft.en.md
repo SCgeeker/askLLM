@@ -9,9 +9,9 @@ Subject: Re: askLLM — took your point about value, here's what came of it
 
 Hi Jonathon,
 
-Thanks for the thoughtful reply — and especially for the frank framing of the value question. "A user could paste those numbers into a chat window themselves" was exactly the right challenge, and it sent us somewhere useful.
+Thanks for your thoughtful reply, and especially for the frank framing of the value question. "A user could paste those numbers into a chat window themselves" was exactly the right challenge, and it sent us somewhere useful.
 
-First, we did some systematic testing of what LLMs actually get wrong in this setting. Across every model we tried (GPT-4o-mini, GPT-4.1 family, Gemini, Phi-4), the statistical suggestions themselves were broadly sensible — but **every single model invented jamovi menu paths**, confidently. Not just wrong locations: menus that don't exist at all ("Classification > Discriminant Analysis", "Visualise > Categorical plots", SPSS-style menu trees). The write-up is in the repo (docs/LIMITATIONS.en.md) if it's useful for your policy thinking.
+First, we (I and claude code) did some systematic testing of what LLMs actually get wrong in this setting. Across every model we tried (GPT-4o-mini, GPT-4.1 family, Gemini, Phi-4), the statistical suggestions themselves were broadly sensible, but every single model invented jamovi menu paths, confidently. Not just wrong locations: menus that don't exist at all ("Classification > Discriminant Analysis", "Visualise > Categorical plots", SPSS-style menu trees). The write-up is in the repo (docs/LIMITATIONS.en.md) if it's useful for your policy thinking.
 
 That finding pointed at something a module *can* do that pasting into a chat window can't: the module now scans the locally installed modules (their jamovi.yaml files — builtin and user-side), builds the real menu tree, and attaches it to the prompt with strict instructions to only recommend from that list. For analyses the user doesn't have, it suggests only from the official library listing (synced from jamovi-library's modules.yaml at release time), or says plainly that it doesn't know.
 

@@ -158,7 +158,7 @@ test_that('build_prompt embeds catalog block', {
         '<installed_analyses>\n', .tp_ct, '\n</installed_analyses>\n\n',
         'Answer the user question about THIS dataset. Be concise.\n',
         'Recommend analyses ONLY from <installed_analyses> and quote each menu path EXACTLY as written there.\n',
-        'If no installed analysis fits the question, say so plainly. NEVER invent module names or menu paths.\n\n',
+        'If no installed analysis fits the question, say so plainly. Do not name any module or invent any menu path.\n\n',
         'Question: ', .tp_q)
     expect_identical(build_prompt(.tp_q, .tp_s, catalog_text = .tp_ct), expected)
 
@@ -168,7 +168,7 @@ test_that('build_prompt embeds catalog block', {
         '<installed_analyses>\n', .tp_ct, '\n</installed_analyses>\n\n',
         'Answer the user question about THIS dataset. Be concise.\n',
         'Recommend analyses ONLY from <installed_analyses> and quote each menu path EXACTLY as written there.\n',
-        'If no installed analysis fits the question, say so plainly. NEVER invent module names or menu paths.\n\n',
+        'If no installed analysis fits the question, say so plainly. Do not name any module or invent any menu path.\n\n',
         'Question: ', .tp_q)
     expect_identical(build_prompt(.tp_q, catalog_text = .tp_ct), expected_nosum)
 })
@@ -203,7 +203,7 @@ test_that('build_prompt embeds available block', {
         '<available_modules>\n', .tp_av, '\n</available_modules>\n\n',
         'Answer the user question about THIS dataset. Be concise.\n',
         'Recommend analyses ONLY from <installed_analyses> and quote each menu path EXACTLY as written there.\n',
-        'If no installed analysis fits, suggest installing a module ONLY from <available_modules> (Modules > jamovi library in jamovi). If neither list has a suitable option, say plainly that you do not know. NEVER invent module names or menu paths.\n\n',
+        'If no installed analysis fits, suggest installing a module ONLY from <available_modules> (Modules > jamovi library in jamovi). Name ONLY modules that appear literally in <available_modules>; do not name any other module, even one you believe exists. If neither list has a suitable option, say plainly that you do not know.\n\n',
         'Question: ', .tp_q)
     expect_identical(build_prompt(.tp_q, .tp_s, .tp_ct, .tp_av), expected)
 

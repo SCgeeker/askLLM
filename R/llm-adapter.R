@@ -127,14 +127,18 @@ build_prompt <- function(question, summary_text = NULL,
     }
 
     # 指令段:前兩行 B/C 共用,第三行依有無 available 區塊切換(規格 §5.3 逐字)
+    # 反洩漏措辭:約束的是「集合成員」而非「真實性」。實測(PATHJ 洩漏)
+    # 顯示「NEVER invent module names」無效,因為模型不認為引用一個它「知道
+    # 存在」的真實模組是 invent;改為「只能提清單裡逐字出現的名字」。
     third_line <- if (has_available) {
         paste0('If no installed analysis fits, suggest installing a module ',
                'ONLY from <available_modules> (Modules > jamovi library in jamovi). ',
-               'If neither list has a suitable option, say plainly that you do not know. ',
-               'NEVER invent module names or menu paths.')
+               'Name ONLY modules that appear literally in <available_modules>; ',
+               'do not name any other module, even one you believe exists. ',
+               'If neither list has a suitable option, say plainly that you do not know.')
     } else {
         paste0('If no installed analysis fits the question, say so plainly. ',
-               'NEVER invent module names or menu paths.')
+               'Do not name any module or invent any menu path.')
     }
     segments <- c(segments, paste0(
         'Answer the user question about THIS dataset. Be concise.\n',

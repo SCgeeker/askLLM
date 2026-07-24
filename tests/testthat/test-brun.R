@@ -198,3 +198,23 @@ test_that('caveat_text 提醒使用者查證,且中英雙語', {
     expect_true(grepl('verify', txt, ignore.case = TRUE))
     expect_true(grepl('menu path', txt, ignore.case = TRUE))
 })
+
+test_that('caveat_text 依 has_catalog 誠實描述是否比對過清單', {
+    # has_catalog = TRUE(預設):路徑已比對本機安裝清單
+    on <- .askllm_caveat_text(has_catalog = TRUE)
+    expect_true(grepl('已比對', on))
+    expect_true(grepl('checked against', on, ignore.case = TRUE))
+
+    # has_catalog = FALSE:未送清單、未比對——不得謊稱已比對
+    off <- .askllm_caveat_text(has_catalog = FALSE)
+    expect_false(grepl('已比對', off))
+    expect_false(grepl('checked against', off, ignore.case = TRUE))
+    expect_true(grepl('未經比對|未比對', off))
+    expect_true(grepl('not verified', off, ignore.case = TRUE))
+    # 兩種情形都仍提醒以實際介面為準
+    expect_true(grepl('實際介面|實際', off))
+    expect_true(grepl('actual interface', off, ignore.case = TRUE))
+
+    # 無參數呼叫維持向後相容(預設 has_catalog = TRUE 的內容)
+    expect_identical(.askllm_caveat_text(), on)
+})
