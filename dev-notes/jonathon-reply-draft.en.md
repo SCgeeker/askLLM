@@ -18,7 +18,7 @@ Before that, I'd been testing several LLMs, including GPT-4o-mini, the GPT-4.1 f
 
 The test report is in the GitHub repo, in case it helps as you think through security guidance for module-LLM integration. And if it's useful when you get to defining that review, I'm glad to be a test case.
 
-One more thing I'd value your view on: I'm considering sharing askLLM through the community and inviting interested jamovi module developers to iterate on it together. That could surface more useful feedback. The idea connects to your own aim of figuring out AI integrations properly, so I'd rather ask first than move ahead of you. What do you think? Either way, I'll keep sharing whatever I learn.
+One more thing I'd value your view on: I'm considering posting about askLLM on the jamovi forum and inviting interested module developers to iterate on it together. That could surface more useful feedback. The idea connects to your own aim of figuring out AI integrations properly, so I'd rather ask first than move ahead of you. What do you think? Either way, I'll keep sharing whatever I learn.
 
 Cheers,
 Sau-Chin
