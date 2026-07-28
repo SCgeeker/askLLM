@@ -70,6 +70,4 @@ children:
           - type: TextBox
             name: systemPrompt
             format: string
-            multiline: true
             width: largest
-            stretchFactor: 1

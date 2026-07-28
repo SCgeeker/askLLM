@@ -11,7 +11,9 @@
 - ✅ **里程碑 B1／項目 2 OpenRouter**：一級供應商＋docs，主迴圈驗收（587 pass / 0 fail）。**live 實測發現**：計畫預設 `meta-llama/llama-3.3-70b-instruct:free` 已下架，改用 **`openai/gpt-oss-20b:free`**（2026-07-29 實測 HTTP 200 / cost 0）。
 - ✅ **里程碑 D1／項目 3 Test Connection**：spike（推翻「200=金鑰有效」）＋實作＋主迴圈驗收（651 pass / 0 fail、8 分類分支 live+offline 皆對）。統一 `/models` GET＋per-provider override＋誠實分級文案（作者裁決）。新增 `R/llm-ping.R`、`testConnection` 選項；httr2 入 Imports。
 - ⏳ **待辦**：C1／項目 5（指引外置，依賴 B、含**外部** GitHub Pages 開通＋Slack review；程式面 r.yaml Html item＋新建 askllm.md 待 Pages URL 定案）。
-- ⚠️ **累積殘留**：`h.R` 因無一般版 jamovi 已**兩度手補**（item 1＋2），待有環境重跑 `jmvtools::prepare` 交叉驗證；多行 TextBox UI 未手測；`:free` 模型清單本質易腐（已證實）。尚未 commit。
+- ✅ **h.R 交叉驗證（2026-07-29）**：於 `C:\Program Files\jamovi 28.1.0.0` 跑通 `jmvtools::prepare`，重生 h.R 與手補版**內容逐字相同**（僅 EOL 差異），手補正確。
+- ⚠️ **prepare 抓到並修掉 1 個 CI 抓不到的 bug**：`askllm.u.yaml` 的 `systemPrompt` 用了非法屬性 `multiline: true`（jus 不支援），已移除改單行寬框。
+- ⚠️ **殘留**：`:free` 模型清單本質易腐（已證實）；GUI 逐項互動待作者照 checklist 點測。
 
 ---
 
@@ -44,7 +46,7 @@
 - **依系統語言切中文**：**spike 已完成（2026-07-28），結論：查無可靠管道**。jmvcore 2.7.38 內部雖有 private `.lang` 欄位，但（1）無公開 getter、（2）`jamovi.proto` 無 language 欄位、實測本機 jamovi 28.1.0.0 無證據前端會送入 `.lang`、（3）其回退機制正是被排除的 `Sys.getenv("LANGUAGE")`／OS locale。挖 `.__enclos_env__$private$.lang` 屬未定義行為、跨版本易失效。
   - **定案 → 顯式 `promptLang` 選單**（`en`／`zh`，預設 `en`），不做自動偵測。
   - prompt 模板以 named list `prompts[[role]][[lang]]` 組織，其他語言之後在此擴充（「其他語言待建」）。
-- **使用者可自行修改**：新增 `systemPrompt` String 選項（多行 TextBox，預設空）；**非空時整段覆蓋** role×lang 模板（catalog 約束句仍照 `has_catalog` 附加）。精簡明確的優先序：`systemPrompt`（非空）＞ `prompts[[role]][[lang]]`。
+- **使用者可自行修改**：新增 `systemPrompt` String 選項（預設空）；**非空時整段覆蓋** role×lang 模板（catalog 約束句仍照 `has_catalog` 附加）。精簡明確的優先序：`systemPrompt`（非空）＞ `prompts[[role]][[lang]]`。**註（2026-07-29 prepare 實測）**：jus 3.0 TextBox **不支援 `multiline`**（compiler 直接報錯），改為**單行寬框**（`width: largest`），使用者可貼入自訂 prompt 文字。
 - **人格 icon**：jus 3.0 選項**無原生 icon 欄位**（同「無超連結 widget」限制）→ 採 **emoji 放進選項標題**：`🧭 Consultant`／`🎓 Tutor`／`💡 Explainer`，達成辨識目的、零額外機制。
 
 **改動檔案**

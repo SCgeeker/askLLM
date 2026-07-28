@@ -34,10 +34,10 @@ CI 無 jamovi，`R/askllm.h.R` 的 4 個新選項（`role`／`promptLang`／`sys
 
 ### 項目 1 — 人格選擇
 
-- [ ] 展開 **LLM settings** 摺疊區，確認新增三欄：**Persona**（下拉）、**Prompt language**（下拉）、**Custom system prompt**（多行框）。
+- [ ] 展開 **LLM settings** 摺疊區，確認新增三欄：**Persona**（下拉）、**Prompt language**（下拉）、**Custom system prompt**（單行寬框）。
 - [ ] Persona 下拉三個選項標題正確顯示 emoji：**🧭 Consultant** / **🎓 Tutor** / **💡 Explainer**（預設 Consultant）。若 emoji 變成空格/方塊 → 記錄（字型或 jus 呈現問題）。
 - [ ] Prompt language 兩選項：**English** / **繁體中文**（預設 English）。
-- [ ] **Custom system prompt** 是**多行**輸入框（可換行、可貼長文），非單行。
+- [ ] **Custom system prompt** 是**寬的單行輸入框**（jus 3.0 不支援 multiline textarea；可直接貼入自訂 prompt 文字）。
 - [ ] 填問題 → 勾 **Submit** → 分別切 Consultant / Tutor / Explainer 各送一次：
   - [ ] Consultant：直接給統計建議（簡潔、開處方）。
   - [ ] Tutor：以**反問引導**、不直接給答案。
@@ -80,7 +80,7 @@ CI 無 jamovi，`R/askllm.h.R` 的 4 個新選項（`role`／`promptLang`／`sys
 
 每項填：✅通過 / ⚠️有異（附截圖或訊息）/ ⏭️略過。發現 GUI 問題就回報，我這邊對照 yaml/js/b.R 定位。特別留意：
 - emoji 在 ComboBox 的實際呈現
-- 多行 TextBox 高度/換行
+- systemPrompt 單行寬框是否夠貼入自訂 prompt
 - OpenRouter 自動帶入 model 是否生效（js 手工複本風險）
 - prepare 重生的 h.R 與手補版是否一致
 
