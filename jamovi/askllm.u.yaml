@@ -39,6 +39,8 @@ children:
         name: includeCatalog
       - type: CheckBox
         name: submit
+      - type: CheckBox
+        name: testConnection
   - type: CollapseBox
     label: LLM settings
     collapsed: true

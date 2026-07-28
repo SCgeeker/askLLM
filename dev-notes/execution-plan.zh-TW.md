@@ -9,7 +9,8 @@
 - ✅ **里程碑 A1／項目 1 人格選擇**：已實作＋主迴圈驗收（587→ 當時 556 測試綠、降級保證逐字相同）。role/promptLang/systemPrompt 三選項，emoji 人格，顯式語言選單。
 - ✅ **里程碑 A2／項目 4 隱私文件**：README×2＋LIMITATIONS×2 新增隱私差異化小節，主迴圈驗收（純新增、來源可回溯）。
 - ✅ **里程碑 B1／項目 2 OpenRouter**：一級供應商＋docs，主迴圈驗收（587 pass / 0 fail）。**live 實測發現**：計畫預設 `meta-llama/llama-3.3-70b-instruct:free` 已下架，改用 **`openai/gpt-oss-20b:free`**（2026-07-29 實測 HTTP 200 / cost 0）。
-- ⏳ **待辦**：C1／項目 5（指引外置，依賴 B、含外部 GitHub Pages＋Slack review）、D1／項目 3（Test Connection，需先 spike GitHub Models `/models`）。
+- ✅ **里程碑 D1／項目 3 Test Connection**：spike（推翻「200=金鑰有效」）＋實作＋主迴圈驗收（651 pass / 0 fail、8 分類分支 live+offline 皆對）。統一 `/models` GET＋per-provider override＋誠實分級文案（作者裁決）。新增 `R/llm-ping.R`、`testConnection` 選項；httr2 入 Imports。
+- ⏳ **待辦**：C1／項目 5（指引外置，依賴 B、含**外部** GitHub Pages 開通＋Slack review；程式面 r.yaml Html item＋新建 askllm.md 待 Pages URL 定案）。
 - ⚠️ **累積殘留**：`h.R` 因無一般版 jamovi 已**兩度手補**（item 1＋2），待有環境重跑 `jmvtools::prepare` 交叉驗證；多行 TextBox UI 未手測；`:free` 模型清單本質易腐（已證實）。尚未 commit。
 
 ---
@@ -115,8 +116,24 @@
 
 
 **設計要點**（jus 3.0 無按鈕，只能仿 `submit` 的 Bool 觸發器）
-- 對 `{base_url}/models` 發 **GET**（OpenAI 相容目錄端點，不產生 completion 計費）。用 `httr2`（build 目錄已 vendor，零新依賴），timeout 10 秒。
-- 結果判讀沿用 `translate_error` 語意：200=通、401=金鑰無效、403=權限不足、連線失敗=網路。
+- 對 `{base_url}/models` 發 **GET**（OpenAI 相容目錄端點，不產生 completion 計費）。用 `httr2`（build 目錄已 vendor，零新依賴），`req_timeout(10)` + `req_error(is_error=function(resp) FALSE)` 讓 4xx/5xx 不拋例外、直接讀 status。
+- **統一 URL、per-provider 狀態碼 override 表**（見下方 spike 結果）。
+
+**spike 結果（2026-07-29 live 實測，推翻原「200=金鑰有效」假設）**
+`GET /models` 對所有 provider 皆零計費，但**能否鑑別金鑰有效性因 provider 而異**：
+
+| provider | 探測 URL | 有效金鑰 | 無效/無金鑰 | 能鑑別金鑰？ |
+|---|---|---|---|---|
+| nim | `/v1/models` | 200 | **200（相同清單）** | ❌ **僅證端點可達**（/models 公開不驗證） |
+| openrouter | `/v1/models` | 200 | **200（相同清單）** | ❌ 同上 |
+| gemini | `/v1beta/openai/models` | 200 | **400** `"pass a valid API key"` | ✅（需認 400 為金鑰無效） |
+| github | `/inference/models` | **404** `page not found` | **401** `Unauthorized` | ✅（**404=通、401=失敗**；auth 在 route 檢查之前） |
+| ollama | `/v1/models` | N/A（免金鑰） | 連線失敗 | ✅（無服務即連線失敗，正確） |
+| custom | 使用者填 | 未驗證 | 未驗證 | ⚠️ 推論：部分自架（vLLM）亦不驗證金鑰 |
+
+**判讀採「共用預設＋per-provider override」**：預設 200=通/401=金鑰無效/403=權限/連線失敗=網路；github override：404 也算通；gemini override：400+body 含 api key 視為金鑰無效。**github 不用 catalog fallback**（catalog 公開、任何金鑰皆 200，無鑑別力）。
+- 沿用 `translate_error`：ping 內把 status+body 組成合成訊息再丟給它走既有 regex 分支（不改 `translate_error` 本身）；github 的 404=成功不進 error path，直接 `ok=TRUE`。
+- **UX 誠實鐵則**：nim/openrouter/custom 的成功文案**不可寫「金鑰有效」**，只能寫「端點可連線」＋加註「此供應商的 /models 不驗證金鑰」。
 
 **改動檔案**
 - `jamovi/askllm.a.yaml` — 新增 `testConnection` Bool（default false）
@@ -138,8 +155,9 @@
 - b.R 決策：testConnection=TRUE 時不呼叫 `ask_llm`（mock 驗證零呼叫）
 
 **風險/依賴**
-- **先做 spike**：GitHub Models 的 `/models` 端點行為需實測（目錄在 `models.github.ai/catalog/models`，inference base 下的 `/models` 不保證存在）。若 404，fallback：改打 catalog URL，或誠實顯示「此供應商不支援免費疎通檢查」。此為本項目最大不確定點。
-- Gemini OpenAI 相容層 `/models` 已知可用；NVIDIA/Ollama/OpenRouter 皆有標準 `/models`。
+- ~~GitHub Models /models 行為~~ **已 spike 解決**（見上表：404=通、401=失敗，不用 catalog fallback）。
+- **未 live 驗證**：custom（無可測端點，推論）、github 403（手上 token 皆有權限，未重現）、gemini 專用金鑰（只測 GOOGLE_API_KEY）。實作時對 github 403 分支保守處理。
+- **產品決策待定**：nim/openrouter/custom 的 `/models` 不驗證金鑰 → Test Connection 對這些 provider 只能保證「可連線」。文案語意需作者定調（見下）。
 **投報率**：中高。UX 對齊 JASP，並把金鑰查找鏈可視化（過去 M0 除錯痛點）。約 1–1.5 天工。
 
 ---

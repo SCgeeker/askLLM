@@ -40,6 +40,11 @@ options:
       type: Bool
       default: false
 
+    - name: testConnection
+      title: 'Test Connection (no LLM call, no billing)'
+      type: Bool
+      default: false
+
     - name: provider
       title: Provider
       type: List

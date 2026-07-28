@@ -11,6 +11,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             includeSummary = TRUE,
             includeCatalog = TRUE,
             submit = FALSE,
+            testConnection = FALSE,
             provider = "nim",
             model = "meta/llama-3.1-8b-instruct",
             baseUrl = "",
@@ -50,6 +51,10 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..submit <- jmvcore::OptionBool$new(
                 "submit",
                 submit,
+                default=FALSE)
+            private$..testConnection <- jmvcore::OptionBool$new(
+                "testConnection",
+                testConnection,
                 default=FALSE)
             private$..provider <- jmvcore::OptionList$new(
                 "provider",
@@ -101,6 +106,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..includeSummary)
             self$.addOption(private$..includeCatalog)
             self$.addOption(private$..submit)
+            self$.addOption(private$..testConnection)
             self$.addOption(private$..provider)
             self$.addOption(private$..model)
             self$.addOption(private$..baseUrl)
@@ -115,6 +121,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         includeSummary = function() private$..includeSummary$value,
         includeCatalog = function() private$..includeCatalog$value,
         submit = function() private$..submit$value,
+        testConnection = function() private$..testConnection$value,
         provider = function() private$..provider$value,
         model = function() private$..model$value,
         baseUrl = function() private$..baseUrl$value,
@@ -128,6 +135,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..includeSummary = NA,
         ..includeCatalog = NA,
         ..submit = NA,
+        ..testConnection = NA,
         ..provider = NA,
         ..model = NA,
         ..baseUrl = NA,
@@ -197,6 +205,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param includeSummary .
 #' @param includeCatalog .
 #' @param submit .
+#' @param testConnection .
 #' @param provider .
 #' @param model .
 #' @param baseUrl .
@@ -219,6 +228,7 @@ askllm <- function(
     includeSummary = TRUE,
     includeCatalog = TRUE,
     submit = FALSE,
+    testConnection = FALSE,
     provider = "nim",
     model = "meta/llama-3.1-8b-instruct",
     baseUrl = "",
@@ -243,6 +253,7 @@ askllm <- function(
         includeSummary = includeSummary,
         includeCatalog = includeCatalog,
         submit = submit,
+        testConnection = testConnection,
         provider = provider,
         model = model,
         baseUrl = baseUrl,

@@ -300,6 +300,16 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
         .runInner = function() {
             opt <- self$options
 
+            # --- 0. Test Connection(非課金疎通檢查,優先於 submit)---------
+            # 邏輯抽於 .askllm_test_connection_text()(檔案層級純函式,見
+            # llm-ping.R),此處只負責寫入 instructions 並提前 return,
+            # 絕不進入下方任何 submit/ask_llm 流程。
+            if (isTRUE(opt$testConnection)) {
+                self$results$instructions$setContent(
+                    .askllm_test_connection_text(opt))
+                return()
+            }
+
             # --- 1. 守門 ---------------------------------------------------
             question <- opt$question
             if (!isTRUE(opt$submit) || !nzchar(trimws(question %||% ''))) {
