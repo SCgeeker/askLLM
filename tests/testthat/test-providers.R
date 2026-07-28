@@ -79,3 +79,60 @@ test_that('github 首選變數名不與 gh CLI/git 的 GITHUB_TOKEN 相撞', {
     expect_true('GITHUB_TOKEN' %in% ev)      # 仍相容既有設定
     expect_true(which(ev == 'GITHUB_TOKEN') == length(ev))   # 但排最後
 })
+
+test_that('openrouter provider 全欄位正確(項目 2:升為一級供應商)', {
+    spec <- provider_spec('openrouter')
+    expect_equal(spec$base_url, 'https://openrouter.ai/api/v1')
+    expect_equal(spec$env_vars, c('OPENROUTER_API_KEY', 'LLM_API_KEY'))
+    expect_true(spec$needs_key)
+    expect_equal(spec$default_model, 'openai/gpt-oss-20b:free')
+    expect_equal(spec$signup_url, 'https://openrouter.ai/keys')
+    expect_true(grepl('^sk-or-v1-', spec$key_example))
+})
+
+test_that('openrouter env_vars 順序:OPENROUTER_API_KEY 優先,LLM_API_KEY 墊底相容', {
+    ev <- provider_spec('openrouter')$env_vars
+    expect_equal(ev[1], 'OPENROUTER_API_KEY')
+    expect_equal(ev[length(ev)], 'LLM_API_KEY')
+})
+
+test_that('既有 5 個 provider spec 全部不變(回歸鎖,新增 openrouter 不應動到既有欄位)', {
+    nim <- provider_spec('nim')
+    expect_equal(nim$base_url, 'https://integrate.api.nvidia.com/v1')
+    expect_equal(nim$env_vars, 'NVIDIA_API_KEY')
+    expect_equal(nim$default_model, 'meta/llama-3.1-8b-instruct')
+
+    gemini <- provider_spec('gemini')
+    expect_equal(gemini$base_url, 'https://generativelanguage.googleapis.com/v1beta/openai')
+    expect_equal(gemini$env_vars, c('GEMINI_API_KEY', 'GOOGLE_API_KEY'))
+    expect_equal(gemini$default_model, 'gemini-flash-latest')
+
+    github <- provider_spec('github')
+    expect_equal(github$base_url, 'https://models.github.ai/inference')
+    expect_equal(github$env_vars, c('GITHUB_MODELS_TOKEN', 'GITHUB_PAT', 'GITHUB_TOKEN'))
+    expect_equal(github$default_model, 'openai/gpt-4o-mini')
+
+    ollama <- provider_spec('ollama')
+    expect_equal(ollama$base_url, 'http://localhost:11434/v1')
+    expect_equal(ollama$env_vars, character(0))
+    expect_false(ollama$needs_key)
+    expect_equal(ollama$default_model, 'llama3.2')
+
+    custom <- provider_spec('custom', base_url_option = 'https://my-endpoint.example.com/v1')
+    expect_equal(custom$base_url, 'https://my-endpoint.example.com/v1')
+    expect_equal(custom$env_vars, 'LLM_API_KEY')
+    expect_equal(custom$default_model, '')
+})
+
+test_that('a.yaml 的 provider options 名單與 provider_spec 支援的名單完全一致', {
+    a_yaml <- yaml::read_yaml(
+        file.path('..', '..', 'jamovi', 'askllm.a.yaml'))
+    provider_opt <- Filter(function(o) o$name == 'provider', a_yaml$options)[[1]]
+    yaml_names <- vapply(provider_opt$options, function(o) o$name, character(1))
+
+    known_providers <- c('nim', 'gemini', 'github', 'ollama', 'custom', 'openrouter')
+    for (p in known_providers) {
+        expect_error(provider_spec(p, base_url_option = 'https://x/v1'), NA)
+    }
+    expect_equal(sort(yaml_names), sort(known_providers))
+})

@@ -14,7 +14,10 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             provider = "nim",
             model = "meta/llama-3.1-8b-instruct",
             baseUrl = "",
-            maxLevels = 10, ...) {
+            maxLevels = 10,
+            role = "consultant",
+            promptLang = "en",
+            systemPrompt = "", ...) {
 
             super$initialize(
                 package="askLLM",
@@ -54,6 +57,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 options=list(
                     "nim",
                     "gemini",
+                    "openrouter",
                     "github",
                     "ollama",
                     "custom"),
@@ -72,6 +76,25 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 default=10,
                 min=3,
                 max=50)
+            private$..role <- jmvcore::OptionList$new(
+                "role",
+                role,
+                options=list(
+                    "consultant",
+                    "tutor",
+                    "explainer"),
+                default="consultant")
+            private$..promptLang <- jmvcore::OptionList$new(
+                "promptLang",
+                promptLang,
+                options=list(
+                    "en",
+                    "zh"),
+                default="en")
+            private$..systemPrompt <- jmvcore::OptionString$new(
+                "systemPrompt",
+                systemPrompt,
+                default="")
 
             self$.addOption(private$..vars)
             self$.addOption(private$..question)
@@ -82,6 +105,9 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..model)
             self$.addOption(private$..baseUrl)
             self$.addOption(private$..maxLevels)
+            self$.addOption(private$..role)
+            self$.addOption(private$..promptLang)
+            self$.addOption(private$..systemPrompt)
         }),
     active = list(
         vars = function() private$..vars$value,
@@ -92,7 +118,10 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         provider = function() private$..provider$value,
         model = function() private$..model$value,
         baseUrl = function() private$..baseUrl$value,
-        maxLevels = function() private$..maxLevels$value),
+        maxLevels = function() private$..maxLevels$value,
+        role = function() private$..role$value,
+        promptLang = function() private$..promptLang$value,
+        systemPrompt = function() private$..systemPrompt$value),
     private = list(
         ..vars = NA,
         ..question = NA,
@@ -102,7 +131,10 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..provider = NA,
         ..model = NA,
         ..baseUrl = NA,
-        ..maxLevels = NA)
+        ..maxLevels = NA,
+        ..role = NA,
+        ..promptLang = NA,
+        ..systemPrompt = NA)
 )
 
 askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
@@ -169,6 +201,9 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param model .
 #' @param baseUrl .
 #' @param maxLevels .
+#' @param role .
+#' @param promptLang .
+#' @param systemPrompt .
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a preformatted \cr
@@ -187,7 +222,10 @@ askllm <- function(
     provider = "nim",
     model = "meta/llama-3.1-8b-instruct",
     baseUrl = "",
-    maxLevels = 10) {
+    maxLevels = 10,
+    role = "consultant",
+    promptLang = "en",
+    systemPrompt = "") {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("askllm requires jmvcore to be installed (restart may be required)")
@@ -208,7 +246,10 @@ askllm <- function(
         provider = provider,
         model = model,
         baseUrl = baseUrl,
-        maxLevels = maxLevels)
+        maxLevels = maxLevels,
+        role = role,
+        promptLang = promptLang,
+        systemPrompt = systemPrompt)
 
     analysis <- askllmClass$new(
         options = options,

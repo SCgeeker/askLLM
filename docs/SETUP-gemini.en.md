@@ -43,7 +43,7 @@ GEMINI_API_KEY=your-key-here
 ## Using it in askLLM
 
 - Set **Provider** to "Google Gemini (free tier)".
-- **Model** defaults to `gemini-flash-latest` (a server-side alias Google resolves to the newest flash model, so it never goes stale as versions retire); change it if needed.
+- **Model** defaults to `gemini-flash-latest` (a server-side alias Google resolves to the newest flash model, so it never goes stale as versions retire); change it if needed. As of 2026-07, this alias resolves to **Gemini 3.5 Flash-Lite** — free with effectively no usage limit, currently the best-value default to leave in place.
 
 ## Troubleshooting
 

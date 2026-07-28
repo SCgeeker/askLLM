@@ -61,3 +61,13 @@ children:
           - type: TextBox
             name: maxLevels
             format: number
+          - type: ComboBox
+            name: role
+          - type: ComboBox
+            name: promptLang
+          - type: TextBox
+            name: systemPrompt
+            format: string
+            multiline: true
+            width: largest
+            stretchFactor: 1

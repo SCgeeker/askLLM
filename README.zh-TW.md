@@ -60,6 +60,7 @@
 |---|---|---|---|
 | NVIDIA NIM | 有,免信用卡 | 雲端 | [SETUP-nim.zh-TW.md](docs/SETUP-nim.zh-TW.md) |
 | Google Gemini | 有,免信用卡 | 雲端 | [SETUP-gemini.zh-TW.md](docs/SETUP-gemini.zh-TW.md) |
+| OpenRouter | 有,免信用卡(`:free` 模型) | 雲端 | [SETUP-openrouter.zh-TW.md](docs/SETUP-openrouter.zh-TW.md) |
 | GitHub Models | 有(需 GitHub 帳號) | 雲端 | [SETUP-github.zh-TW.md](docs/SETUP-github.zh-TW.md) |
 | Ollama(本機) | 完全免費,無需金鑰 | 你的電腦 | [SETUP-ollama.zh-TW.md](docs/SETUP-ollama.zh-TW.md) |
 | Custom(自訂端點) | 視端點而定 | 自訂 | [SETUP-custom.zh-TW.md](docs/SETUP-custom.zh-TW.md) |
@@ -80,6 +81,35 @@
 - API 金鑰只存於你本機的環境變數或 `.Renviron` 檔案,**不會寫入 `.omv` 檔案**,也不會出現在 jamovi 介面上任何地方。
 - **已安裝模組的名稱與選單清單**(環境中繼資料,不含資料值)會隨摘要送出供 LLM 參考,用以確保建議的路徑都真實存在;你可用「Include installed modules」選項關閉此功能。
 - 若你需要**完全零資料外送**,請選擇 **Ollama(本機)** 這個 provider——包含 LLM 本身在內,一切都在你自己的電腦上執行。
+
+## 隱私設計 vs. 代理式 AI
+
+JASP 0.98(2026-07-02 起)推出「完全整合 AI」,採取代理型設計:把分析結果與輸出本身完整送給 LLM 處理。askLLM 採取不同的資訊架構——諮詢型設計,**僅送摘要統計量,絕不送原始資料列**。兩種設計在面對敏感資料時的隱私風險有本質差異。
+
+### askLLM vs. JASP 0.98 AI 比較
+
+| 面向 | askLLM | JASP 0.98 代理型 AI |
+|---|---|---|
+| **送給 LLM 的資料** | 所選變項的摘要統計(筆數、平均、標準差、類別頻率等) | 分析結果與完整輸出(含所有細節) |
+| **本機執行選項** | Ollama:完全本機,零外送;其他供應商則送雲端 | 僅限 JASP 內部;無完全本機選項 |
+| **適用敏感資料情境** | ✓ 支援(尤其搭配 Ollama 本機執行) | ⚠ 需謹慎 |
+
+### 為何敏感資料要特別留意?
+
+**JASP 官方已公開警告**:許多免費 LLM 服務(包括免費層的商業模型)會將用戶輸入用於模型訓練或其他改進目的。這對**病患資料、公司機密、個人敏感資訊**等場景形成風險[^jasp-privacy-warning]。
+
+- 如果你使用代理型 AI 搭配雲端服務,LLM 看到的是**完整的分析結果與統計輸出**,這些資訊經常包含足以識別個體或業務的細節。
+- askLLM 的設計則不同:即使採用雲端服務,LLM 也僅看到**摘要統計量**(例如「平均值、標準差、樣本數」),足以建議分析方向,卻不足以重建個別觀測值。搭配 Ollama,你甚至可以**完全絕緣外網**,LLM 與你的資料都在本機運行。
+
+### 建議
+
+- **敏感資料優先使用 Ollama(本機)**:無需 API 金鑰、無外送任何資料。
+- **如須使用雲端服務**:askLLM 的「摘要」特性天然降低風險,但建議先以非敏感資料測試、熟悉工具後再用在敏感場景。
+- **嚴肅的敏感資料應用(病患、商業機密等)**:請諮詢貴機構的資料保護或隱私團隊,確認政策允許。
+
+---
+
+[^jasp-privacy-warning]: JASP Services BV. (2026). [Set up a Fully Integrated AI in JASP, and Run it for Freeeee](https://www.jasp-services.com/set-up-a-fully-integrated-ai-in-jasp-and-run-it-for-freeeee/); JASP team. (2026). [Free API Key Hunting](https://jasp-stats.org/2026/07/09/free-api-key-hunting/)
 
 ## 開發者資訊
 

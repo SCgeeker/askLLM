@@ -12,8 +12,8 @@ description: >-
   Ask a large language model questions about the dataset you have open in
   jamovi. Selected variables' summary statistics (never raw rows) are attached
   to your question so answers are grounded in your data. Supports NVIDIA NIM,
-  Google Gemini, GitHub Models, local Ollama, and any OpenAI-compatible
-  endpoint.
+  Google Gemini, OpenRouter, GitHub Models, local Ollama, and any
+  OpenAI-compatible endpoint.
 analyses:
   - title: Ask LLM about your data
     name: askllm

@@ -45,6 +45,8 @@ NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxxxxxxxxxx
 - **Provider** 下拉選單選「NVIDIA NIM」。
 - **Model** 欄位預設為 `meta/llama-3.1-8b-instruct`;可依需要換成 NIM 上其他可用模型名稱。
 
+JASP 團隊的評測認為 NVIDIA NIM 提供 **40 requests/分鐘**、**77 個免費模型**,且尖峰時段的可用性與回應速度都優於其他免費雲端選項,是值得優先考慮的供應商。
+
 ## 常見問題
 
 | 畫面訊息 | 代表意義 | 處理方式 |

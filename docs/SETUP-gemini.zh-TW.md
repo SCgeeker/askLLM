@@ -43,7 +43,7 @@ GEMINI_API_KEY=你的金鑰
 ## 在 askLLM 中使用
 
 - **Provider** 下拉選單選「Google Gemini (free tier)」。
-- **Model** 欄位預設為 `gemini-flash-latest`(Google 伺服器端自動解析到最新的 flash 模型,不會因版本退役而失效);可依需要更換。
+- **Model** 欄位預設為 `gemini-flash-latest`(Google 伺服器端自動解析到最新的 flash 模型,不會因版本退役而失效);可依需要更換。目前(2026-07)此別名解析到 **Gemini 3.5 Flash-Lite**——免費、實質無限制,是目前最划算的常駐選擇。
 
 ## 常見問題
 

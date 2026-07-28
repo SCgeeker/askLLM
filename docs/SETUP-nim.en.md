@@ -45,6 +45,8 @@ NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxxxxxxxxxx
 - Set **Provider** to "NVIDIA NIM".
 - **Model** defaults to `meta/llama-3.1-8b-instruct`; change it to any other NIM-hosted model name if needed.
 
+The JASP team's evaluation rates NVIDIA NIM highly: **40 requests/minute**, **77 free models**, and better availability and response speed at peak hours than other free cloud options — worth prioritizing among providers.
+
 ## Troubleshooting
 
 | Message shown | Meaning | What to do |

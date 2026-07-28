@@ -83,3 +83,35 @@ These limitations make good teaching material in their own right:
 - Have students ask askLLM first, then carry out the analysis in jamovi and discover the path errors themselves — a concrete encounter with hallucination.
 - Use `tools/compare-models.R` to compare models and discuss why some answers are thorough and others thin.
 - Discuss why summary statistics are enough to *suggest* an analysis but not enough to *draw a conclusion*.
+
+## askLLM's privacy and information architecture advantages (for sensitive data)
+
+### Background: JASP 0.98 vs. askLLM design divergence
+
+JASP 0.98 (released 2026-07-02) introduced "Fully Integrated AI" using an agentic architecture: the LLM directly sees **the complete analysis results and outputs themselves**. askLLM takes a more conservative approach: the LLM sees only **summary statistics of the variables you selected** (counts, means, SDs, factor frequencies) — **never the raw data rows**.
+
+This architectural difference becomes critical when handling **sensitive data** (patient records, business secrets, personal privacy).
+
+### Why agentic design requires caution with sensitive data
+
+JASP's own team noted on their official blog[^jasp-warning]: many free LLMs may use input content to train or improve their models. For sensitive data, this is a serious risk — agentic AI sends complete analysis results (including inferential statistics, effect sizes, detailed per-case analysis) to the LLM, giving it enough information to reconstruct or leak the privacy-critical core of the original data.
+
+askLLM's "summary-only" design works differently:
+
+- **Even when using cloud services**, the LLM sees only summary numbers, insufficient to reconstruct individual observations, reducing the risk of training-data leakage.
+- **With Ollama local execution**, you can run **entirely offline**: your LLM and your data both run on your own machine, zero transmission.
+
+### Usage recommendations
+
+1. **First choice for sensitive data**: use the **Ollama (local)** provider. No API key needed, no network dependency, data never leaves your machine.
+2. **If you must use cloud services**: askLLM's design naturally lowers risk, but we recommend:
+   - First test with non-sensitive data to become familiar with the tool
+   - Before deployment, confirm your organization's privacy/data protection policy allows it
+   - Consider whether the summary-level analysis is sufficient for your needs (enough to suggest directions, but not enough to leak privacy)
+3. **High-stakes scenarios** (e.g., clinical research, trade secrets, regulated personal data): require formal privacy assessment; agentic AI plus cloud services is not recommended.
+
+For more background and detailed comparison, see the main README's "[Privacy by design vs. agentic AI](../README.md#privacy-by-design-vs-agentic-ai)" section.
+
+---
+
+[^jasp-warning]: JASP team. (2026). [Free API Key Hunting](https://jasp-stats.org/2026/07/09/free-api-key-hunting/); JASP Services BV. (2026). [Set up a Fully Integrated AI in JASP, and Run it for Freeeee](https://www.jasp-services.com/set-up-a-fully-integrated-ai-in-jasp-and-run-it-for-freeeee/)

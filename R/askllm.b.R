@@ -15,17 +15,26 @@
 
 #' 組出防抖快取用的 payload 字串
 #'
-#' payload = 問題 + 摘要 + base_url + model + context_text,以控制字元分隔
-#' 避免歧義。summary_text/context_text 可為 NULL(視為空字串)。
-#' context_text 預設空字串——既有測試以四參數呼叫時輸出與 v1.0 逐位相同。
+#' payload = 問題 + 摘要 + base_url + model + context_text + role + prompt_lang
+#' + system_prompt,以控制字元分隔避免歧義。summary_text/context_text 可為
+#' NULL(視為空字串)。context_text/role/prompt_lang/system_prompt 均有預設值,
+#' 舊呼叫方式(四或五參數)輸出與升版前逐位相同。
+#'
+#' role/prompt_lang/system_prompt 三者納入指紋(payload 格式 v1.2):
+#' 切換人格、切換語言、或修改自訂 system prompt 都必須被視為「新請求」,
+#' 否則防抖快取會誤判為 cached、畫面顯示舊人格/舊語言的回覆。
 .askllm_build_payload <- function(question, summary_text, base_url, model,
-                                  context_text = '') {
+                                  context_text = '', role = 'consultant',
+                                  prompt_lang = 'en', system_prompt = '') {
     paste(
         question %||% '',
         summary_text %||% '',
         base_url %||% '',
         model %||% '',
         context_text %||% '',
+        role %||% '',
+        prompt_lang %||% '',
+        system_prompt %||% '',
         sep = .ASKLLM_SEP)
 }
 
@@ -88,35 +97,100 @@
 #' provider 代碼 → 顯示名稱(對應 a.yaml 選項標題)
 .askllm_provider_name <- function(name) {
     switch(name,
-        nim    = 'NVIDIA NIM',
-        gemini = 'Google Gemini',
-        github = 'GitHub Models',
-        ollama = 'Ollama (local)',
-        custom = 'Custom (OpenAI-compatible)',
+        nim        = 'NVIDIA NIM',
+        gemini     = 'Google Gemini',
+        openrouter = 'OpenRouter',
+        github     = 'GitHub Models',
+        ollama     = 'Ollama (local)',
+        custom     = 'Custom (OpenAI-compatible)',
         name)
 }
 
-#' 送給 LLM 的 system prompt(英文,措辭精簡)
+#' 人格 x 語言 system prompt 模板(項目 1:role 選擇器)
 #'
-#' has_catalog = FALSE(預設):與 v1.0 逐字相同(降級保證)。
-#' has_catalog = TRUE:於 v1.0 字串之後以單一空白接續附加規格 §4.3.3 定稿句。
-.askllm_system_prompt <- function(has_catalog = FALSE) {
-    base <- paste(
-        'You are a statistical analysis assistant embedded in jamovi.',
-        'Answer the user\'s questions about their dataset using the provided',
-        'summary statistics. Be concise, accurate, and practical. If the',
-        'summary is insufficient to answer, say so briefly rather than guessing.',
-        sep = ' ')
+#' `consultant`/`en` 為 v1.0 逐字原句(降級保證,見 `.askllm_system_prompt()`)。
+#' 其餘五格為新撰寫:`tutor` 蘇格拉底式引導、`explainer` 面向初學者逐步解說。
+#' 以 named list `prompts[[role]][[lang]]` 組織,方便日後在此擴充其他語言。
+.ASKLLM_PROMPTS <- list(
+    consultant = list(
+        en = paste(
+            'You are a statistical analysis assistant embedded in jamovi.',
+            'Answer the user\'s questions about their dataset using the provided',
+            'summary statistics. Be concise, accurate, and practical. If the',
+            'summary is insufficient to answer, say so briefly rather than guessing.',
+            sep = ' '),
+        zh = paste0(
+            '你是內嵌於 jamovi 的統計分析助理。請根據系統提供的摘要統計量,',
+            '精簡、準確、務實地回答使用者關於資料集的問題。',
+            '若摘要資訊不足以回答,請直接簡短說明,不要臆測。')),
+    tutor = list(
+        en = paste(
+            'You are a statistics tutor embedded in jamovi, teaching through',
+            'Socratic dialogue. Given the user\'s question and the provided',
+            'summary statistics, do not give the final answer directly. Instead,',
+            'ask guiding questions and offer hints that help the user reason',
+            'through the problem themselves, checking their understanding step',
+            'by step. If the summary is insufficient, say so briefly rather than',
+            'guessing.',
+            sep = ' '),
+        zh = paste0(
+            '你是內嵌於 jamovi 的統計導師,採用蘇格拉底式教學法。',
+            '面對使用者的問題與系統提供的摘要統計量,請不要直接給出最終答案,',
+            '而是透過提問與提示,引導使用者一步步自己推理出答案,',
+            '並適時確認其理解是否正確。',
+            '若摘要資訊不足,請直接簡短說明,不要臆測。')),
+    explainer = list(
+        en = paste(
+            'You are a statistics explainer embedded in jamovi, helping beginners',
+            'understand their data. Given the user\'s question and the provided',
+            'summary statistics, explain the answer step by step in plain language,',
+            'defining any statistical terms you use. Assume no prior background in',
+            'statistics. If the summary is insufficient to answer, say so briefly',
+            'rather than guessing.',
+            sep = ' '),
+        zh = paste0(
+            '你是內嵌於 jamovi 的統計解說員,協助初學者理解自己的資料。',
+            '請針對使用者的問題與系統提供的摘要統計量,以淺顯易懂的語言逐步說明,',
+            '並解釋所使用的統計名詞的定義。假設使用者沒有統計學背景。',
+            '若摘要資訊不足以回答,請直接簡短說明,不要臆測。')))
 
-    if (!isTRUE(has_catalog)) return(base)
-
-    paste(base, paste(
+#' catalog 約束句(防路徑捏造),依語言分岐;三種人格、兩種語言皆附加相同句
+#'
+#' en 版與 v1.0 逐字相同(降級保證);zh 版為對應翻譯。
+.ASKLLM_CATALOG_SUFFIX <- list(
+    en = paste(
         'When a list of installed analyses is provided, recommend analyses ONLY',
         'from that list and cite each menu path exactly as written. If nothing',
         'installed fits, suggest a module ONLY if its name appears literally in the',
         'provided available-modules list; never name a module that is not in that',
         'list, even one you believe exists, and never invent menu paths.',
-        sep = ' '))
+        sep = ' '),
+    zh = paste0(
+        '當系統提供已安裝分析清單時,建議的分析僅能出自該清單,',
+        '並逐字引用選單路徑。若清單中沒有合適的分析,',
+        '僅在該模組名稱明確出現於提供的「可用模組清單」中時才可建議該模組;',
+        '絕不可提及不在清單中的模組(即使你認為它存在),也絕不可捏造選單路徑。'))
+
+#' 送給 LLM 的 system prompt
+#'
+#' 優先序:`system_prompt`(去空白後非空)＞ `prompts[[role]][[lang]]`。
+#' 未知 role/lang 防禦性落回 `consultant`/`en`。
+#' has_catalog = TRUE 時,不論走模板或自訂 system_prompt,一律以單一空白
+#' 接續附加對應語言的 catalog 約束句。
+#'
+#' 降級保證:role='consultant'、lang='en'、system_prompt=''、
+#' has_catalog=FALSE 時,回傳字串與 v1.0/v1.1 逐字相同。
+.askllm_system_prompt <- function(role = 'consultant', lang = 'en',
+                                  system_prompt = '', has_catalog = FALSE) {
+    if (is.null(role) || !role %in% names(.ASKLLM_PROMPTS)) role <- 'consultant'
+    if (is.null(lang) || !lang %in% c('en', 'zh')) lang <- 'en'
+
+    custom <- trimws(system_prompt %||% '')
+    base <- if (nzchar(custom)) custom else .ASKLLM_PROMPTS[[role]][[lang]]
+
+    if (!isTRUE(has_catalog)) return(base)
+
+    paste(base, .ASKLLM_CATALOG_SUFFIX[[lang]])
 }
 
 #' 送出後、回覆前顯示的等待訊息(繁中 + 英文)
@@ -270,7 +344,9 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             }
             payload <- .askllm_build_payload(
                 question, summary_text, spec$base_url, model,
-                context_text = context_text)
+                context_text = context_text,
+                role = opt$role, prompt_lang = opt$promptLang,
+                system_prompt = opt$systemPrompt)
 
             # --- 3. state 快取比對 ----------------------------------------
             st <- self$results$answer$state
@@ -324,7 +400,10 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 model          = model,
                 api_key        = api_key,
                 system_prompt  = .askllm_system_prompt(
-                    has_catalog = !is.null(catalog_text_value)),
+                    role          = opt$role,
+                    lang          = opt$promptLang,
+                    system_prompt = opt$systemPrompt,
+                    has_catalog   = !is.null(catalog_text_value)),
                 max_tokens     = 4096)
 
             # --- 7. 呈現 --------------------------------------------------

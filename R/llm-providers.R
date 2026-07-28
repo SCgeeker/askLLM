@@ -3,7 +3,7 @@
 
 #' 取得 provider 設定
 #'
-#' @param name provider 名稱:'nim'、'gemini'、'github'、'ollama'、'custom'
+#' @param name provider 名稱:'nim'、'gemini'、'openrouter'、'github'、'ollama'、'custom'
 #' @param base_url_option custom provider 專用的 base URL(來自 baseUrl 選項)
 #' @return list(base_url, env_vars, needs_key, default_model, signup_url, key_example);
 #'   custom 缺 base_url_option 時多帶 error 欄位
@@ -28,6 +28,19 @@ provider_spec <- function(name, base_url_option = '') {
             default_model = 'gemini-flash-latest',
             signup_url = 'https://aistudio.google.com/apikey',
             key_example = 'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXX'))
+    }
+
+    if (name == 'openrouter') {
+        return(list(
+            base_url = 'https://openrouter.ai/api/v1',
+            # OPENROUTER_API_KEY 優先;LLM_API_KEY 墊底,相容既有 custom 設定習慣。
+            env_vars = c('OPENROUTER_API_KEY', 'LLM_API_KEY'),
+            needs_key = TRUE,
+            # :free 後綴為 OpenRouter 免費模型的必要標記(見 SETUP-openrouter)。
+            # 2026-07-29 以真金鑰對 /models 端點實測確認存在且可正常對話。
+            default_model = 'openai/gpt-oss-20b:free',
+            signup_url = 'https://openrouter.ai/keys',
+            key_example = 'sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx'))
     }
 
     if (name == 'github') {

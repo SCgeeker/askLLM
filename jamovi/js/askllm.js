@@ -11,6 +11,7 @@ const LABEL_TEXT = 'Your question';
 const PROVIDER_DEFAULTS = {
     nim: 'meta/llama-3.1-8b-instruct',
     gemini: 'gemini-flash-latest',
+    openrouter: 'openai/gpt-oss-20b:free',
     github: 'openai/gpt-4o-mini',
     ollama: 'llama3.2',
     custom: ''

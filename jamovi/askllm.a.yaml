@@ -48,6 +48,8 @@ options:
           title: NVIDIA NIM
         - name: gemini
           title: Google Gemini (free tier)
+        - name: openrouter
+          title: OpenRouter
         - name: github
           title: GitHub Models
         - name: ollama
@@ -72,4 +74,31 @@ options:
       default: 10
       min: 3
       max: 50
+
+    - name: role
+      title: Persona
+      type: List
+      options:
+        - name: consultant
+          title: 🧭 Consultant
+        - name: tutor
+          title: 🎓 Tutor
+        - name: explainer
+          title: 💡 Explainer
+      default: consultant
+
+    - name: promptLang
+      title: Prompt language
+      type: List
+      options:
+        - name: en
+          title: English
+        - name: zh
+          title: 繁體中文
+      default: en
+
+    - name: systemPrompt
+      title: Custom system prompt (overrides persona template when non-empty)
+      type: String
+      default: ''
 ...

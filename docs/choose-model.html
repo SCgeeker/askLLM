@@ -225,7 +225,7 @@
       <span class="zh">點一個就會標出符合的供應商。不確定？任一張都行——先從 NVIDIA 或 Gemini 開始。</span>
     </p>
     <div class="chips" role="group">
-      <button class="chip" type="button" aria-pressed="false" data-pick="nim gemini">
+      <button class="chip" type="button" aria-pressed="false" data-pick="nim gemini openrouter">
         <span class="en">No credit card</span><span class="zh">沒有信用卡</span></button>
       <button class="chip" type="button" aria-pressed="false" data-pick="github">
         <span class="en">Only a GitHub account</span><span class="zh">只有 GitHub 帳號</span></button>
@@ -281,6 +281,23 @@
           <span class="zh"><code>gemini-flash-latest</code> 永遠指向 Google 當前的 Flash 模型——不必自己更新。</span></p>
       </article>
 
+      <!-- OpenRouter -->
+      <article class="card" id="openrouter">
+        <h3>OpenRouter</h3>
+        <p class="best"><span class="en">Free, no card. One key, dozens of vendors — pick any <code>:free</code> model.</span>
+          <span class="zh">免費、免卡。一組金鑰通吃數十家廠商——任選一個 <code>:free</code> 模型。</span></p>
+        <div class="badges"><span class="badge">Free</span><span class="badge">No card</span><span class="badge">Cloud</span></div>
+        <dl class="spec">
+          <dt>Provider</dt><dd>OpenRouter</dd>
+          <dt>Model</dt><dd><code>openai/gpt-oss-20b:free</code></dd>
+          <dt>Env var</dt><dd><code>OPENROUTER_API_KEY</code></dd>
+        </dl>
+        <a class="getkey" href="https://openrouter.ai/keys" target="_blank" rel="noopener">
+          <span class="en">Get a key at openrouter.ai/keys</span><span class="zh">到 openrouter.ai/keys 申請</span></a>
+        <p class="note"><span class="en">Free models need a <code>:free</code> suffix on the model name. Quota: 50 requests/day with no top-up, 1000/day after a one-time US$10+ top-up.</span>
+          <span class="zh">免費模型的模型名稱需加 <code>:free</code> 後綴。額度:未儲值每日 50 次,一次性儲值 US$10 以上後每日 1000 次。</span></p>
+      </article>
+
       <!-- GitHub -->
       <article class="card" id="github">
         <h3>GitHub Models</h3>
@@ -318,19 +335,19 @@
       <!-- Custom -->
       <article class="card" id="custom">
         <h3>Custom <span style="color:var(--muted);font-weight:500">(OpenAI-compatible)</span></h3>
-        <p class="best"><span class="en">Any OpenAI-style endpoint you already use — OpenRouter, DeepSeek, a local gateway, your lab’s server.</span>
-          <span class="zh">任何你已在用的 OpenAI 相容端點——OpenRouter、DeepSeek、本地閘道、實驗室伺服器。</span></p>
+        <p class="best"><span class="en">Any OpenAI-style endpoint you already use — DeepSeek direct, a local gateway, your lab’s server.</span>
+          <span class="zh">任何你已在用的 OpenAI 相容端點——DeepSeek 官方端點、本地閘道、實驗室伺服器。</span></p>
         <div class="badges"><span class="badge byo">Bring your own</span><span class="badge">Cloud / local</span></div>
         <dl class="spec">
           <dt>Provider</dt><dd>Custom OpenAI-compatible</dd>
-          <dt>Base URL</dt><dd><code>https://openrouter.ai/api/v1</code></dd>
-          <dt>Model</dt><dd><code>deepseek/deepseek-r1:free</code></dd>
+          <dt>Base URL</dt><dd><code>https://api.deepseek.com</code></dd>
+          <dt>Model</dt><dd><code>deepseek-chat</code></dd>
           <dt>Env var</dt><dd><code>LLM_API_KEY</code></dd>
         </dl>
-        <a class="getkey" href="https://openrouter.ai/models" target="_blank" rel="noopener">
-          <span class="en">Browse OpenRouter models</span><span class="zh">瀏覽 OpenRouter 模型</span></a>
-        <p class="note"><span class="en">On OpenRouter, append <code>:free</code> to a model name to use its free tier (50 requests/day).</span>
-          <span class="zh">在 OpenRouter，模型名後加 <code>:free</code> 即用免費額度（每日 50 次）。</span></p>
+        <a class="getkey" href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">
+          <span class="en">Get a key at platform.deepseek.com</span><span class="zh">到 platform.deepseek.com 申請</span></a>
+        <p class="note"><span class="en">Want a multi-vendor free tier instead? See the <b>OpenRouter</b> card above.</span>
+          <span class="zh">想要一個能通吃多家廠商的免費方案?見上方 <b>OpenRouter</b> 卡片。</span></p>
       </article>
 
     </div>

@@ -84,3 +84,35 @@ askLLM 讓 LLM 讀你的資料摘要並提出統計建議,但 **LLM 會產生看
 - 讓學生先問 askLLM,再實際到 jamovi 操作,親身發現路徑錯誤 → 具體體會「LLM 幻覺」
 - 用 `tools/compare-models.R` 比較不同模型的回答,討論為何有的完整、有的簡略
 - 討論「為什麼摘要統計足以建議分析,卻不足以下結論」
+
+## askLLM 的隱私與資訊架構優勢(針對敏感資料)
+
+### 背景:JASP 0.98 與 askLLM 的設計分歧
+
+JASP 0.98(2026-07-02)推出「完全整合 AI」,採用代理型(agentic)架構:LLM 直接看到**完整的分析結果與輸出本身**。相比之下,askLLM 的設計更保守:LLM 只看到**所選變項的摘要統計量**(筆數、平均、標準差、類別頻率),**絕不送原始資料列**。
+
+這個架構差異在處理**敏感資料**(病患紀錄、商業機密、個人隱私)時尤為關鍵。
+
+### 為何敏感資料要特別留意代理型設計?
+
+JASP 團隊自己在官方部落格點出[^jasp-warning]:許多免費 LLM 會用輸入內容訓練或改進模型。這對敏感資料是嚴重風險——代理型 AI 把完整的分析結果(包含推論統計、效應量、逐筆分析細節)送給 LLM,LLM 有足夠資訊重建或洩露原始資料的隱私內核。
+
+askLLM 的「摘要專送」設計則不同:
+
+- **即使用雲端服務**,LLM 也只看到摘要數字,不足以重建個別觀測值,降低訓練資料洩露的風險。
+- **搭配 Ollama 本機執行**,你可以**完全離線**運行:LLM 與你的資料都在本機,零外送風險。
+
+### 使用建議
+
+1. **敏感資料的首選**:使用 **Ollama(本機)** provider。無需 API 金鑰、無網路依賴、資料永不外送。
+2. **如需雲端服務**:askLLM 的設計天然降低風險,但建議:
+   - 先用非敏感資料熟悉工具
+   - 部署前向貴機構的資料保護/隱私團隊確認政策
+   - 考慮是否可用摘要進行所需分析(足以建議方向,但不足以洩露隱私)
+3. **高風險場景**(例如臨床研究、商業機密、個資保護法等管制資料):須經正式隱私評估,不建議代理 AI 加上雲端服務。
+
+更多背景與詳細對照見主 README 的「[隱私設計 vs. 代理式 AI](../README.zh-TW.md#隱私設計-vs-代理式-ai)」小節。
+
+---
+
+[^jasp-warning]: JASP team. (2026). [Free API Key Hunting](https://jasp-stats.org/2026/07/09/free-api-key-hunting/); JASP Services BV. (2026). [Set up a Fully Integrated AI in JASP, and Run it for Freeeee](https://www.jasp-services.com/set-up-a-fully-integrated-ai-in-jasp-and-run-it-for-freeeee/)
