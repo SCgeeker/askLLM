@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en" data-ui-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>askLLM · Choose a model you can actually use</title>
+<style>
+  /* ---- Tokens: cool, analytical, instrument-panel calm ---- */
+  :root{
+    --paper:#eef1f5;      /* cool light ground, blue-biased neutral */
+    --card:#ffffff;
+    --ink:#141b23;        /* cool near-black */
+    --muted:#5a6675;
+    --line:#d5dce4;
+    --accent:#0f6f86;     /* deep teal-cyan signal */
+    --accent-soft:#d7ebef;
+    --local:#2f7d5b;      /* semantic: runs on your machine */
+    --local-soft:#dcefe4;
+    --warn-soft:#f6ecd6;
+    --warn-ink:#8a6414;
+    --code-bg:#eaf0f4;
+    --code-ink:#0d3f4c;
+    --shadow:0 1px 2px rgba(20,27,35,.05),0 8px 24px rgba(20,27,35,.06);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0f141a; --card:#161d25; --ink:#e7ecf1; --muted:#93a1b1;
+      --line:#28323d; --accent:#3fb0c4; --accent-soft:#123039; --local:#57b98a;
+      --local-soft:#12291f; --warn-soft:#332a14; --warn-ink:#e6c063;
+      --code-bg:#0c1218; --code-ink:#8fd6e2;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0f141a; --card:#161d25; --ink:#e7ecf1; --muted:#93a1b1;
+    --line:#28323d; --accent:#3fb0c4; --accent-soft:#123039; --local:#57b98a;
+    --local-soft:#12291f; --warn-soft:#332a14; --warn-ink:#e6c063;
+    --code-bg:#0c1218; --code-ink:#8fd6e2;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"]{
+    --paper:#eef1f5; --card:#ffffff; --ink:#141b23; --muted:#5a6675;
+    --line:#d5dce4; --accent:#0f6f86; --accent-soft:#d7ebef; --local:#2f7d5b;
+    --local-soft:#dcefe4; --warn-soft:#f6ecd6; --warn-ink:#8a6414;
+    --code-bg:#eaf0f4; --code-ink:#0d3f4c;
+    --shadow:0 1px 2px rgba(20,27,35,.05),0 8px 24px rgba(20,27,35,.06);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
+      "PingFang TC","Microsoft JhengHei","Noto Sans TC","Noto Sans CJK TC",
+      Helvetica,Arial,sans-serif;
+    line-height:1.6; letter-spacing:.005em;
+    -webkit-font-smoothing:antialiased;
+  }
+  code,kbd,.mono{
+    font-family:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,
+      "Liberation Mono",monospace;
+    font-variant-ligatures:none;
+  }
+
+  /* language toggling */
+  :root[data-ui-lang="en"] .zh{display:none}
+  :root[data-ui-lang="zh"] .en{display:none}
+
+  .wrap{max-width:1000px;margin:0 auto;padding:clamp(20px,4vw,48px)}
+
+  /* ---- top bar ---- */
+  .topbar{display:flex;justify-content:space-between;align-items:center;
+    gap:16px;flex-wrap:wrap;margin-bottom:clamp(28px,5vw,48px)}
+  .brand{display:flex;align-items:baseline;gap:10px}
+  .brand b{font-size:1.05rem;letter-spacing:-.01em}
+  .eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:.16em;
+    color:var(--accent);font-weight:700;
+    border:1px solid var(--accent);border-radius:100px;padding:2px 9px}
+  .controls{display:flex;gap:8px}
+  .controls button{
+    font:inherit;font-size:.82rem;color:var(--ink);background:var(--card);
+    border:1px solid var(--line);border-radius:100px;padding:6px 13px;
+    cursor:pointer;transition:border-color .15s,background .15s}
+  .controls button:hover{border-color:var(--accent)}
+  .controls button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---- hero ---- */
+  h1{font-size:clamp(1.9rem,4.6vw,3rem);line-height:1.08;letter-spacing:-.02em;
+    margin:.1em 0 .35em;text-wrap:balance;font-weight:800}
+  .lede{font-size:clamp(1.02rem,2vw,1.24rem);color:var(--muted);
+    max-width:60ch;margin:0}
+  .accent{color:var(--accent)}
+
+  section{margin-top:clamp(40px,6vw,64px)}
+  .step-h{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .step-n{font:700 .8rem/1 ui-monospace,monospace;color:var(--accent);
+    border:1px solid var(--accent);border-radius:8px;padding:6px 8px;
+    letter-spacing:.05em}
+  h2{font-size:clamp(1.25rem,2.6vw,1.6rem);margin:0;letter-spacing:-.01em;
+    text-wrap:balance;font-weight:750}
+  .sub{color:var(--muted);margin:.1em 0 22px;max-width:64ch}
+
+  /* ---- situation chips ---- */
+  .chips{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{font:inherit;text-align:left;cursor:pointer;background:var(--card);
+    border:1px solid var(--line);border-radius:100px;padding:9px 16px;
+    color:var(--ink);transition:all .15s;font-size:.92rem}
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+  .chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);
+    color:#fff}
+  :root[data-theme="dark"] .chip[aria-pressed="true"],
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#07171b}}
+
+  /* ---- provider cards ---- */
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 20px 18px;box-shadow:var(--shadow);position:relative;
+    transition:box-shadow .2s,border-color .2s,transform .2s;scroll-margin-top:20px}
+  .card.dim{opacity:.38;filter:saturate(.5)}
+  .card.hit{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),var(--shadow)}
+  .card h3{margin:0 0 2px;font-size:1.16rem;letter-spacing:-.01em}
+  .best{color:var(--muted);font-size:.9rem;margin:0 0 14px;min-height:2.4em}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .badge{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;
+    font-weight:700;padding:3px 8px;border-radius:6px;
+    background:var(--accent-soft);color:var(--accent)}
+  .badge.local{background:var(--local-soft);color:var(--local)}
+  .badge.byo{background:var(--warn-soft);color:var(--warn-ink)}
+
+  dl.spec{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;
+    font-size:.86rem;align-items:baseline}
+  dl.spec dt{color:var(--muted);white-space:nowrap}
+  dl.spec dd{margin:0;min-width:0}
+  dl.spec code{background:var(--code-bg);color:var(--code-ink);border-radius:5px;
+    padding:1px 6px;font-size:.86em;word-break:break-all}
+  .getkey{display:inline-block;margin-top:14px;font-weight:650;font-size:.9rem;
+    color:var(--accent);text-decoration:none;border-bottom:1.5px solid transparent;
+    transition:border-color .15s}
+  .getkey:hover{border-color:var(--accent)}
+  .getkey::after{content:" →"}
+  .note{font-size:.8rem;color:var(--muted);margin:12px 0 0;
+    padding-top:12px;border-top:1px dashed var(--line)}
+
+  /* ---- OS tabs ---- */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden}
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);
+    background:var(--code-bg)}
+  .tabs button{font:inherit;font-size:.9rem;font-weight:600;color:var(--muted);
+    background:transparent;border:0;border-bottom:2px solid transparent;
+    padding:12px 18px;cursor:pointer}
+  .tabs button[aria-selected="true"]{color:var(--accent);
+    border-bottom-color:var(--accent);background:var(--card)}
+  .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .tabpane{padding:22px 22px 24px}
+  .tabpane[hidden]{display:none}
+  .tabpane ol{margin:0;padding-left:1.3em}
+  .tabpane li{margin:.5em 0}
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:10px;
+    padding:13px 15px;overflow-x:auto;margin:.6em 0;font-size:.86rem;
+    border:1px solid var(--line)}
+  pre code{background:none;padding:0}
+  .kbdrow kbd{background:var(--code-bg);border:1px solid var(--line);
+    border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:.85em}
+
+  /* ---- privacy strip ---- */
+  .privacy{background:var(--local-soft);border:1px solid var(--local);
+    border-radius:var(--radius);padding:20px 22px;display:flex;gap:16px;
+    align-items:flex-start}
+  .privacy .dot{flex:0 0 auto;width:10px;height:10px;border-radius:50%;
+    background:var(--local);margin-top:9px}
+  .privacy h2{color:var(--local)}
+  .privacy p{margin:.3em 0 0;font-size:.92rem}
+
+  footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--line);
+    color:var(--muted);font-size:.85rem;display:flex;justify-content:space-between;
+    gap:16px;flex-wrap:wrap}
+  footer a{color:var(--accent)}
+
+  @media (max-width:520px){
+    dl.spec{grid-template-columns:1fr;gap:2px}
+    dl.spec dt{margin-top:6px}
+    footer{flex-direction:column;gap:6px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="eyebrow">Prototype</span>
+      <b>askLLM</b>
+    </div>
+    <div class="controls">
+      <button id="langBtn" type="button" aria-label="Switch language">中文</button>
+      <button id="themeBtn" type="button" aria-label="Switch theme">◐ Theme</button>
+    </div>
+  </div>
+
+  <header>
+    <h1>
+      <span class="en">Choose an LLM you can <span class="accent">actually</span> use.</span>
+      <span class="zh">選一個你<span class="accent">真的用得起</span>的 LLM。</span>
+    </h1>
+    <p class="lede">
+      <span class="en">askLLM talks to a model you bring yourself. Pick the one that fits your
+        situation, get a key, and tell askLLM where to find it — most options are free.</span>
+      <span class="zh">askLLM 使用你自備的模型。依你的情況挑一個、申請金鑰、再告訴 askLLM
+        到哪裡找它——多數選項都免費。</span>
+    </p>
+  </header>
+
+  <!-- STEP 1 -->
+  <section>
+    <div class="step-h">
+      <span class="step-n">01</span>
+      <h2><span class="en">Which situation fits you?</span><span class="zh">你是哪種情況？</span></h2>
+    </div>
+    <p class="sub">
+      <span class="en">Tap one to highlight the providers that match. Not sure? Any card works — start with NVIDIA or Gemini.</span>
+      <span class="zh">點一個就會標出符合的供應商。不確定？任一張都行——先從 NVIDIA 或 Gemini 開始。</span>
+    </p>
+    <div class="chips" role="group">
+      <button class="chip" type="button" aria-pressed="false" data-pick="nim gemini">
+        <span class="en">No credit card</span><span class="zh">沒有信用卡</span></button>
+      <button class="chip" type="button" aria-pressed="false" data-pick="github">
+        <span class="en">Only a GitHub account</span><span class="zh">只有 GitHub 帳號</span></button>
+      <button class="chip" type="button" aria-pressed="false" data-pick="ollama">
+        <span class="en">Data must stay on my machine</span><span class="zh">資料必須留在本機</span></button>
+      <button class="chip" type="button" aria-pressed="false" data-pick="custom">
+        <span class="en">I already have a provider</span><span class="zh">我已經有供應商</span></button>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section>
+    <div class="step-h">
+      <span class="step-n">02</span>
+      <h2><span class="en">Pick a provider &amp; get a key</span><span class="zh">挑一個供應商並申請金鑰</span></h2>
+    </div>
+    <p class="sub">
+      <span class="en">Each card shows exactly what to select in askLLM’s <b>LLM settings</b>. Model names change often — the “get a key” page always lists what’s current.</span>
+      <span class="zh">每張卡都寫明在 askLLM 的 <b>LLM settings</b> 要選什麼。模型名稱常變動——「申請金鑰」頁面永遠列出最新的。</span>
+    </p>
+
+    <div class="grid">
+
+      <!-- NVIDIA -->
+      <article class="card" id="nim">
+        <h3>NVIDIA NIM</h3>
+        <p class="best"><span class="en">Free, no card. Dozens of models; fast and reliable at peak hours.</span>
+          <span class="zh">免費、免卡。數十種模型；尖峰時段快又穩。</span></p>
+        <div class="badges"><span class="badge">Free</span><span class="badge">No card</span><span class="badge">Cloud</span></div>
+        <dl class="spec">
+          <dt>Provider</dt><dd>NVIDIA NIM</dd>
+          <dt>Model</dt><dd><code>meta/llama-3.1-8b-instruct</code></dd>
+          <dt>Env var</dt><dd><code>NVIDIA_API_KEY</code></dd>
+        </dl>
+        <a class="getkey" href="https://build.nvidia.com" target="_blank" rel="noopener">
+          <span class="en">Get a key at build.nvidia.com</span><span class="zh">到 build.nvidia.com 申請</span></a>
+      </article>
+
+      <!-- Gemini -->
+      <article class="card" id="gemini">
+        <h3>Google Gemini</h3>
+        <p class="best"><span class="en">Free, no card. Uses a self-updating model alias, so it never goes stale.</span>
+          <span class="zh">免費、免卡。用會自動更新的模型別名，永遠不會過期。</span></p>
+        <div class="badges"><span class="badge">Free</span><span class="badge">No card</span><span class="badge">Cloud</span></div>
+        <dl class="spec">
+          <dt>Provider</dt><dd>Google Gemini (free tier)</dd>
+          <dt>Model</dt><dd><code>gemini-flash-latest</code></dd>
+          <dt>Env var</dt><dd><code>GEMINI_API_KEY</code></dd>
+        </dl>
+        <a class="getkey" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">
+          <span class="en">Get a key at aistudio.google.com</span><span class="zh">到 aistudio.google.com 申請</span></a>
+        <p class="note"><span class="en"><code>gemini-flash-latest</code> always points at Google’s current Flash model — no need to update it.</span>
+          <span class="zh"><code>gemini-flash-latest</code> 永遠指向 Google 當前的 Flash 模型——不必自己更新。</span></p>
+      </article>
+
+      <!-- GitHub -->
+      <article class="card" id="github">
+        <h3>GitHub Models</h3>
+        <p class="best"><span class="en">Free with any GitHub account — dozens of models from OpenAI, Meta, Mistral, and more.</span>
+          <span class="zh">有 GitHub 帳號就免費——OpenAI、Meta、Mistral 等數十種模型。</span></p>
+        <div class="badges"><span class="badge">Free</span><span class="badge">GitHub account</span><span class="badge">Cloud</span></div>
+        <dl class="spec">
+          <dt>Provider</dt><dd>GitHub Models</dd>
+          <dt>Model</dt><dd><code>openai/gpt-4o-mini</code></dd>
+          <dt>Env var</dt><dd><code>GITHUB_MODELS_TOKEN</code></dd>
+        </dl>
+        <a class="getkey" href="https://github.com/settings/tokens" target="_blank" rel="noopener">
+          <span class="en">Make a token at github.com/settings/tokens</span><span class="zh">到 github.com/settings/tokens 建立 token</span></a>
+        <p class="note"><span class="en">Use the name <code>GITHUB_MODELS_TOKEN</code> (not <code>GITHUB_TOKEN</code>) so it won’t clash with git or the gh CLI.</span>
+          <span class="zh">用 <code>GITHUB_MODELS_TOKEN</code> 這個名稱（別用 <code>GITHUB_TOKEN</code>），才不會撞到 git 或 gh CLI。</span></p>
+      </article>
+
+      <!-- Ollama -->
+      <article class="card" id="ollama">
+        <h3>Ollama <span style="color:var(--local)">· local</span></h3>
+        <p class="best"><span class="en">The model runs on your own computer. Zero data leaves your machine — no key needed.</span>
+          <span class="zh">模型在你自己的電腦上跑。零資料外送——不需要金鑰。</span></p>
+        <div class="badges"><span class="badge local">Local</span><span class="badge local">No key</span><span class="badge local">Private</span></div>
+        <dl class="spec">
+          <dt>Provider</dt><dd>Ollama (local)</dd>
+          <dt>Model</dt><dd><code>llama3.2</code></dd>
+          <dt>Env var</dt><dd><span class="en">none</span><span class="zh">無</span></dd>
+        </dl>
+        <a class="getkey" href="https://ollama.com" target="_blank" rel="noopener">
+          <span class="en">Install from ollama.com</span><span class="zh">到 ollama.com 安裝</span></a>
+        <p class="note"><span class="en">After installing, run <code>ollama pull llama3.2</code> once to download the model.</span>
+          <span class="zh">安裝後執行一次 <code>ollama pull llama3.2</code> 下載模型。</span></p>
+      </article>
+
+      <!-- Custom -->
+      <article class="card" id="custom">
+        <h3>Custom <span style="color:var(--muted);font-weight:500">(OpenAI-compatible)</span></h3>
+        <p class="best"><span class="en">Any OpenAI-style endpoint you already use — OpenRouter, DeepSeek, a local gateway, your lab’s server.</span>
+          <span class="zh">任何你已在用的 OpenAI 相容端點——OpenRouter、DeepSeek、本地閘道、實驗室伺服器。</span></p>
+        <div class="badges"><span class="badge byo">Bring your own</span><span class="badge">Cloud / local</span></div>
+        <dl class="spec">
+          <dt>Provider</dt><dd>Custom OpenAI-compatible</dd>
+          <dt>Base URL</dt><dd><code>https://openrouter.ai/api/v1</code></dd>
+          <dt>Model</dt><dd><code>deepseek/deepseek-r1:free</code></dd>
+          <dt>Env var</dt><dd><code>LLM_API_KEY</code></dd>
+        </dl>
+        <a class="getkey" href="https://openrouter.ai/models" target="_blank" rel="noopener">
+          <span class="en">Browse OpenRouter models</span><span class="zh">瀏覽 OpenRouter 模型</span></a>
+        <p class="note"><span class="en">On OpenRouter, append <code>:free</code> to a model name to use its free tier (50 requests/day).</span>
+          <span class="zh">在 OpenRouter，模型名後加 <code>:free</code> 即用免費額度（每日 50 次）。</span></p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section>
+    <div class="step-h">
+      <span class="step-n">03</span>
+      <h2><span class="en">Let askLLM find your key</span><span class="zh">讓 askLLM 找到你的金鑰</span></h2>
+    </div>
+    <p class="sub">
+      <span class="en">askLLM never asks you to paste a key into jamovi — it reads it from your machine, so it’s never saved into your <code>.omv</code> file. Replace <code>NVIDIA_API_KEY</code> below with the env var from your provider card.</span>
+      <span class="zh">askLLM 不會要你把金鑰貼進 jamovi——它從你的電腦讀取，所以金鑰絕不會被存進 <code>.omv</code> 檔。把下面的 <code>NVIDIA_API_KEY</code> 換成你那張卡的環境變數名。</span>
+    </p>
+
+    <div class="panel">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-win" aria-controls="pane-win" aria-selected="true">Windows</button>
+        <button role="tab" id="tab-nix" aria-controls="pane-nix" aria-selected="false">macOS / Linux</button>
+      </div>
+
+      <div class="tabpane" id="pane-win" role="tabpanel" aria-labelledby="tab-win">
+        <ol>
+          <li><span class="en">Open <b>PowerShell</b> and run (put your own key inside the quotes):</span>
+              <span class="zh">開啟 <b>PowerShell</b>，執行（引號內換成你的金鑰）：</span>
+            <pre><code>setx NVIDIA_API_KEY "nvapi-xxxxxxxxxxxxxxxx"</code></pre>
+          </li>
+          <li><span class="en">Or add a <b>user variable</b> via Settings → System → About → Advanced system settings → Environment Variables.</span>
+              <span class="zh">或由「設定 → 系統 → 關於 → 進階系統設定 → 環境變數」新增<b>使用者變數</b>。</span></li>
+          <li class="kbdrow"><span class="en"><b>Fully quit and restart jamovi</b> — close every window — for the change to take effect.</span>
+              <span class="zh"><b>完全關閉並重啟 jamovi</b>（關掉每個視窗）才會生效。</span></li>
+        </ol>
+      </div>
+
+      <div class="tabpane" id="pane-nix" role="tabpanel" aria-labelledby="tab-nix" hidden>
+        <ol>
+          <li><span class="en">Open (or create) <code>~/.Renviron</code> in a plain-text editor and add one line:</span>
+              <span class="zh">用純文字編輯器開啟（或新建）<code>~/.Renviron</code>，加入一行：</span>
+            <pre><code>NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxx</code></pre>
+          </li>
+          <li><span class="en">Save the file (no quotes, no spaces around <code>=</code>).</span>
+              <span class="zh">存檔（不用引號，<code>=</code> 兩側不要空格）。</span></li>
+          <li><span class="en"><b>Fully quit and restart jamovi</b> for the change to take effect.</span>
+              <span class="zh"><b>完全關閉並重啟 jamovi</b> 才會生效。</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section>
+    <div class="privacy">
+      <span class="dot" aria-hidden="true"></span>
+      <div>
+        <h2><span class="en">What leaves your machine</span><span class="zh">什麼會離開你的電腦</span></h2>
+        <p><span class="en">Only <b>summary statistics</b> of the variables you pick — counts, means, SDs, factor frequencies — plus your question. <b>Never the raw data rows.</b> Your API key stays on your machine and is never written into the <code>.omv</code> file. For zero data leaving at all, choose <b>Ollama</b>.</span>
+          <span class="zh">只有你所選變數的<b>摘要統計量</b>（個數、平均、標準差、因子頻率）加上你的問題。<b>絕不送原始資料列。</b>你的金鑰留在本機，絕不寫入 <code>.omv</code> 檔。若要完全零外送，請選 <b>Ollama</b>。</span></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span><span class="en">askLLM — ask an LLM about your data, inside jamovi.</span><span class="zh">askLLM——在 jamovi 內就數據向 LLM 提問。</span></span>
+    <span><a href="https://github.com/SCgeeker/askLLM" target="_blank" rel="noopener">github.com/SCgeeker/askLLM</a></span>
+  </footer>
+
+</div>
+
+<script>
+  var root = document.documentElement;
+
+  // language
+  document.getElementById('langBtn').addEventListener('click', function(){
+    var toZh = root.getAttribute('data-ui-lang') === 'en';
+    root.setAttribute('data-ui-lang', toZh ? 'zh' : 'en');
+    root.setAttribute('lang', toZh ? 'zh-Hant' : 'en');
+    this.textContent = toZh ? 'English' : '中文';
+  });
+
+  // theme
+  document.getElementById('themeBtn').addEventListener('click', function(){
+    var dark = matchMedia('(prefers-color-scheme: dark)').matches;
+    var cur = root.getAttribute('data-theme') || (dark ? 'dark' : 'light');
+    root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+  });
+
+  // situation chips -> highlight matching provider cards
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){
+      var on = chip.getAttribute('aria-pressed') === 'true';
+      chips.forEach(function(c){ c.setAttribute('aria-pressed','false'); });
+      if(on){ cards.forEach(function(c){ c.classList.remove('dim','hit'); }); return; }
+      chip.setAttribute('aria-pressed','true');
+      var pick = chip.getAttribute('data-pick').split(' ');
+      cards.forEach(function(c){
+        var hit = pick.indexOf(c.id) !== -1;
+        c.classList.toggle('hit', hit);
+        c.classList.toggle('dim', !hit);
+      });
+      var first = document.getElementById(pick[0]);
+      if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
+    });
+  });
+
+  // OS tabs
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      tabs.forEach(function(t){
+        var sel = t === tab;
+        t.setAttribute('aria-selected', sel ? 'true':'false');
+        document.getElementById(t.getAttribute('aria-controls')).hidden = !sel;
+      });
+    });
+  });
+</script>
+</body>
+</html>
