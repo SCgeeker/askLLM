@@ -166,3 +166,12 @@ test_that('key_setup_text() 使用傳入的金鑰範例,不寫死 NVIDIA 前綴'
     expect_true(grepl('ghp_xxxxxxxxxxxx', txt, fixed = TRUE))
     expect_false(grepl('nvapi-', txt, fixed = TRUE))
 })
+
+test_that('key_setup_text(): 英文區塊在中文區塊之前,語言不交錯', {
+    txt <- key_setup_text('NVIDIA NIM', 'NVIDIA_API_KEY',
+        'https://build.nvidia.com', 'nvapi-xxxxxxxx')
+    expect_true(regexpr('No API key configured', txt, fixed = TRUE) <
+                regexpr('尚未設定', txt, fixed = TRUE))
+    expect_true(regexpr('Privacy:', txt, fixed = TRUE) <
+                regexpr('隱私提醒', txt, fixed = TRUE))
+})

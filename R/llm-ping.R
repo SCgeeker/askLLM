@@ -154,11 +154,12 @@ ping_endpoint <- function(provider, base_url, api_key, needs_key,
                               key_source = NULL) {
     result_line <- .askllm_ping_result_line(res, provider)
 
+    # 排版:每個區塊先英文再中文(見 dev-notes/gui-manual-test-checklist)
     key_line <- if (!isTRUE(needs_key)) {
-        paste('金鑰來源:免金鑰', 'Key source: no API key required', sep = '\n')
+        paste('Key source: no API key required', '金鑰來源:免金鑰', sep = '\n')
     } else {
         src <- key_source %||% '未知'
-        paste(sprintf('金鑰來源:%s', src), sprintf('Key source: %s', src), sep = '\n')
+        paste(sprintf('Key source: %s', src), sprintf('金鑰來源:%s', src), sep = '\n')
     }
 
     paste(result_line, '', key_line, sep = '\n')
@@ -169,23 +170,24 @@ ping_endpoint <- function(provider, base_url, api_key, needs_key,
     ok <- isTRUE(res$ok)
     kind <- res$kind
 
+    # 排版:每個判讀結果先英文再中文(見 dev-notes/gui-manual-test-checklist)
     if (provider %in% .ping_unverified_providers && ok && identical(kind, 'reachable')) {
         return(paste(
-            '✓ 端點可連線(此供應商的 /models 不驗證金鑰,無法確認金鑰本身有效)',
             "✓ Endpoint reachable (this provider's /models endpoint does not",
             '  validate the key, so key validity cannot be confirmed)',
+            '✓ 端點可連線(此供應商的 /models 不驗證金鑰,無法確認金鑰本身有效)',
             sep = '\n'))
     }
 
     if (identical(provider, 'gemini')) {
         if (ok && identical(kind, 'valid_key')) {
-            return(paste('✓ 金鑰有效', '✓ API key is valid', sep = '\n'))
+            return(paste('✓ API key is valid', '✓ 金鑰有效', sep = '\n'))
         }
         if (!ok && identical(kind, 'invalid_key')) {
             status_disp <- if (is.null(res$status) || is.na(res$status)) '400' else res$status
             return(paste(
-                sprintf('✗ 金鑰無效(%s)', status_disp),
                 sprintf('✗ Invalid API key (%s)', status_disp),
+                sprintf('✗ 金鑰無效(%s)', status_disp),
                 sep = '\n'))
         }
     }
@@ -194,27 +196,27 @@ ping_endpoint <- function(provider, base_url, api_key, needs_key,
         if (ok && identical(kind, 'valid_key')) {
             status_disp <- if (is.null(res$status) || is.na(res$status)) '404' else res$status
             return(paste(
-                sprintf('✓ 金鑰有效(%s)', status_disp),
                 sprintf('✓ API key is valid (%s)', status_disp),
+                sprintf('✓ 金鑰有效(%s)', status_disp),
                 sep = '\n'))
         }
         if (!ok && identical(kind, 'invalid_key')) {
             status_disp <- if (is.null(res$status) || is.na(res$status)) '401' else res$status
             return(paste(
-                sprintf('✗ 未授權(%s)', status_disp),
                 sprintf('✗ Unauthorized (%s)', status_disp),
+                sprintf('✗ 未授權(%s)', status_disp),
                 sep = '\n'))
         }
     }
 
     if (identical(provider, 'ollama')) {
         if (ok && identical(kind, 'reachable')) {
-            return(paste('✓ 本機服務可連線',
-                         '✓ Local service is reachable', sep = '\n'))
+            return(paste('✓ Local service is reachable',
+                         '✓ 本機服務可連線', sep = '\n'))
         }
         if (!ok && identical(kind, 'no_service')) {
-            return(paste('✗ 服務未啟動',
-                         '✗ Service is not running', sep = '\n'))
+            return(paste('✗ Service is not running',
+                         '✗ 服務未啟動', sep = '\n'))
         }
     }
 

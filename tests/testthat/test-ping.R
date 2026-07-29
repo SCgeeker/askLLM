@@ -220,6 +220,42 @@ test_that('金鑰來源顯示在文案中(keyed provider)', {
     expect_true(grepl('env', txt, fixed = TRUE))
 })
 
+# ---- 排版:雙語區塊一致,先英文整段再中文整段(dev-notes checklist L71) -----
+
+test_that('ping_result_line: 英文在中文之前,語言不交錯(各判讀分支)', {
+    cases <- list(
+        list(res = list(ok = TRUE, status = 200, kind = 'reachable', body = '{}', message = NULL),
+             provider = 'nim', en = 'Endpoint reachable', zh = '端點可連線'),
+        list(res = list(ok = TRUE, status = 200, kind = 'valid_key', body = '{}', message = NULL),
+             provider = 'gemini', en = 'API key is valid', zh = '金鑰有效'),
+        list(res = list(ok = FALSE, status = 400, kind = 'invalid_key', body = '...', message = NULL),
+             provider = 'gemini', en = 'Invalid API key', zh = '金鑰無效'),
+        list(res = list(ok = TRUE, status = 404, kind = 'valid_key', body = 'page not found', message = NULL),
+             provider = 'github', en = 'API key is valid', zh = '金鑰有效'),
+        list(res = list(ok = FALSE, status = 401, kind = 'invalid_key', body = 'Unauthorized', message = NULL),
+             provider = 'github', en = 'Unauthorized', zh = '未授權'),
+        list(res = list(ok = TRUE, status = 200, kind = 'reachable', body = '{}', message = NULL),
+             provider = 'ollama', en = 'Local service is reachable', zh = '本機服務可連線'),
+        list(res = list(ok = FALSE, status = NA_integer_, kind = 'no_service', body = NULL, message = NULL),
+             provider = 'ollama', en = 'Service is not running', zh = '服務未啟動'))
+
+    for (cs in cases) {
+        line <- .askllm_ping_result_line(cs$res, cs$provider)
+        expect_true(regexpr(cs$en, line, fixed = TRUE) < regexpr(cs$zh, line, fixed = TRUE),
+            info = paste(cs$provider, cs$kind))
+    }
+})
+
+test_that('ping_text 金鑰來源行:英文在中文之前', {
+    ok_res <- list(ok = TRUE, status = 200, kind = 'valid_key', body = '{}', message = NULL)
+    txt <- .askllm_ping_text(ok_res, 'gemini', 'Google Gemini', TRUE, key_source = 'env')
+    expect_true(regexpr('Key source', txt, fixed = TRUE) < regexpr('金鑰來源', txt, fixed = TRUE))
+
+    no_key_txt <- .askllm_ping_text(ok_res, 'ollama', 'Ollama (local)', FALSE)
+    expect_true(regexpr('Key source', no_key_txt, fixed = TRUE) <
+                regexpr('金鑰來源', no_key_txt, fixed = TRUE))
+})
+
 # ---- .askllm_test_connection_text:組裝(spec/金鑰/ping)三段流程 -------------
 
 test_that('custom provider 缺 baseUrl → 顯示 spec 錯誤,不呼叫 ping', {
