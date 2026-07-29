@@ -18,7 +18,8 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             maxLevels = 10,
             role = "consultant",
             promptLang = "en",
-            systemPrompt = "", ...) {
+            systemPrompt = "",
+            systemPromptVar = NULL, ...) {
 
             super$initialize(
                 package="askLLM",
@@ -100,6 +101,17 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "systemPrompt",
                 systemPrompt,
                 default="")
+            private$..systemPromptVar <- jmvcore::OptionVariable$new(
+                "systemPromptVar",
+                systemPromptVar,
+                suggested=list(
+                    "continuous",
+                    "nominal",
+                    "ordinal"),
+                permitted=list(
+                    "numeric",
+                    "factor"),
+                default=NULL)
 
             self$.addOption(private$..vars)
             self$.addOption(private$..question)
@@ -114,6 +126,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..role)
             self$.addOption(private$..promptLang)
             self$.addOption(private$..systemPrompt)
+            self$.addOption(private$..systemPromptVar)
         }),
     active = list(
         vars = function() private$..vars$value,
@@ -128,7 +141,8 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         maxLevels = function() private$..maxLevels$value,
         role = function() private$..role$value,
         promptLang = function() private$..promptLang$value,
-        systemPrompt = function() private$..systemPrompt$value),
+        systemPrompt = function() private$..systemPrompt$value,
+        systemPromptVar = function() private$..systemPromptVar$value),
     private = list(
         ..vars = NA,
         ..question = NA,
@@ -142,7 +156,8 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..maxLevels = NA,
         ..role = NA,
         ..promptLang = NA,
-        ..systemPrompt = NA)
+        ..systemPrompt = NA,
+        ..systemPromptVar = NA)
 )
 
 askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
@@ -213,6 +228,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param role .
 #' @param promptLang .
 #' @param systemPrompt .
+#' @param systemPromptVar .
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a preformatted \cr
@@ -235,16 +251,19 @@ askllm <- function(
     maxLevels = 10,
     role = "consultant",
     promptLang = "en",
-    systemPrompt = "") {
+    systemPrompt = "",
+    systemPromptVar = NULL) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("askllm requires jmvcore to be installed (restart may be required)")
 
     if ( ! missing(vars)) vars <- jmvcore::resolveQuo(jmvcore::enquo(vars))
+    if ( ! missing(systemPromptVar)) systemPromptVar <- jmvcore::resolveQuo(jmvcore::enquo(systemPromptVar))
     if (missing(data))
         data <- jmvcore::marshalData(
             parent.frame(),
-            `if`( ! missing(vars), vars, NULL))
+            `if`( ! missing(vars), vars, NULL),
+            `if`( ! missing(systemPromptVar), systemPromptVar, NULL))
 
 
     options <- askllmOptions$new(
@@ -260,7 +279,8 @@ askllm <- function(
         maxLevels = maxLevels,
         role = role,
         promptLang = promptLang,
-        systemPrompt = systemPrompt)
+        systemPrompt = systemPrompt,
+        systemPromptVar = systemPromptVar)
 
     analysis <- askllmClass$new(
         options = options,

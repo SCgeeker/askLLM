@@ -54,6 +54,8 @@ Untick **Submit** before editing your question, then re-tick it — this avoids 
 
 **Include installed modules** (enabled by default) automatically scans your jamovi modules and feeds them to the LLM, so path suggestions accurately match your installed analyses. Untick this option to revert to v1.0 behavior.
 
+**Use a variable's Description as the system prompt** (under "LLM settings") lets you drive the persona from your dataset instead of typing it in the module: fill in a variable's **Description** in jamovi's variable Setup panel (e.g. a persona or task instruction), pick that variable here, and its Description is used as the system prompt. Priority order: this variable's Description (if selected and non-empty) > the **Custom system prompt** text box > the Persona template. This is handy for codebooks that already document per-variable context you want the LLM to use.
+
 ## Supported providers
 
 | Provider | Free tier / no card | Runs where | Setup guide |

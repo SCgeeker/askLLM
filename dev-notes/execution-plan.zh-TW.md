@@ -10,6 +10,7 @@
 - ✅ **里程碑 A2／項目 4 隱私文件**：README×2＋LIMITATIONS×2 新增隱私差異化小節，主迴圈驗收（純新增、來源可回溯）。
 - ✅ **里程碑 B1／項目 2 OpenRouter**：一級供應商＋docs，主迴圈驗收（587 pass / 0 fail）。**live 實測發現**：計畫預設 `meta-llama/llama-3.3-70b-instruct:free` 已下架，改用 **`openai/gpt-oss-20b:free`**（2026-07-29 實測 HTTP 200 / cost 0）。
 - ✅ **里程碑 D1／項目 3 Test Connection**：spike（推翻「200=金鑰有效」）＋實作＋主迴圈驗收（651 pass / 0 fail、8 分類分支 live+offline 皆對）。統一 `/models` GET＋per-provider override＋誠實分級文案（作者裁決）。新增 `R/llm-ping.R`、`testConnection` 選項；httr2 入 Imports。
+- ✅ **額外功能（GUI 手測衍生）：變數 Description → system prompt**。作者手測時提出「systemPrompt 能否用 Variable Description 編輯匯入」→ spike 證實 `.b.R` 可讀 `attr(self$data[[v]], "jmv-desc")`（jamovi 28.1 真機探針實測到 Description 文字）→ 新增 `systemPromptVar`（單一 Variable）選項，優先序：變數 Description ＞ Custom system prompt 文字框 ＞ Persona 模板。真 GUI 實測（`20260729003.omv`：role=tutor 但答案照 Description 給原理/公式）確認覆蓋生效。681 pass / 0 fail。
 - ⏳ **待辦**：C1／項目 5（指引外置，依賴 B、含**外部** GitHub Pages 開通＋Slack review；程式面 r.yaml Html item＋新建 askllm.md 待 Pages URL 定案）。
 - ✅ **h.R 交叉驗證（2026-07-29）**：於 `C:\Program Files\jamovi 28.1.0.0` 跑通 `jmvtools::prepare`，重生 h.R 與手補版**內容逐字相同**（僅 EOL 差異），手補正確。
 - ⚠️ **prepare 抓到並修掉 1 個 CI 抓不到的 bug**：`askllm.u.yaml` 的 `systemPrompt` 用了非法屬性 `multiline: true`（jus 不支援），已移除改單行寬框。

@@ -54,6 +54,8 @@
 
 **Include installed modules**(預設開啟)會自動掃描你的 jamovi 模組並供給 LLM,讓路徑建議精準對應你安裝的分析;取消勾選此選項即回到 v1.0 行為。
 
+**Use a variable's Description as the system prompt**(在「LLM settings」內)可讓你直接用資料集本身驅動人格,不必在模組裡另外輸入:在 jamovi 變數的 Setup 面板中填入該變數的**Description**(如人格設定或任務指示),在此選取該變數,系統即會以它的 Description 作為 system prompt。優先序:該變數的 Description(有選取且非空時)＞**Custom system prompt** 文字框 ＞ Persona 模板。適合已在 codebook 中記錄好各變數情境、想直接讓 LLM 沿用的情境。
+
 ## 支援的 Provider
 
 | Provider | 免費額度 / 免信用卡 | 執行位置 | 設定教學 |

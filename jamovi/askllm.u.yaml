@@ -17,6 +17,13 @@ children:
           - type: VariablesListBox
             name: vars
             isTarget: true
+      - type: TargetLayoutBox
+        label: Use a variable's Description as the system prompt
+        children:
+          - type: VariablesListBox
+            name: systemPromptVar
+            isTarget: true
+            maxItemCount: 1
   - type: Label
     label: Your question
     children:

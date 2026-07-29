@@ -23,9 +23,17 @@
 #' role/prompt_lang/system_prompt 三者納入指紋(payload 格式 v1.2):
 #' 切換人格、切換語言、或修改自訂 system prompt 都必須被視為「新請求」,
 #' 否則防抖快取會誤判為 cached、畫面顯示舊人格/舊語言的回覆。
+#'
+#' system_prompt_var 納入指紋(payload 格式 v1.3,項目:變數 Description 當
+#' system prompt):換一個 systemPromptVar 變數,即使當下解析出的 custom
+#' 字串剛好相同,也要視為新請求;而 system_prompt 欄位本身已放的是「解析後」
+#' 的 custom 值(見 .askllm_resolve_custom()),故換變數或改該變數的
+#' Description(解析結果因而改變)都會反映在 system_prompt 欄位上,兩者合計
+#' 涵蓋所有防抖情境。預設值 '' 使舊呼叫方式(無此參數)輸出逐字相同。
 .askllm_build_payload <- function(question, summary_text, base_url, model,
                                   context_text = '', role = 'consultant',
-                                  prompt_lang = 'en', system_prompt = '') {
+                                  prompt_lang = 'en', system_prompt = '',
+                                  system_prompt_var = '') {
     paste(
         question %||% '',
         summary_text %||% '',
@@ -35,6 +43,7 @@
         role %||% '',
         prompt_lang %||% '',
         system_prompt %||% '',
+        system_prompt_var %||% '',
         sep = .ASKLLM_SEP)
 }
 
@@ -191,6 +200,23 @@
     if (!isTRUE(has_catalog)) return(base)
 
     paste(base, .ASKLLM_CATALOG_SUFFIX[[lang]])
+}
+
+#' 解析「custom system prompt」的優先序(項目:變數 Description 當 system prompt)
+#'
+#' 優先序(最高在前):
+#'   1. var_desc(去空白後非空)→ 用它(來源:某變數的 jmv-desc attribute)
+#'   2. text(去空白後非空)→ 用它(來源:systemPrompt TextBox)
+#'   3. 皆空 → 回傳 ''(由呼叫端落回 role x lang 模板)
+#'
+#' 純函式,可離線單元測試。`jmv-desc` attribute 本身只在 jamovi engine 執行時
+#' 才會掛在 self$data[[var]] 上(headless 測試環境不存在,已於真 jamovi 28.1
+#' 實測確認),故 .runInner() 讀取該 attribute 的那一行改以防禦性
+#' tryCatch(..., error = function(e) NULL) 處理,靠這個純函式涵蓋優先序邏輯。
+.askllm_resolve_custom <- function(var_desc, text) {
+    vd <- trimws(var_desc %||% '')
+    if (nzchar(vd)) return(vd)
+    trimws(text %||% '')
 }
 
 #' 送出後、回覆前顯示的等待訊息(先英文整段,再中文整段)
@@ -364,11 +390,28 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             } else {
                 paste(catalog_text_value %||% '', available_text_value %||% '', sep = '\n')
             }
+
+            # --- 2c. 變數 Description 當 system prompt(項目:systemPromptVar)---
+            # `jmv-desc` 是官方無文件的隱性通道:在真 jamovi 28.1 實測確認,
+            # engine 執行 .b.R 時會把該變數在 Setup 面板填的 Description
+            # 掛在 attr(self$data[[varName]], 'jmv-desc') 上,但這個機制沒有
+            # 文件保證,headless/單元測試環境也不存在此 attribute,故全程
+            # 防禦性處理:變數未選、attr 不存在、或讀取拋錯,一律靜默降級為 NULL。
+            var_desc <- if (!is.null(opt$systemPromptVar) && nzchar(opt$systemPromptVar)) {
+                tryCatch(
+                    attr(self$data[[opt$systemPromptVar]], 'jmv-desc'),
+                    error = function(e) NULL)
+            } else {
+                NULL
+            }
+            custom <- .askllm_resolve_custom(var_desc %||% '', opt$systemPrompt %||% '')
+
             payload <- .askllm_build_payload(
                 question, summary_text, spec$base_url, model,
                 context_text = context_text,
                 role = opt$role, prompt_lang = opt$promptLang,
-                system_prompt = opt$systemPrompt)
+                system_prompt = custom,
+                system_prompt_var = opt$systemPromptVar %||% '')
 
             # --- 3. state 快取比對 ----------------------------------------
             st <- self$results$answer$state
@@ -424,7 +467,7 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 system_prompt  = .askllm_system_prompt(
                     role          = opt$role,
                     lang          = opt$promptLang,
-                    system_prompt = opt$systemPrompt,
+                    system_prompt = custom,
                     has_catalog   = !is.null(catalog_text_value)),
                 max_tokens     = 4096)
 

@@ -106,4 +106,16 @@ options:
       title: Custom system prompt (overrides persona template when non-empty)
       type: String
       default: ''
+
+    - name: systemPromptVar
+      title: Use a variable's Description as the system prompt
+      type: Variable
+      suggested:
+        - continuous
+        - nominal
+        - ordinal
+      permitted:
+        - numeric
+        - factor
+      default: NULL
 ...
