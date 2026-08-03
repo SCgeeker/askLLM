@@ -121,3 +121,22 @@ test_that('build_payload:enable_actions 預設 FALSE,與明給 FALSE 一致', {
         .askllm_build_payload('Q', 'S', 'http://b', 'm'),
         .askllm_build_payload('Q', 'S', 'http://b', 'm', enable_actions = FALSE))
 })
+
+# ---- Phase 2:action_suffix 加 compute variable(計算欄)能力句 --------------
+
+test_that('action_suffix 三 persona 皆含 compute variable 能力句(en)', {
+    for (role in c('consultant', 'explainer', 'tutor')) {
+        txt <- .askllm_system_prompt(role = role, lang = 'en',
+                                     has_catalog = FALSE, enable_actions = TRUE)
+        expect_true(grepl('computed column', txt, ignore.case = TRUE),
+                    info = paste('role:', role))
+    }
+})
+
+test_that('action_suffix 三 persona 皆含計算欄能力句(zh)', {
+    for (role in c('consultant', 'explainer', 'tutor')) {
+        txt <- .askllm_system_prompt(role = role, lang = 'zh',
+                                     has_catalog = FALSE, enable_actions = TRUE)
+        expect_true(grepl('計算欄', txt), info = paste('role:', role))
+    }
+})

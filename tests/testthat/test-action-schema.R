@@ -137,3 +137,31 @@ test_that('actions 為 data.frame 且列數超過 max_actions:截「列」非「
     expect_length(got$actions, 3)
     expect_identical(got$actions[[1]]$analysis, 'descriptives')
 })
+
+# ---- 回歸(Phase 2 E2E bug):parse_plan 須保留 compute_column 專屬欄位 --------
+#      .normalize_action 原只留 type/analysis/args/rationale,漏 column_name/
+#      measure_type/formula → LLM 產的計算欄被 validate 當「欄名為空」拒。
+
+test_that('parse_plan 保留 compute_column 欄位(list 來源)', {
+    raw <- list(reply = 'r', actions = list(list(
+        type = 'compute_column', column_name = 'bmi',
+        measure_type = 'continuous', formula = 'weight/(height/100)^2',
+        rationale = '算 BMI')))
+    a <- parse_plan(raw)$actions[[1]]
+    expect_identical(a$type, 'compute_column')
+    expect_identical(a$column_name, 'bmi')
+    expect_identical(a$measure_type, 'continuous')
+    expect_identical(a$formula, 'weight/(height/100)^2')
+})
+
+test_that('parse_plan 保留 compute_column 欄位(data.frame 來源,含 NA 欄)', {
+    raw <- list(reply = 'r', actions = data.frame(
+        type = factor('compute_column'), analysis = NA_character_,
+        args = NA_character_, column_name = 'dose_sq',
+        measure_type = 'continuous', formula = 'dose^2', rationale = 'r',
+        stringsAsFactors = FALSE))
+    a <- parse_plan(raw)$actions[[1]]
+    expect_identical(a$column_name, 'dose_sq')
+    expect_identical(a$formula, 'dose^2')
+    expect_identical(a$measure_type, 'continuous')
+})

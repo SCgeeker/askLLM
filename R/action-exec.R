@@ -118,6 +118,42 @@ exec_analysis <- function(action, data, jmv_get = NULL) {
                                 paste(rej_lines, collapse = '\n')))
 }
 
+#' 把成功的 compute_column 結果寫回 jmvcore Output 計算欄(照 Rj eval 模式)
+#'
+#' 關鍵:先把 Output 選項 `value` 設為 `list(value=TRUE,...)` 才能 `enabled`——
+#' 否則 app 忽略 setValues、不建欄(20260803 E2E「無計算欄」根因)。keys 用
+#' 「字元」向量;setRowNums 用整數,含 NA 時略過。永不 stop()。
+#'
+#' @param option `self$options$option('llmColumns')`(OptionOutput,可 mutate value)。
+#' @param output `self$results$llmColumns`(Output 結果元素)。
+#' @param cc exec_action 成功的 compute_column 結果清單。
+#' @param rownums 整數列號(`as.integer(rownames(self$data))`)。
+.askllm_fill_output <- function(option, output, cc, rownums) {
+    if (length(cc) == 0L) return(invisible(FALSE))
+
+    names   <- vapply(cc, function(x) x$column_name %||% '', character(1))
+    descs   <- vapply(cc, function(x) x$rationale %||% '', character(1))
+    types   <- vapply(cc, function(x) x$measure_type %||% 'continuous', character(1))
+    keys    <- as.character(seq_along(cc))
+
+    # 1. 啟用 Output 選項(list 形態,比照 Rj:value=TRUE 啟用,vars/synced 空)
+    tryCatch(
+        option$value <- list(value = TRUE, vars = character(),
+                             synced = character()),
+        error = function(e) NULL)
+
+    # 2. 宣告欄(keys/titles/descriptions/measureTypes 皆字元)
+    output$set(keys = keys, titles = names,
+               descriptions = descs, measureTypes = types)
+    # 3. 逐欄寫值(key 為字元)
+    for (i in seq_along(cc))
+        output$setValues(key = as.character(i), cc[[i]]$value)
+    # 4. rowNums(整數;含 NA 則略過,比照 Rj)
+    ri <- suppressWarnings(as.integer(rownums))
+    if (length(ri) && !any(is.na(ri))) output$setRowNums(ri)
+    invisible(TRUE)
+}
+
 #' 依 type 分派執行單一已驗證動作
 #'
 #' run_analysis → [exec_analysis()];compute_column → [eval_formula()]。

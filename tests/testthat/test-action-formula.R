@@ -109,3 +109,19 @@ test_that('求值 runtime 錯誤 → ok=FALSE,不 stop()', {
     # 這裡驗證 tryCatch 存在——正常公式仍 ok
     expect_true(eval_formula('abs(weight - score)', .fd)$ok)
 })
+
+# ---- 回歸(本地 e2e bug):白名單含 stats 函式(sd/median),受限環境須放得到 ---
+#      eval_formula 原只從 baseenv() 取函式,sd/median 在 stats → 受限環境缺 →
+#      z-score 類公式 validate 過但 eval 失敗。
+
+test_that('eval_formula 支援 stats 函式 sd/median:z-score 公式求值成功', {
+    r <- eval_formula('(score - mean(score)) / sd(score)', .fd)
+    expect_true(r$ok)
+    expect_equal(r$value, (.fd$score - mean(.fd$score)) / sd(.fd$score))
+})
+
+test_that('eval_formula:median 亦可用', {
+    r <- eval_formula('weight - median(weight)', .fd)
+    expect_true(r$ok)
+    expect_equal(r$value, .fd$weight - median(.fd$weight))
+})

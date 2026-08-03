@@ -45,6 +45,10 @@ options:
       type: Bool
       default: false
 
+    - name: llmColumns
+      type: Output
+      hidden: true
+
     - name: testConnection
       title: 'Test Connection (no LLM call, no billing)'
       type: Bool

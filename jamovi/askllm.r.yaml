@@ -29,6 +29,13 @@ items:
       type:  Preformatted
       clearWith: []
 
+    - name:  llmColumns
+      title: ''
+      type:  Output
+      initInRun: true
+      measureType: continuous
+      clearWith: []
+
     - name:  meta
       title: ''
       type:  Preformatted

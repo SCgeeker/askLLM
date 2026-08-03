@@ -72,10 +72,13 @@ parse_plan <- function(raw, max_actions = 3) {
     }
     if (!is.list(args)) args <- list()
     list(
-        type      = .yaml_chr(a$type) %||% '',
-        analysis  = .yaml_chr(a$analysis) %||% '',
-        args      = args,
-        rationale = .yaml_chr(a$rationale) %||% '')
+        type         = .yaml_chr(a$type) %||% '',
+        analysis     = .yaml_chr(a$analysis) %||% '',       # run_analysis
+        args         = args,                                 # run_analysis
+        column_name  = .yaml_chr(a$column_name) %||% '',     # compute_column
+        measure_type = .yaml_chr(a$measure_type) %||% '',    # compute_column
+        formula      = .yaml_chr(a$formula) %||% '',         # compute_column
+        rationale    = .yaml_chr(a$rationale) %||% '')
 }
 
 #' 以三段降級鏈向 LLM 取得動作計畫
@@ -150,7 +153,12 @@ ask_llm_structured <- function(chat, prompt, action_type = NULL, max_actions = 3
                     description = "For compute_column: the column's measure type.",
                     required = FALSE),
                 formula = ellmer::type_string(
-                    "For compute_column: an R expression over EXISTING column names only.",
+                    paste("For compute_column: an R expression over EXISTING column",
+                          "names only. Use R syntax and R function names",
+                          "(as.numeric, log, sqrt, ifelse, round, abs, mean, sd) —",
+                          "do NOT use jamovi formula functions such as ASNUM, IF,",
+                          "VMEAN, RECODE. Examples: as.numeric(dose)^2 ;",
+                          "ifelse(score >= 60, 1, 0)."),
                     required = FALSE),
                 rationale = ellmer::type_string(
                     "Why this action answers the question.",

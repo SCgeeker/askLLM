@@ -58,6 +58,8 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "enableActions",
                 enableActions,
                 default=FALSE)
+            private$..llmColumns <- jmvcore::OptionOutput$new(
+                "llmColumns")
             private$..testConnection <- jmvcore::OptionBool$new(
                 "testConnection",
                 testConnection,
@@ -124,6 +126,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..includeCatalog)
             self$.addOption(private$..submit)
             self$.addOption(private$..enableActions)
+            self$.addOption(private$..llmColumns)
             self$.addOption(private$..testConnection)
             self$.addOption(private$..provider)
             self$.addOption(private$..model)
@@ -141,6 +144,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         includeCatalog = function() private$..includeCatalog$value,
         submit = function() private$..submit$value,
         enableActions = function() private$..enableActions$value,
+        llmColumns = function() private$..llmColumns$value,
         testConnection = function() private$..testConnection$value,
         provider = function() private$..provider$value,
         model = function() private$..model$value,
@@ -157,6 +161,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..includeCatalog = NA,
         ..submit = NA,
         ..enableActions = NA,
+        ..llmColumns = NA,
         ..testConnection = NA,
         ..provider = NA,
         ..model = NA,
@@ -177,6 +182,7 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         jmvResults = function() private$.items[["jmvResults"]],
         actionNote = function() private$.items[["actionNote"]],
         plan = function() private$.items[["plan"]],
+        llmColumns = function() private$.items[["llmColumns"]],
         meta = function() private$.items[["meta"]]),
     private = list(),
     public=list(
@@ -210,6 +216,13 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 name="plan",
                 title="Action plan (audit)",
                 clearWith=list()))
+            self$add(jmvcore::Output$new(
+                options=options,
+                name="llmColumns",
+                title="",
+                initInRun=TRUE,
+                measureType="continuous",
+                clearWith=list()))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="meta",
@@ -224,7 +237,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 package = "askLLM",
                 name = "askllm",
-                version = c(1,1,1),
+                version = c(1,2,0),
                 options = options,
                 results = askllmResults$new(options=options),
                 data = data,
@@ -234,7 +247,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 pause = NULL,
                 completeWhenFilled = FALSE,
                 requiresMissings = FALSE,
-                weightsSupport = 'auto')
+                weightsSupport = 'none')
         }))
 
 #' Ask LLM about your data
@@ -263,6 +276,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$jmvResults} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$actionNote} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$plan} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$llmColumns} \tab \tab \tab \tab \tab an output \cr
 #'   \code{results$meta} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'

@@ -200,14 +200,16 @@
             'by an analysis in the provided list, run it directly and report the',
             'result concisely — what you ran, the key numbers, and a one-line',
             'practical takeaway. Only run analyses from the provided list, and',
-            'never claim to have run an analysis you did not. Write your reply in',
-            'your consultant voice.',
+            'never claim to have run an analysis you did not. You can also create',
+            'a computed column (a value snapshot) from a formula over existing',
+            'variables. Write your reply in your consultant voice.',
             sep = ' '),
         zh = paste0(
             '你現在可以動手,不只是建議:當問題可用提供清單中的分析回答時,',
             '直接執行該分析並精簡回報——做了什麼分析、關鍵數字、',
             '以及一句實務結論。僅能執行提供清單中的分析,',
-            '且絕不可聲稱執行了未實際執行的分析。回覆時請維持顧問的精簡語氣。')),
+            '且絕不可聲稱執行了未實際執行的分析。你也可以依現有變數的公式建立',
+            '計算欄(值快照)。回覆時請維持顧問的精簡語氣。')),
     explainer = list(
         en = paste(
             'You can now act, not just advise: when the question can be answered',
@@ -216,26 +218,31 @@
             'step, defining each statistic you mention, and show how the',
             'conclusion follows — assume no statistics background. Only run',
             'analyses from the provided list, and never claim to have run an',
-            'analysis you did not. Write your reply in your explainer voice.',
+            'analysis you did not. You can also create a computed column (a value',
+            'snapshot) from a formula over existing variables. Write your reply in',
+            'your explainer voice.',
             sep = ' '),
         zh = paste0(
             '你現在可以動手,不只是建議:當問題可用提供清單中的分析回答時,',
             '直接執行適當的分析。執行後,請帶著使用者逐步解讀結果表,',
             '定義你提到的每個統計量,並說明結論如何得出——',
             '假設使用者沒有統計背景。僅能執行提供清單中的分析,',
-            '且絕不可聲稱執行了未實際執行的分析。回覆時請維持解說員的淺白語氣。')),
+            '且絕不可聲稱執行了未實際執行的分析。你也可以依現有變數的公式建立',
+            '計算欄(值快照)。回覆時請維持解說員的淺白語氣。')),
     tutor = list(
         en = paste(
             'You may run analyses, but prefer guiding the user to choose and run',
             'the analysis themselves; only act when they explicitly ask you to,',
             'and give a brief rationale. Only run analyses from the provided list,',
-            'and never claim to have run an analysis you did not. Keep your reply',
-            'in your Socratic teaching voice.',
+            'and never claim to have run an analysis you did not. If the user asks,',
+            'you can also create a computed column from a formula over existing',
+            'variables. Keep your reply in your Socratic teaching voice.',
             sep = ' '),
         zh = paste0(
             '你可以執行分析,但請優先引導使用者自己選擇並執行分析;',
             '僅在使用者明確要求時才動手,並附上簡短理由。',
             '僅能執行提供清單中的分析,且絕不可聲稱執行了未實際執行的分析。',
+            '若使用者要求,你也可以依現有變數的公式建立計算欄。',
             '回覆時請維持蘇格拉底式教學語氣。')))
 
 #' 送給 LLM 的 system prompt
@@ -547,10 +554,11 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                                                action_type = .askllm_action_type())
                     validated <- validate_plan(plan, names(self$data))
                     exres <- lapply(validated$actions,
-                                    function(a) exec_analysis(a, self$data))
+                                    function(a) exec_action(a, self$data))
                     list(ok = TRUE, reply = plan$reply %||% '',
                          rendered = .askllm_render_actions(validated, exres),
-                         method = plan$method %||% 'text')
+                         method = plan$method %||% 'text',
+                         exres = exres)
                 }, error = function(e) list(ok = FALSE, error = conditionMessage(e)))
 
                 self$results$answer$setStatus('complete')
@@ -570,6 +578,20 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                     meta_line <- paste0(.askllm_meta_line(model, elapsed_a),
                                         ' · actions:', out$method)
                     self$results$meta$setContent(meta_line)
+
+                    # Phase 2:compute_column 成功者寫回 Output 計算欄。
+                    # 關鍵(Rj 模式):先啟用 Output 選項(value=TRUE)才能建欄,
+                    # 見 .askllm_fill_output();整段防禦性,失敗不毀分析。
+                    cc <- Filter(function(r) isTRUE(r$ok) &&
+                                 identical(r$type, 'compute_column'), out$exres)
+                    if (length(cc) > 0)
+                        tryCatch(
+                            .askllm_fill_output(
+                                self$options$option('llmColumns'),
+                                self$results$llmColumns, cc,
+                                as.integer(rownames(self$data))),
+                            error = function(e) NULL)
+
                     self$results$answer$setState(list(
                         payload = payload, text = out$reply, meta_line = meta_line,
                         has_catalog = has_catalog,

@@ -82,8 +82,15 @@ eval_formula <- function(formula, data) {
 
     env <- new.env(parent = emptyenv())
     for (fn in .FORMULA_FN_WHITELIST) {
-        obj <- tryCatch(get(fn, envir = baseenv()), error = function(e) NULL)
-        if (!is.null(obj)) assign(fn, obj, envir = env)
+        # 白名單函式散在 base(運算子/mean/log/...)與 stats(sd/median/var);
+        # 逐 namespace 取,否則 stats 函式取不到 → 受限環境缺 → 用到就 eval 錯。
+        obj <- NULL
+        for (ns in c('base', 'stats')) {
+            obj <- tryCatch(get(fn, envir = asNamespace(ns), inherits = FALSE),
+                            error = function(e) NULL)
+            if (is.function(obj)) break
+        }
+        if (is.function(obj)) assign(fn, obj, envir = env)
     }
     for (nm in names(data)) assign(nm, data[[nm]], envir = env)
 
