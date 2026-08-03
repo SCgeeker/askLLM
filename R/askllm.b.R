@@ -33,7 +33,7 @@
 .askllm_build_payload <- function(question, summary_text, base_url, model,
                                   context_text = '', role = 'consultant',
                                   prompt_lang = 'en', system_prompt = '',
-                                  system_prompt_var = '') {
+                                  system_prompt_var = '', enable_actions = FALSE) {
     paste(
         question %||% '',
         summary_text %||% '',
@@ -44,6 +44,7 @@
         prompt_lang %||% '',
         system_prompt %||% '',
         system_prompt_var %||% '',
+        as.character(isTRUE(enable_actions)),  # 格式 v1.4:動作開關納入指紋
         sep = .ASKLLM_SEP)
 }
 
@@ -180,6 +181,63 @@
         '僅在該模組名稱明確出現於提供的「可用模組清單」中時才可建議該模組;',
         '絕不可提及不在清單中的模組(即使你認為它存在),也絕不可捏造選單路徑。'))
 
+#' 動作能力句(Phase 1:enable_actions=TRUE 時附加,治「捏造動作能力」幻覺)
+#'
+#' 按人格分工三份(對照 `.ASKLLM_PROMPTS` 亦 per-role)。三者在動作模式的區別軸:
+#'   - `consultant`:自動動手 + **精簡執行摘要**(做了什麼、關鍵數字、一句實務結論)。
+#'   - `explainer` :自動動手 + **教學式解讀**(逐步讀表、定義統計量、結論如何得出;
+#'                  假設零基礎)——與 consultant 的差別在「結果呈現的教學深度」。
+#'   - `tutor`     :**克制引導**——優先引導使用者自己跑,僅在其明確要求時才動手
+#'                  (蘇格拉底式教學法與「自動執行」本質衝突,故不與前二者共用)。
+#' 三版皆含誠實邊界(僅執行清單內分析、絕不聲稱做了未做的事)。persona 決定 reply
+#' 語氣,action 本身為共通機械產物。
+#' Phase 1 範圍只含「執行 jmv 分析」;filter/transform 的「只能給文字」邊界待
+#' Phase 3 再併入本句。
+.ASKLLM_ACTION_SUFFIX <- list(
+    consultant = list(
+        en = paste(
+            'You can now act, not just advise: when the question can be answered',
+            'by an analysis in the provided list, run it directly and report the',
+            'result concisely — what you ran, the key numbers, and a one-line',
+            'practical takeaway. Only run analyses from the provided list, and',
+            'never claim to have run an analysis you did not. Write your reply in',
+            'your consultant voice.',
+            sep = ' '),
+        zh = paste0(
+            '你現在可以動手,不只是建議:當問題可用提供清單中的分析回答時,',
+            '直接執行該分析並精簡回報——做了什麼分析、關鍵數字、',
+            '以及一句實務結論。僅能執行提供清單中的分析,',
+            '且絕不可聲稱執行了未實際執行的分析。回覆時請維持顧問的精簡語氣。')),
+    explainer = list(
+        en = paste(
+            'You can now act, not just advise: when the question can be answered',
+            'by an analysis in the provided list, run the appropriate analysis.',
+            'After running it, walk the user through the result table step by',
+            'step, defining each statistic you mention, and show how the',
+            'conclusion follows — assume no statistics background. Only run',
+            'analyses from the provided list, and never claim to have run an',
+            'analysis you did not. Write your reply in your explainer voice.',
+            sep = ' '),
+        zh = paste0(
+            '你現在可以動手,不只是建議:當問題可用提供清單中的分析回答時,',
+            '直接執行適當的分析。執行後,請帶著使用者逐步解讀結果表,',
+            '定義你提到的每個統計量,並說明結論如何得出——',
+            '假設使用者沒有統計背景。僅能執行提供清單中的分析,',
+            '且絕不可聲稱執行了未實際執行的分析。回覆時請維持解說員的淺白語氣。')),
+    tutor = list(
+        en = paste(
+            'You may run analyses, but prefer guiding the user to choose and run',
+            'the analysis themselves; only act when they explicitly ask you to,',
+            'and give a brief rationale. Only run analyses from the provided list,',
+            'and never claim to have run an analysis you did not. Keep your reply',
+            'in your Socratic teaching voice.',
+            sep = ' '),
+        zh = paste0(
+            '你可以執行分析,但請優先引導使用者自己選擇並執行分析;',
+            '僅在使用者明確要求時才動手,並附上簡短理由。',
+            '僅能執行提供清單中的分析,且絕不可聲稱執行了未實際執行的分析。',
+            '回覆時請維持蘇格拉底式教學語氣。')))
+
 #' 送給 LLM 的 system prompt
 #'
 #' 優先序:`system_prompt`(去空白後非空)＞ `prompts[[role]][[lang]]`。
@@ -190,16 +248,21 @@
 #' 降級保證:role='consultant'、lang='en'、system_prompt=''、
 #' has_catalog=FALSE 時,回傳字串與 v1.0/v1.1 逐字相同。
 .askllm_system_prompt <- function(role = 'consultant', lang = 'en',
-                                  system_prompt = '', has_catalog = FALSE) {
+                                  system_prompt = '', has_catalog = FALSE,
+                                  enable_actions = FALSE) {
     if (is.null(role) || !role %in% names(.ASKLLM_PROMPTS)) role <- 'consultant'
     if (is.null(lang) || !lang %in% c('en', 'zh')) lang <- 'en'
 
     custom <- trimws(system_prompt %||% '')
     base <- if (nzchar(custom)) custom else .ASKLLM_PROMPTS[[role]][[lang]]
 
-    if (!isTRUE(has_catalog)) return(base)
-
-    paste(base, .ASKLLM_CATALOG_SUFFIX[[lang]])
+    # 降級保證:has_catalog=FALSE 且 enable_actions=FALSE 時回傳 base(逐字同 v1.1)
+    out <- base
+    if (isTRUE(has_catalog))
+        out <- paste(out, .ASKLLM_CATALOG_SUFFIX[[lang]])
+    if (isTRUE(enable_actions))
+        out <- paste(out, .ASKLLM_ACTION_SUFFIX[[role]][[lang]])  # role 已落回三者之一
+    out
 }
 
 #' 解析「custom system prompt」的優先序(項目:變數 Description 當 system prompt)
@@ -411,7 +474,8 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 context_text = context_text,
                 role = opt$role, prompt_lang = opt$promptLang,
                 system_prompt = custom,
-                system_prompt_var = opt$systemPromptVar %||% '')
+                system_prompt_var = opt$systemPromptVar %||% '',
+                enable_actions = isTRUE(opt$enableActions))
 
             # --- 3. state 快取比對 ----------------------------------------
             st <- self$results$answer$state
@@ -421,6 +485,13 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
 
             if (identical(decision, 'cached')) {
                 self$results$answer$setContent(st$text)
+                # 動作模式:state 有存動作結果時一併回放(否則表格會在重問時消失)
+                if (!is.null(st$jmv_text) && nzchar(st$jmv_text))
+                    self$results$jmvResults$setContent(st$jmv_text)
+                if (!is.null(st$note_text) && nzchar(st$note_text))
+                    self$results$actionNote$setContent(st$note_text)
+                if (!is.null(st$plan_text) && nzchar(st$plan_text))
+                    self$results$plan$setContent(st$plan_text)
                 self$results$meta$setContent(paste0(st$meta_line, ' · cached'))
                 self$results$instructions$setContent(paste0(
                     '(cache replay, no API call / 快取回放,未呼叫 API)\n\n',
@@ -454,6 +525,66 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             self$results$answer$setStatus('running')
             self$results$meta$setStatus('running')
             private$.checkpoint()
+
+            # --- 6*. 動作模式:結構化計畫 → 白名單驗證 → 執行 jmv → 呈現 ----
+            # 整段包 tryCatch:任何 runtime 失敗降級為錯誤訊息,絕不 crash 分析。
+            # 安全邊界在 validate_plan(白名單);exec_analysis 本地執行不課金。
+            if (isTRUE(opt$enableActions)) {
+                started_a <- Sys.time()
+                out <- tryCatch({
+                    sys <- .askllm_system_prompt(
+                        role = opt$role, lang = opt$promptLang,
+                        system_prompt = custom,
+                        has_catalog = !is.null(catalog_text_value),
+                        enable_actions = TRUE)
+                    chat <- make_chat(base_url = spec$base_url, model = model,
+                                      api_key = api_key, system_prompt = sys,
+                                      max_tokens = 4096)
+                    prompt <- build_prompt(question, summary_text,
+                                           catalog_text = catalog_text_value,
+                                           available_text = available_text_value)
+                    plan <- ask_llm_structured(chat, prompt,
+                                               action_type = .askllm_action_type())
+                    validated <- validate_plan(plan, names(self$data))
+                    exres <- lapply(validated$actions,
+                                    function(a) exec_analysis(a, self$data))
+                    list(ok = TRUE, reply = plan$reply %||% '',
+                         rendered = .askllm_render_actions(validated, exres),
+                         method = plan$method %||% 'text')
+                }, error = function(e) list(ok = FALSE, error = conditionMessage(e)))
+
+                self$results$answer$setStatus('complete')
+                self$results$meta$setStatus('complete')
+
+                if (isTRUE(out$ok)) {
+                    has_catalog <- !is.null(catalog_text_value)
+                    elapsed_a <- as.numeric(
+                        difftime(Sys.time(), started_a, units = 'secs'))
+                    self$results$answer$setContent(out$reply)
+                    if (nzchar(out$rendered$jmv_text))
+                        self$results$jmvResults$setContent(out$rendered$jmv_text)
+                    if (nzchar(out$rendered$note_text))
+                        self$results$actionNote$setContent(out$rendered$note_text)
+                    if (nzchar(out$rendered$plan_text))
+                        self$results$plan$setContent(out$rendered$plan_text)
+                    meta_line <- paste0(.askllm_meta_line(model, elapsed_a),
+                                        ' · actions:', out$method)
+                    self$results$meta$setContent(meta_line)
+                    self$results$answer$setState(list(
+                        payload = payload, text = out$reply, meta_line = meta_line,
+                        has_catalog = has_catalog,
+                        jmv_text = out$rendered$jmv_text,
+                        note_text = out$rendered$note_text,
+                        plan_text = out$rendered$plan_text))
+                    self$results$instructions$setContent(
+                        .askllm_caveat_text(has_catalog = has_catalog))
+                } else {
+                    self$results$instructions$setContent(paste0(
+                        out$error %||% '動作執行失敗',
+                        '\n\n修正後重新勾選 Submit。'))
+                }
+                return()
+            }
 
             # --- 6. 呼叫 --------------------------------------------------
             res <- ask_llm(

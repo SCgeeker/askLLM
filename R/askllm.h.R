@@ -11,6 +11,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             includeSummary = TRUE,
             includeCatalog = TRUE,
             submit = FALSE,
+            enableActions = FALSE,
             testConnection = FALSE,
             provider = "nim",
             model = "meta/llama-3.1-8b-instruct",
@@ -52,6 +53,10 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..submit <- jmvcore::OptionBool$new(
                 "submit",
                 submit,
+                default=FALSE)
+            private$..enableActions <- jmvcore::OptionBool$new(
+                "enableActions",
+                enableActions,
                 default=FALSE)
             private$..testConnection <- jmvcore::OptionBool$new(
                 "testConnection",
@@ -118,6 +123,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..includeSummary)
             self$.addOption(private$..includeCatalog)
             self$.addOption(private$..submit)
+            self$.addOption(private$..enableActions)
             self$.addOption(private$..testConnection)
             self$.addOption(private$..provider)
             self$.addOption(private$..model)
@@ -134,6 +140,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         includeSummary = function() private$..includeSummary$value,
         includeCatalog = function() private$..includeCatalog$value,
         submit = function() private$..submit$value,
+        enableActions = function() private$..enableActions$value,
         testConnection = function() private$..testConnection$value,
         provider = function() private$..provider$value,
         model = function() private$..model$value,
@@ -149,6 +156,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..includeSummary = NA,
         ..includeCatalog = NA,
         ..submit = NA,
+        ..enableActions = NA,
         ..testConnection = NA,
         ..provider = NA,
         ..model = NA,
@@ -166,6 +174,9 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     active = list(
         instructions = function() private$.items[["instructions"]],
         answer = function() private$.items[["answer"]],
+        jmvResults = function() private$.items[["jmvResults"]],
+        actionNote = function() private$.items[["actionNote"]],
+        plan = function() private$.items[["plan"]],
         meta = function() private$.items[["meta"]]),
     private = list(),
     public=list(
@@ -183,6 +194,21 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 options=options,
                 name="answer",
                 title="Response",
+                clearWith=list()))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="jmvResults",
+                title="Analyses run",
+                clearWith=list()))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="actionNote",
+                title="What the assistant did",
+                clearWith=list()))
+            self$add(jmvcore::Preformatted$new(
+                options=options,
+                name="plan",
+                title="Action plan (audit)",
                 clearWith=list()))
             self$add(jmvcore::Preformatted$new(
                 options=options,
@@ -220,6 +246,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param includeSummary .
 #' @param includeCatalog .
 #' @param submit .
+#' @param enableActions .
 #' @param testConnection .
 #' @param provider .
 #' @param model .
@@ -233,6 +260,9 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' \tabular{llllll}{
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$answer} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$jmvResults} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$actionNote} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$plan} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$meta} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'
@@ -244,6 +274,7 @@ askllm <- function(
     includeSummary = TRUE,
     includeCatalog = TRUE,
     submit = FALSE,
+    enableActions = FALSE,
     testConnection = FALSE,
     provider = "nim",
     model = "meta/llama-3.1-8b-instruct",
@@ -272,6 +303,7 @@ askllm <- function(
         includeSummary = includeSummary,
         includeCatalog = includeCatalog,
         submit = submit,
+        enableActions = enableActions,
         testConnection = testConnection,
         provider = provider,
         model = model,

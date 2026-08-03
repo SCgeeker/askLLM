@@ -4,8 +4,8 @@ jus: '3.0'
 stage: 0
 compilerMode: tame
 events:
-    loaded: loaded
-    updated: updated
+  loaded: loaded
+  updated: updated
 children:
   - type: VariableSupplier
     persistentItems: false
@@ -48,6 +48,8 @@ children:
         name: submit
       - type: CheckBox
         name: testConnection
+      - type: CheckBox
+        name: enableActions
   - type: CollapseBox
     label: LLM settings
     collapsed: true
@@ -58,7 +60,7 @@ children:
           - type: ComboBox
             name: provider
             events:
-                change: onProviderChanged
+              change: onProviderChanged
           - type: TextBox
             name: model
             format: string

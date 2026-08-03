@@ -1,7 +1,7 @@
 Package: askLLM
 Type: Package
 Title: Ask LLM about your data
-Version: 1.1.1
+Version: 1.2.0
 Author: Sau-Chin Chen <pmsp96@gmail.com>
 Maintainer: Sau-Chin Chen <pmsp96@gmail.com>
 Description: Ask a large language model questions about the dataset you
@@ -14,6 +14,6 @@ Description: Ask a large language model questions about the dataset you
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Imports: jmvcore (>= 0.8.5), R6, ellmer, yaml, httr2
+Imports: jmvcore (>= 0.8.5), R6, ellmer, yaml, httr2, jsonlite
 Suggests: testthat (>= 3.0.0), withr
 Config/testthat/edition: 3
