@@ -127,22 +127,32 @@ ask_llm_structured <- function(chat, prompt, action_type = NULL, max_actions = 3
 #' @return ellmer type 物件,供 `chat$chat_structured(type = ...)`。
 .askllm_action_type <- function() {
     ellmer::type_object(
-        .description = "An assistant reply plus zero or more analyses to run.",
+        .description = "An assistant reply plus zero or more actions.",
         reply = ellmer::type_string(
             "A concise reply to the user, in the assistant's persona voice."),
         actions = ellmer::type_array(
-            description = "Analyses to run; empty if the reply alone suffices.",
+            description = "Actions to take; empty if the reply alone suffices.",
             items = ellmer::type_object(
                 type = ellmer::type_enum(
-                    values = c('run_analysis'),
-                    description = "Action type (Phase 1: only run_analysis)."),
+                    values = c('run_analysis', 'compute_column'),
+                    description = "Action type."),
                 analysis = ellmer::type_string(
-                    "jmv analysis function name, e.g. descriptives, ttestIS.",
+                    "For run_analysis: jmv function name, e.g. descriptives, ttestIS.",
                     required = FALSE),
                 args = ellmer::type_string(
-                    "Analysis arguments as a JSON object string, e.g. {\"vars\":[\"x\"]}.",
+                    "For run_analysis: arguments as a JSON object string, e.g. {\"vars\":[\"x\"]}.",
+                    required = FALSE),
+                column_name = ellmer::type_string(
+                    "For compute_column: the new column's name (a valid identifier).",
+                    required = FALSE),
+                measure_type = ellmer::type_enum(
+                    values = c('continuous', 'ordinal', 'nominal'),
+                    description = "For compute_column: the column's measure type.",
+                    required = FALSE),
+                formula = ellmer::type_string(
+                    "For compute_column: an R expression over EXISTING column names only.",
                     required = FALSE),
                 rationale = ellmer::type_string(
-                    "Why this analysis answers the question.",
+                    "Why this action answers the question.",
                     required = FALSE))))
 }

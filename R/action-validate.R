@@ -79,11 +79,39 @@
     bad(paste0('未知參數型別:', as.character(type)))
 }
 
+.MEASURE_TYPES <- c('continuous', 'ordinal', 'nominal')
+
+# 驗證 compute_column 動作(Phase 2:值快照計算欄)→ list(ok, action, reason, notes)
+.validate_compute_column <- function(a, colnames) {
+    name <- .yaml_chr(a$column_name) %||% ''
+    if (!nzchar(name))
+        return(list(ok = FALSE, reason = 'compute_column:欄名為空'))
+    if (!grepl('^[A-Za-z.][A-Za-z0-9_.]*$', name))
+        return(list(ok = FALSE,
+                    reason = paste0('compute_column:欄名非法識別字:', name)))
+    mt <- .yaml_chr(a$measure_type) %||% ''
+    if (!nzchar(mt)) mt <- 'continuous'          # 空 → 預設 continuous
+    if (!(mt %in% .MEASURE_TYPES))
+        return(list(ok = FALSE,
+                    reason = paste0('compute_column:measureType 非法:', mt)))
+    fml <- .yaml_chr(a$formula) %||% ''
+    fv <- validate_formula(fml, colnames)         # AST 白名單,絕不 eval
+    if (!isTRUE(fv$ok))
+        return(list(ok = FALSE, reason = paste0('compute_column 公式:', fv$reason)))
+    list(ok = TRUE,
+         action = list(type = 'compute_column', column_name = name,
+                       measure_type = mt, formula = fml,
+                       rationale = a$rationale %||% ''),
+         notes = character(0))
+}
+
 # 驗證單一 action → list(ok, action, reason, notes)
 .validate_action <- function(a, colnames) {
+    if (identical(a$type, 'compute_column'))
+        return(.validate_compute_column(a, colnames))
     if (!identical(a$type, 'run_analysis'))
         return(list(ok = FALSE,
-                    reason = paste0('Phase 1 僅支援 run_analysis(收到:',
+                    reason = paste0('僅支援 run_analysis / compute_column(收到:',
                                     a$type %||% '', ')')))
     spec <- .JMV_WHITELIST[[a$analysis %||% '']]
     if (is.null(spec))

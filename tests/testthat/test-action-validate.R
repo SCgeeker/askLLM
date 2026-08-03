@@ -124,3 +124,55 @@ test_that('空動作清單:actions 與 rejected 皆空,不報錯', {
     expect_length(got$actions, 0)
     expect_length(got$rejected, 0)
 })
+
+# ---- compute_column(Phase 2):公式 AST + 欄名 + measureType 驗證 -----------
+
+test_that('合法 compute_column 通過,clean 欄位正確', {
+    cc <- list(type = 'compute_column', column_name = 'bmi',
+               measure_type = 'continuous',
+               formula = 'weight / (height / 100)^2', rationale = '算 BMI')
+    got <- validate_plan(.mk_plan(cc), c('weight', 'height'))
+    expect_length(got$actions, 1)
+    expect_length(got$rejected, 0)
+    a <- got$actions[[1]]
+    expect_identical(a$type, 'compute_column')
+    expect_identical(a$column_name, 'bmi')
+    expect_identical(a$formula, 'weight / (height / 100)^2')
+    expect_identical(a$measure_type, 'continuous')
+})
+
+test_that('compute_column 公式含未知變數 → 拒', {
+    cc <- list(type = 'compute_column', column_name = 'x',
+               measure_type = 'continuous',
+               formula = 'weight / nonexist', rationale = 'r')
+    got <- validate_plan(.mk_plan(cc), c('weight'))
+    expect_length(got$actions, 0)
+    expect_length(got$rejected, 1)
+})
+
+test_that('compute_column 危險公式 → 拒', {
+    cc <- list(type = 'compute_column', column_name = 'x',
+               measure_type = 'continuous',
+               formula = 'system("rm -rf")', rationale = 'r')
+    expect_length(validate_plan(.mk_plan(cc), c('weight'))$actions, 0)
+})
+
+test_that('compute_column 欄名空或非法識別字 → 拒', {
+    cc1 <- list(type = 'compute_column', column_name = '',
+                measure_type = 'continuous', formula = 'weight * 2', rationale = 'r')
+    expect_length(validate_plan(.mk_plan(cc1), c('weight'))$actions, 0)
+    cc2 <- list(type = 'compute_column', column_name = '1 bad!',
+                measure_type = 'continuous', formula = 'weight * 2', rationale = 'r')
+    expect_length(validate_plan(.mk_plan(cc2), c('weight'))$actions, 0)
+})
+
+test_that('compute_column measure_type 非法 → 拒;空 → 預設 continuous', {
+    bad <- list(type = 'compute_column', column_name = 'x',
+                measure_type = 'bogus', formula = 'weight * 2', rationale = 'r')
+    expect_length(validate_plan(.mk_plan(bad), c('weight'))$actions, 0)
+    empty <- list(type = 'compute_column', column_name = 'x',
+                  measure_type = '', formula = 'weight * 2', rationale = 'r')
+    g <- validate_plan(.mk_plan(empty), c('weight'))
+    expect_length(g$actions, 1)
+    expect_identical(g$actions[[1]]$measure_type, 'continuous')
+})

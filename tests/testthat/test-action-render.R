@@ -69,3 +69,29 @@ test_that('無動作無被拒:三段皆空字串', {
     expect_identical(got$jmv_text, '')
     expect_identical(got$plan_text, '')
 })
+
+# ---- compute_column 呈現(Phase 2):計算欄進 note,不進表格區 ----------------
+
+test_that('compute_column 成功:note 標記建立計算欄,jmv_text 不納入', {
+    validated <- .vr(actions = list(list(
+        type = 'compute_column', column_name = 'bmi',
+        measure_type = 'continuous', formula = 'weight/(height/100)^2',
+        rationale = '算 BMI')))
+    exres <- list(list(ok = TRUE, type = 'compute_column', column_name = 'bmi',
+                       measure_type = 'continuous', value = c(22, 24), error = NULL))
+    got <- .askllm_render_actions(validated, exres)
+    expect_true(grepl('計算欄 bmi', got$note_text))
+    expect_true(grepl('算 BMI', got$note_text))
+    expect_identical(got$jmv_text, '')          # 計算欄不進表格區
+})
+
+test_that('compute_column 失敗:note 標記失敗與 error', {
+    validated <- .vr(actions = list(list(
+        type = 'compute_column', column_name = 'z',
+        measure_type = 'continuous', formula = 'mean(w)', rationale = 'r')))
+    exres <- list(list(ok = FALSE, type = 'compute_column',
+                       column_name = 'z', error = '結果長度不符'))
+    got <- .askllm_render_actions(validated, exres)
+    expect_true(grepl('z', got$note_text))
+    expect_true(grepl('結果長度不符', got$note_text))
+})

@@ -63,3 +63,36 @@ test_that('exec_analysis(live):真跑 jmv::descriptives(iris)', {
     expect_true(nchar(got$output) > 0)
     expect_true(grepl('Sepal', got$output))
 })
+
+# ---- exec_action 分派(Phase 2):依 type 分派 --------------------------------
+
+test_that('exec_action:compute_column → eval_formula,回 value/column_name', {
+    action <- list(type = 'compute_column', column_name = 'dbl',
+                   measure_type = 'continuous', formula = 'x * 2', rationale = 'r')
+    got <- exec_action(action, data.frame(x = c(1, 2, 3)))
+    expect_true(got$ok)
+    expect_identical(got$type, 'compute_column')
+    expect_identical(got$column_name, 'dbl')
+    expect_identical(got$measure_type, 'continuous')
+    expect_equal(got$value, c(2, 4, 6))
+})
+
+test_that('exec_action:run_analysis → 委派 exec_analysis', {
+    action <- list(type = 'run_analysis', analysis = 'descriptives',
+                   args = list(vars = 'x'), rationale = 'r')
+    fake_get <- function(name) function(data, ...)
+        list(asString = function() paste0('T:', name))
+    got <- exec_action(action, data.frame(x = 1:3), jmv_get = fake_get)
+    expect_true(got$ok)
+    expect_identical(got$type, 'run_analysis')
+    expect_true(grepl('T:descriptives', got$output, fixed = TRUE))
+})
+
+test_that('exec_action:compute_column 求值失敗(長度不符)→ ok=FALSE', {
+    action <- list(type = 'compute_column', column_name = 'm',
+                   measure_type = 'continuous', formula = 'mean(x)', rationale = 'r')
+    got <- exec_action(action, data.frame(x = c(1, 2, 3)))
+    expect_false(got$ok)
+    expect_identical(got$type, 'compute_column')
+    expect_true(nzchar(got$error))
+})

@@ -86,7 +86,16 @@ exec_analysis <- function(action, data, jmv_get = NULL) {
         r <- if (i <= length(exec_results)) exec_results[[i]]
              else list(ok = FALSE, error = '(無執行結果)')
         rat <- if (nzchar(a$rationale %||% '')) paste0(' — ', a$rationale) else ''
-        if (isTRUE(r$ok)) {
+        if (identical(a$type, 'compute_column')) {
+            # 計算欄:值寫回試算表,報表只在 note 記錄「建了什麼欄」,不進表格區
+            label <- paste0('計算欄 ', a$column_name %||% '')
+            if (isTRUE(r$ok))
+                note_lines <- c(note_lines, paste0('✓ 建立', label,
+                    ' (', a$measure_type %||% 'continuous', ')', rat))
+            else
+                note_lines <- c(note_lines,
+                    paste0('✗ ', label, rat, ' (', r$error %||% '', ')'))
+        } else if (isTRUE(r$ok)) {
             ok_parts <- c(ok_parts, paste0('### ', a$analysis, '\n', r$output %||% ''))
             note_lines <- c(note_lines, paste0('✓ ', a$analysis, rat))
         } else {
@@ -107,4 +116,23 @@ exec_analysis <- function(action, data, jmv_get = NULL) {
         plan_text = if (length(rej_lines) == 0L) ''
                     else paste0('Rejected actions:\n',
                                 paste(rej_lines, collapse = '\n')))
+}
+
+#' 依 type 分派執行單一已驗證動作
+#'
+#' run_analysis → [exec_analysis()];compute_column → [eval_formula()]。
+#' 回傳統一含 `$ok`/`$type`/`$error` 的結構(compute_column 另帶 value/column_name
+#' /measure_type 供 .runInner 寫回 Output 欄;run_analysis 帶 analysis/output)。
+#' @return list;永不 stop()。
+exec_action <- function(action, data, jmv_get = NULL) {
+    if (identical(action$type, 'compute_column')) {
+        ev <- eval_formula(action$formula %||% '', data)
+        return(list(ok = ev$ok, type = 'compute_column',
+                    column_name  = action$column_name %||% '',
+                    measure_type = action$measure_type %||% 'continuous',
+                    value = ev$value, error = ev$error,
+                    rationale = action$rationale %||% ''))
+    }
+    r <- exec_analysis(action, data, jmv_get = jmv_get)
+    c(list(type = 'run_analysis', rationale = action$rationale %||% ''), r)
 }
