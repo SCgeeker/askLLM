@@ -11,10 +11,39 @@
 - ✅ **里程碑 B1／項目 2 OpenRouter**：一級供應商＋docs，主迴圈驗收（587 pass / 0 fail）。**live 實測發現**：計畫預設 `meta-llama/llama-3.3-70b-instruct:free` 已下架，改用 **`openai/gpt-oss-20b:free`**（2026-07-29 實測 HTTP 200 / cost 0）。
 - ✅ **里程碑 D1／項目 3 Test Connection**：spike（推翻「200=金鑰有效」）＋實作＋主迴圈驗收（651 pass / 0 fail、8 分類分支 live+offline 皆對）。統一 `/models` GET＋per-provider override＋誠實分級文案（作者裁決）。新增 `R/llm-ping.R`、`testConnection` 選項；httr2 入 Imports。
 - ✅ **額外功能（GUI 手測衍生）：變數 Description → system prompt**。作者手測時提出「systemPrompt 能否用 Variable Description 編輯匯入」→ spike 證實 `.b.R` 可讀 `attr(self$data[[v]], "jmv-desc")`（jamovi 28.1 真機探針實測到 Description 文字）→ 新增 `systemPromptVar`（單一 Variable）選項，優先序：變數 Description ＞ Custom system prompt 文字框 ＞ Persona 模板。真 GUI 實測（`20260729003.omv`：role=tutor 但答案照 Description 給原理/公式）確認覆蓋生效。681 pass / 0 fail。
-- ⏳ **待辦**：C1／項目 5（指引外置，依賴 B、含**外部** GitHub Pages 開通＋Slack review；程式面 r.yaml Html item＋新建 askllm.md 待 Pages URL 定案）。
+- 🟢 **C1／項目 5（指引外置）已解鎖**（2026-08-05）：作者 8/4 已把 `https://scgeeker.github.io/askLLM/choose-model.html` 公開貼進 jamovi Slack 徵詢 → **Pages 上線、URL 定案**。依「穩定 URL、可變內容」設計，程式面（r.yaml 加 Html item、新建 `askllm.md`、SETUP 抽 model 清單改連常青頁）**可立即動**，內容留待 Slack 回饋用 git 更新。**下個 session 開始實作**。
 - ✅ **h.R 交叉驗證（2026-07-29）**：於 `C:\Program Files\jamovi 28.1.0.0` 跑通 `jmvtools::prepare`，重生 h.R 與手補版**內容逐字相同**（僅 EOL 差異），手補正確。
 - ⚠️ **prepare 抓到並修掉 1 個 CI 抓不到的 bug**：`askllm.u.yaml` 的 `systemPrompt` 用了非法屬性 `multiline: true`（jus 不支援），已移除改單行寬框。
 - ⚠️ **殘留**：`:free` 模型清單本質易腐（已證實）；GUI 逐項互動待作者照 checklist 點測。
+
+---
+
+## 策略調整（2026-08-05，依 jamovi 團隊 Slack 討論）
+
+> 來源：`askLLM_hand_tests/slack_communications.md`（#general 2026-08-03、#ai-automation 2026-08-04/05）。
+> 核心輸入＝ **Jonathon 2026-08-05 回覆**：「analysis modules are the wrong way to implement an AI agent… that API — implementing MCP — is 98% of the job.」
+
+### S1. 範圍邊界／非目標（最重要）
+Jonathon 定調：**agent／自動化屬未來的 MCP API 層，不屬 analysis module**。故 askLLM 明確劃線：
+- **範圍內（sanctioned engine-layer 面，Jonathon 未反對）**：諮詢問答；跑內建分析並渲染；**Output 值快照＋checkbox consent**；**validated formula suggestion**（LLM 提案 → 對照 76-function whitelist ＋現有變數名檢核 → 引導「貼進 Data ▸ Filters」）。
+- **非目標（移交未來 MCP API，模組不做）**：live formula 寫入（Computed/Filter/Transform，屬 client↔server 的 DataSetRR，engine 協定無此路）、attach 使用者 live session（需 access_key，實測 401 擋掉）、任何 agent 式自動化。
+- 作用：防止日後 vibe-drift 把模組往 agent 層擠。**「advising → acting」的 acting 僅限上述快照/建議層。**
+
+### S2. `.h.R` 永不手改（升為明文規則）
+社群共同痛點（Serdar：「half the tokens go to editing .h.R」；Nour：在 skill 頂部加規則）＋本專案已踩過（prepare 找不到 jamovi 時手補 h.R 三次）。現 `jmvtools::prepare(home="C:/Program Files/jamovi 28.1.0.0")` 已可用 → **手補法退役**。規則：**`.h.R` 是產生檔，一律 `jmvtools::prepare` 重生，禁止手改**（寫進 CLAUDE.md／skill）。
+
+### S3. `.init()` / `.run()` 稽核項（發版前）
+Jonathon 對 LLM 模組最大抱怨：把所有表格/列都在 `.run()` 填、不用 `.init()`。askLLM 用 `setContent` 於 Html/Preformatted、較不踩雷，但發 1.2.0 前確認 results 結構宣告正確、靜態內容置於 `.init()`。
+
+### S4. Variable Description「grounding loop」擴充（已對齊 roadmap）
+本 session 的 `systemPromptVar`（讀 `jmv-desc`）已對上 Jonathon 的 dataset-setup 構想（AI **寫** description ↔ askLLM **讀** description）。可擴充：把**被分析變數各自的 Description** 也納入送 LLM 的 summary context（不只當 system prompt），閉合「AI 寫描述 → 描述接地下游提問」迴圈。列為候選 backlog。
+
+### S5. 對齊官方 skills ＋ guard-slop 清理
+- Jonathon 將發布官方 jamovi skills、已有 audit 工具 → 發布後對齊 askLLM 開發與 jmv-agent 框架，回饋作者已 mapped 的 engine-layer 知識（三層 client/server/engine trace）。
+- Nour「overcautious guard slop 要 edit out」→ 發 1.2.0 前跑一次 `/simplify` 清 agent 產出的多餘防禦碼。
+
+### S6. MCP prototype 分軌（相鄰，非本計畫）
+作者已有 rough MCP prototype；Jonathon 在建真 MCP API。此屬 **jmv-agent／automation 軌**，與 askLLM 模組分開。prototype 原則（read-only first、write 需明確確認、localhost-only、server 為最終 validator）對齊 Jonathon 即將公布的 MCP 設計。此計畫不含此軌，僅記錄分野。
 
 ---
 
