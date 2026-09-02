@@ -1,0 +1,10 @@
+name: Rj
+title: Rj - Editor to run R code inside jamovi (second fixture, should not be picked)
+version: 9.9.9
+rVersion: 3.0.0
+minApp: 9.0.0
+analyses:
+  - name: Rj
+    title: Rj Editor
+    menuGroup: R
+    menuTitle: Rj Editor

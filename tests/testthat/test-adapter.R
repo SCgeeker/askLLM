@@ -229,3 +229,93 @@ test_that('ask_llm 透傳 catalog_text 與 available_text 給 build_prompt', {
     expect_match(captured$prompt, '<installed_analyses>', fixed = TRUE)
     expect_match(captured$prompt, '<available_modules>', fixed = TRUE)
 })
+
+# ---- 構件 1:build_prompt 的 rj_env_text 參數(降級保證 + 區塊接線)----------
+
+.tp_rj <- paste0(
+    "Rj Editor 1.2.3 is installed (Analyses > R > Rj > Rj Editor).\n",
+    "The open dataset is available as a data.frame named 'data'.\n",
+    "R modes: 'jamovi R' (bundled R 4.9.9) or 'System R' (needs jmvconnect).\n",
+    "Rj Editor + can write columns back.\n",
+    "Packages bundled with Rj: pkgA, pkgB")
+
+test_that('build_prompt: rj_env_text=NULL 時輸出與現況逐字相同(降級保證)', {
+    # (a) 完全不帶 catalog/available,只有 question(v1.0 情形)
+    expect_identical(build_prompt(.tp_q, rj_env_text = NULL), .tp_q)
+    expect_identical(build_prompt(.tp_q, .tp_s, rj_env_text = NULL), .tp_v10)
+
+    # (b) 帶 catalog(既有 v1.1 情形)
+    expect_identical(
+        build_prompt(.tp_q, .tp_s, catalog_text = .tp_ct, rj_env_text = NULL),
+        build_prompt(.tp_q, .tp_s, catalog_text = .tp_ct))
+
+    # (c) 帶 catalog+available(既有 v1.1 情形)
+    expect_identical(
+        build_prompt(.tp_q, .tp_s, .tp_ct, .tp_av, rj_env_text = NULL),
+        build_prompt(.tp_q, .tp_s, .tp_ct, .tp_av))
+
+    # (d) 空字串亦視同 NULL(降級)
+    expect_identical(build_prompt(.tp_q, .tp_s, rj_env_text = ''), .tp_v10)
+})
+
+test_that('build_prompt: rj_env_text 非 NULL 時附加 <rj_environment> 區塊與使用指令行', {
+    out <- build_prompt(.tp_q, .tp_s, .tp_ct, .tp_av, rj_env_text = .tp_rj)
+
+    expect_true(grepl('<rj_environment>', out, fixed = TRUE))
+    expect_true(grepl('</rj_environment>', out, fixed = TRUE))
+    expect_true(grepl(.tp_rj, out, fixed = TRUE))
+
+    # <available_modules> 區塊在 <rj_environment> 之前
+    expect_true(regexpr('<available_modules>', out, fixed = TRUE) <
+                regexpr('<rj_environment>', out, fixed = TRUE))
+
+    # 使用指令行(逐字,規格定稿)
+    instr <- paste0(
+        'When giving R code for Rj Editor: use `data` as the dataset; ',
+        'call `library()` only for packages listed in <rj_environment> or base R; ',
+        'never suggest install.packages(), read.csv(), setwd(), file paths, or system().')
+    expect_true(grepl(instr, out, fixed = TRUE))
+
+    # Question 仍是最末行
+    expect_true(endsWith(out, paste0('Question: ', .tp_q)))
+})
+
+test_that('build_prompt: rj_env_text 非 NULL 但無 catalog 時仍能組出(catalog 為 NULL)', {
+    out <- build_prompt(.tp_q, .tp_s, rj_env_text = .tp_rj)
+
+    expect_true(grepl('<rj_environment>', out, fixed = TRUE))
+    expect_false(grepl('<installed_analyses>', out, fixed = TRUE))
+    expect_false(grepl('<available_modules>', out, fixed = TRUE))
+    expect_true(grepl('Answer the user question about THIS dataset. Be concise.',
+                      out, fixed = TRUE))
+    expect_true(endsWith(out, paste0('Question: ', .tp_q)))
+})
+
+test_that('build_prompt: rj_env_text 為空字串視同 NULL,不出現區塊', {
+    out <- build_prompt(.tp_q, .tp_s, .tp_ct, rj_env_text = '')
+    expect_false(grepl('<rj_environment>', out, fixed = TRUE))
+    expect_identical(out, build_prompt(.tp_q, .tp_s, .tp_ct))
+})
+
+test_that('ask_llm 透傳 rj_env_text 給 build_prompt(構件 1)', {
+    captured <- new.env()
+    ctor <- fake_ctor(captured, function(prompt) { captured$prompt <- prompt; 'x' })
+    ask_llm(question = .tp_q, summary_text = .tp_s,
+            catalog_text = .tp_ct, available_text = .tp_av,
+            rj_env_text = .tp_rj,
+            base_url = 'B', model = 'M', api_key = 'K', ctor = ctor)
+
+    expect_identical(captured$prompt,
+                     build_prompt(.tp_q, .tp_s, .tp_ct, .tp_av, .tp_rj))
+    expect_match(captured$prompt, '<rj_environment>', fixed = TRUE)
+})
+
+test_that('ask_llm 不帶 rj_env_text 時與升版前逐字相同(降級保證)', {
+    captured <- new.env()
+    ctor <- fake_ctor(captured, function(prompt) { captured$prompt <- prompt; 'x' })
+    ask_llm(question = .tp_q, summary_text = .tp_s,
+            catalog_text = .tp_ct, available_text = .tp_av,
+            base_url = 'B', model = 'M', api_key = 'K', ctor = ctor)
+
+    expect_identical(captured$prompt, build_prompt(.tp_q, .tp_s, .tp_ct, .tp_av))
+})

@@ -1,0 +1,14 @@
+name: Rj
+title: Rj - Editor to run R code inside jamovi
+version: 1.2.3
+rVersion: 4.9.9-x64
+minApp: 1.0.0
+analyses:
+  - name: Rj
+    title: Rj Editor
+    menuGroup: R
+    menuTitle: Rj Editor
+  - name: Rjp
+    title: Rj Editor +
+    menuGroup: R
+    menuTitle: Rj Editor +

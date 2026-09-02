@@ -83,19 +83,30 @@ make_chat <- function(base_url, model, api_key, system_prompt,
 #' 逐字(byte-identical)相同。`available_text` 區塊只在 catalog 區塊存在時
 #' 才可能出現(available 依賴掃描結果排除已安裝;掃描全失敗即整體降級)。
 #'
+#' `rj_env_text`(構件 1:Rj 環境本機接地,§ dev-notes/r-tutor-bridge-plan)
+#' 同樣遵守降級保證:`NULL` 或空字串時完全不影響輸出(與未帶此參數逐字相同),
+#' 且獨立於 catalog 是否存在——`rCode` 開關與 `includeCatalog` 開關互不相依,
+#' 因此僅有 rj 區塊、無 catalog 區塊的組合也必須正確運作。非 NULL 時附加
+#' `<rj_environment>` 區塊(順序在 `<available_modules>` 之後,若無 catalog
+#' 則直接接在 summary 之後),並在指令段補一行使用規則。
+#'
 #' @param question 使用者問題(必要)。
 #' @param summary_text 資料摘要純文字;`NULL`/空字串時省略 summary 段。
 #' @param catalog_text 已安裝分析清單純文字([catalog_text()] 輸出)。
 #' @param available_text 可安裝模組清單純文字([available_text()] 輸出)。
+#' @param rj_env_text Rj 環境純文字([rj_env_text()] 輸出);`NULL`/空字串
+#'   時整段省略(降級保證)。
 #' @return `character(1)` user prompt。
 build_prompt <- function(question, summary_text = NULL,
-                         catalog_text = NULL, available_text = NULL) {
+                         catalog_text = NULL, available_text = NULL,
+                         rj_env_text = NULL) {
     has_catalog   <- !is.null(catalog_text) && nzchar(catalog_text)
     has_available <- has_catalog &&
         !is.null(available_text) && nzchar(available_text)
+    has_rj        <- !is.null(rj_env_text) && nzchar(rj_env_text)
 
-    # 情形 A(catalog 為 NULL/空):v1.0 逐字相同
-    if (!has_catalog) {
+    # 情形 A(catalog 與 rj 皆為 NULL/空):v1.0 逐字相同
+    if (!has_catalog && !has_rj) {
         if (!is.null(summary_text) && nzchar(summary_text)) {
             return(paste0(
                 'Here is a summary of the dataset:\n',
@@ -107,7 +118,7 @@ build_prompt <- function(question, summary_text = NULL,
         return(question)
     }
 
-    # 情形 B / C:段與段之間恰一個空行,Question 恆為最末行,無尾隨換行
+    # 情形 B / C / rj:段與段之間恰一個空行,Question 恆為最末行,無尾隨換行
     segments <- character(0)
 
     if (!is.null(summary_text) && nzchar(summary_text)) {
@@ -116,35 +127,56 @@ build_prompt <- function(question, summary_text = NULL,
             '<summary>\n', summary_text, '\n</summary>'))
     }
 
-    segments <- c(segments, paste0(
-        'Installed jamovi analyses on this machine (real menu paths):\n',
-        '<installed_analyses>\n', catalog_text, '\n</installed_analyses>'))
-
-    if (has_available) {
+    if (has_catalog) {
         segments <- c(segments, paste0(
-            'Official jamovi library modules NOT currently installed:\n',
-            '<available_modules>\n', available_text, '\n</available_modules>'))
+            'Installed jamovi analyses on this machine (real menu paths):\n',
+            '<installed_analyses>\n', catalog_text, '\n</installed_analyses>'))
+
+        if (has_available) {
+            segments <- c(segments, paste0(
+                'Official jamovi library modules NOT currently installed:\n',
+                '<available_modules>\n', available_text, '\n</available_modules>'))
+        }
     }
 
-    # 指令段:前兩行 B/C 共用,第三行依有無 available 區塊切換(規格 §5.3 逐字)
-    # 反洩漏措辭:約束的是「集合成員」而非「真實性」。實測(PATHJ 洩漏)
-    # 顯示「NEVER invent module names」無效,因為模型不認為引用一個它「知道
-    # 存在」的真實模組是 invent;改為「只能提清單裡逐字出現的名字」。
-    third_line <- if (has_available) {
-        paste0('If no installed analysis fits, suggest installing a module ',
-               'ONLY from <available_modules> (Modules > jamovi library in jamovi). ',
-               'Name ONLY modules that appear literally in <available_modules>; ',
-               'do not name any other module, even one you believe exists. ',
-               'If neither list has a suitable option, say plainly that you do not know.')
-    } else {
-        paste0('If no installed analysis fits the question, say so plainly. ',
-               'Do not name any module or invent any menu path.')
+    if (has_rj) {
+        segments <- c(segments, paste0(
+            'The Rj Editor environment available on this machine:\n',
+            '<rj_environment>\n', rj_env_text, '\n</rj_environment>'))
     }
-    segments <- c(segments, paste0(
-        'Answer the user question about THIS dataset. Be concise.\n',
-        'Recommend analyses ONLY from <installed_analyses> and quote each ',
-        'menu path EXACTLY as written there.\n',
-        third_line))
+
+    # 指令段:第一行恆有;catalog/available 兩行只在 has_catalog 時附加
+    # (規格 §5.3 逐字);rj 使用規則只在 has_rj 時附加。反洩漏措辭:約束的是
+    # 「集合成員」而非「真實性」。實測(PATHJ 洩漏)顯示「NEVER invent module
+    # names」無效,因為模型不認為引用一個它「知道存在」的真實模組是 invent;
+    # 改為「只能提清單裡逐字出現的名字」。
+    instruction_lines <- 'Answer the user question about THIS dataset. Be concise.'
+
+    if (has_catalog) {
+        third_line <- if (has_available) {
+            paste0('If no installed analysis fits, suggest installing a module ',
+                   'ONLY from <available_modules> (Modules > jamovi library in jamovi). ',
+                   'Name ONLY modules that appear literally in <available_modules>; ',
+                   'do not name any other module, even one you believe exists. ',
+                   'If neither list has a suitable option, say plainly that you do not know.')
+        } else {
+            paste0('If no installed analysis fits the question, say so plainly. ',
+                   'Do not name any module or invent any menu path.')
+        }
+        instruction_lines <- c(instruction_lines,
+            paste0('Recommend analyses ONLY from <installed_analyses> and quote each ',
+                   'menu path EXACTLY as written there.'),
+            third_line)
+    }
+
+    if (has_rj) {
+        instruction_lines <- c(instruction_lines, paste0(
+            'When giving R code for Rj Editor: use `data` as the dataset; ',
+            'call `library()` only for packages listed in <rj_environment> or base R; ',
+            'never suggest install.packages(), read.csv(), setwd(), file paths, or system().'))
+    }
+
+    segments <- c(segments, paste(instruction_lines, collapse = '\n'))
 
     segments <- c(segments, paste0('Question: ', question))
     paste(segments, collapse = '\n\n')
@@ -186,11 +218,13 @@ translate_error <- function(msg, model) {
 #'
 #' `catalog_text`/`available_text` 原樣透傳給 [build_prompt()](參數位置依
 #' 規格 §4.2.2:置於 `summary_text` 之後、`base_url` 之前,既有具名呼叫不受
-#' 影響)。
+#' 影響)。`rj_env_text`(構件 1)同樣原樣透傳;預設 `NULL` 時與升版前逐字
+#' 相同(降級保證)。
 #'
 #' @return list(ok, text, model, elapsed_s, error);永不 stop()
 ask_llm <- function(question, summary_text = NULL,
                     catalog_text = NULL, available_text = NULL,
+                    rj_env_text = NULL,
                     base_url, model, api_key,
                     system_prompt = NULL, max_tokens = 1024, ctor = NULL) {
     started <- Sys.time()
@@ -202,7 +236,8 @@ ask_llm <- function(question, summary_text = NULL,
                           max_tokens = max_tokens)
         prompt <- build_prompt(question, summary_text,
                                catalog_text = catalog_text,
-                               available_text = available_text)
+                               available_text = available_text,
+                               rj_env_text = rj_env_text)
         raw <- chat$chat(prompt)
         text <- as.character(raw)
         list(ok = TRUE, text = text, model = model,

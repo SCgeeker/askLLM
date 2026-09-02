@@ -168,3 +168,126 @@ test_that('build_payload:role/promptLang/systemPrompt 皆用預設值時,與舊�
                                     system_prompt = '')
     expect_identical(p_old, p_new)
 })
+
+# ---- 構件 4:.askllm_system_prompt(..., r_code=) 回歸鎖 --------------------
+#
+# r_code=FALSE(預設)時,輸出必須與升版前(無 r_code 參數)逐字相同,涵蓋
+# 三人格 x 兩語言、has_catalog/enable_actions 開關的所有組合。
+#
+# M-A0:.askllm_system_prompt()/.askllm_caveat_text() 已退回原簽名(無
+# r_code/has_rj_env/has_material 參數),以下 13 案例暫 skip,待 M-A3
+# 改指向新分析 askllmr 的 .askllmr_system_prompt()/.askllmr_caveat_text()。
+
+test_that('r_code=FALSE:六種 (role, lang) 與升版前(無 r_code 參數)逐字相同', {
+    skip('M-A3: 改指向 askllmr')
+    roles <- c('consultant', 'tutor', 'explainer')
+    langs <- c('en', 'zh')
+    for (r in roles) for (l in langs) {
+        before <- .askllm_system_prompt(role = r, lang = l, has_catalog = FALSE,
+                                         enable_actions = FALSE)
+        after  <- .askllm_system_prompt(role = r, lang = l, has_catalog = FALSE,
+                                         enable_actions = FALSE, r_code = FALSE)
+        expect_identical(before, after,
+            info = paste('role =', r, ', lang =', l))
+    }
+})
+
+test_that('r_code=FALSE:has_catalog/enable_actions 開啟時仍與升版前逐字相同', {
+    skip('M-A3: 改指向 askllmr')
+    before <- .askllm_system_prompt(role = 'consultant', lang = 'en',
+                                     has_catalog = TRUE, enable_actions = TRUE)
+    after  <- .askllm_system_prompt(role = 'consultant', lang = 'en',
+                                     has_catalog = TRUE, enable_actions = TRUE,
+                                     r_code = FALSE)
+    expect_identical(before, after)
+})
+
+test_that('r_code=FALSE 為未傳 r_code 參數時的預設值(舊呼叫方式逐字相同)', {
+    skip('M-A3: 改指向 askllmr')
+    old_style <- .askllm_system_prompt(role = 'tutor', lang = 'zh', has_catalog = TRUE)
+    new_style <- .askllm_system_prompt(role = 'tutor', lang = 'zh', has_catalog = TRUE,
+                                        r_code = FALSE)
+    expect_identical(old_style, new_style)
+})
+
+# ---- 構件 4:六格 .ASKLLM_RJ_SUFFIX 特徵句 ----------------------------------
+
+test_that('r_code=TRUE:六格皆含共通句關鍵字(data、install.packages、Rj)', {
+    skip('M-A3: 改指向 askllmr')
+    roles <- c('consultant', 'tutor', 'explainer')
+    langs <- c('en', 'zh')
+    for (r in roles) for (l in langs) {
+        txt <- .askllm_system_prompt(role = r, lang = l, has_catalog = FALSE,
+                                      r_code = TRUE)
+        expect_true(grepl('data', txt, fixed = TRUE), info = paste(r, l))
+        expect_true(grepl('install.packages', txt, fixed = TRUE), info = paste(r, l))
+        expect_true(grepl('Rj', txt, fixed = TRUE), info = paste(r, l))
+    }
+})
+
+test_that('r_code=TRUE:tutor(en/zh)含 TODO 佔位提示', {
+    skip('M-A3: 改指向 askllmr')
+    expect_true(grepl('TODO',
+        .askllm_system_prompt(role = 'tutor', lang = 'en', r_code = TRUE),
+        fixed = TRUE))
+    expect_true(grepl('TODO',
+        .askllm_system_prompt(role = 'tutor', lang = 'zh', r_code = TRUE),
+        fixed = TRUE))
+})
+
+test_that('r_code=TRUE:explainer(en/zh)含逐行註解要求', {
+    skip('M-A3: 改指向 askllmr')
+    txt_en <- .askllm_system_prompt(role = 'explainer', lang = 'en', r_code = TRUE)
+    expect_true(grepl('comment', txt_en, ignore.case = TRUE))
+    expect_true(grepl('#', txt_en, fixed = TRUE))
+
+    txt_zh <- .askllm_system_prompt(role = 'explainer', lang = 'zh', r_code = TRUE)
+    expect_true(grepl('逐行', txt_zh, fixed = TRUE))
+    expect_true(grepl('#', txt_zh, fixed = TRUE))
+})
+
+test_that('r_code=TRUE:consultant(en/zh)含單一 code block 語意', {
+    skip('M-A3: 改指向 askllmr')
+    txt_en <- .askllm_system_prompt(role = 'consultant', lang = 'en', r_code = TRUE)
+    expect_true(grepl('single fenced code block', txt_en, fixed = TRUE))
+
+    txt_zh <- .askllm_system_prompt(role = 'consultant', lang = 'zh', r_code = TRUE)
+    expect_true(grepl('單一', txt_zh, fixed = TRUE))
+    expect_true(grepl('code block', txt_zh, fixed = TRUE))
+})
+
+test_that('r_code=TRUE:三版皆說明 Rj 未安裝時改教 Syntax Mode', {
+    skip('M-A3: 改指向 askllmr')
+    for (r in c('consultant', 'tutor', 'explainer')) {
+        txt <- .askllm_system_prompt(role = r, lang = 'en', r_code = TRUE)
+        expect_true(grepl('Syntax Mode', txt, fixed = TRUE), info = r)
+    }
+})
+
+# ---- 構件 4:後綴順序 base -> catalog -> action -> rj -----------------------
+
+test_that('has_catalog+enable_actions+r_code 三後綴依固定順序出現', {
+    skip('M-A3: 改指向 askllmr')
+    txt <- .askllm_system_prompt(role = 'consultant', lang = 'en',
+                                  has_catalog = TRUE, enable_actions = TRUE,
+                                  r_code = TRUE)
+    pos_base    <- regexpr('You are a statistical analysis assistant', txt)
+    pos_catalog <- regexpr('When a list of installed analyses is provided', txt)
+    pos_action  <- regexpr('You can now act, not just advise', txt)
+    pos_rj      <- regexpr("Rj Editor and run it", txt)
+
+    expect_true(pos_base > 0 && pos_catalog > 0 && pos_action > 0 && pos_rj > 0)
+    expect_true(pos_base < pos_catalog)
+    expect_true(pos_catalog < pos_action)
+    expect_true(pos_action < pos_rj)
+})
+
+# ---- 構件 4:未知 role 落回 consultant,仍附 rj suffix -----------------------
+
+test_that('r_code=TRUE 時,未知 role 落回 consultant 且仍含 rj suffix', {
+    skip('M-A3: 改指向 askllmr')
+    txt <- .askllm_system_prompt(role = 'unknown-role', lang = 'en', r_code = TRUE)
+    expect_identical(txt,
+        .askllm_system_prompt(role = 'consultant', lang = 'en', r_code = TRUE))
+    expect_true(grepl('Rj Editor and run it', txt, fixed = TRUE))
+})
