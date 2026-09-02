@@ -179,6 +179,13 @@ test_that('askllmClass 存在且為 R6 類別產生器,繼承 askllmBase', {
     expect_equal(askllmClass$inherit, as.name('askllmBase'))
 })
 
+# M-A2:askllmr(R code tutor)骨架 R6 類別載入斷言,同上一測試模式
+test_that('askllmrClass 存在且為 R6 類別產生器,繼承 askllmrBase', {
+    expect_true(exists('askllmrClass'))
+    expect_true(inherits(askllmrClass, 'R6ClassGenerator'))
+    expect_equal(askllmrClass$inherit, as.name('askllmrBase'))
+})
+
 # ---- .askllm_waiting_text:送出後、回覆前顯示的等待訊息 ---------------------
 
 test_that('waiting_text 含 provider 顯示名稱與模型名,並標明等候中', {

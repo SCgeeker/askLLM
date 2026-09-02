@@ -21,6 +21,13 @@ analyses:
     category: analyses
     menuGroup: askLLM
     menuTitle: Ask LLM about your data
+  - title: R code tutor
+    name: askllmr
+    ns: askLLM
+    category: analyses
+    menuGroup: askLLM
+    menuTitle: R code tutor
+    menuSubtitle: Get R code to paste into Rj Editor
 usesNative: true
 minApp: 1.0.8
 

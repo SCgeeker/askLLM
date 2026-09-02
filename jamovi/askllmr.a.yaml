@@ -1,0 +1,111 @@
+---
+name:  askllmr
+title: R code tutor
+menuGroup: askLLM
+menuTitle: R code tutor
+menuSubtitle: Get R code to paste into Rj Editor
+version: '1.2.0'
+jas: '1.2'
+
+options:
+    - name: data
+      type: Data
+
+    - name: vars
+      title: Variables to describe
+      type: Variables
+      suggested:
+        - continuous
+        - nominal
+        - ordinal
+      permitted:
+        - numeric
+        - factor
+
+    - name: question
+      title: What should the R code do?
+      type: String
+      default: ''
+
+    - name: includeSummary
+      title: Attach data summary to prompt
+      type: Bool
+      default: true
+
+    - name: submit
+      title: 'Submit (call the LLM)'
+      type: Bool
+      default: false
+
+    - name: testConnection
+      title: 'Test Connection (no LLM call, no billing)'
+      type: Bool
+      default: false
+
+    - name: provider
+      title: Provider
+      type: List
+      options:
+        - name: nim
+          title: NVIDIA NIM
+        - name: gemini
+          title: Google Gemini (free tier)
+        - name: openrouter
+          title: OpenRouter
+        - name: github
+          title: GitHub Models
+        - name: ollama
+          title: Ollama (local)
+        - name: custom
+          title: Custom OpenAI-compatible
+      default: nim
+
+    - name: model
+      title: Model
+      type: String
+      default: 'meta/llama-3.1-8b-instruct'
+
+    - name: baseUrl
+      title: Base URL (custom provider)
+      type: String
+      default: ''
+
+    - name: role
+      title: Persona
+      type: List
+      options:
+        - name: consultant
+          title: 🧭 Consultant
+        - name: tutor
+          title: 🎓 Tutor
+        - name: explainer
+          title: 💡 Explainer
+      default: consultant
+
+    - name: promptLang
+      title: Prompt language
+      type: List
+      options:
+        - name: en
+          title: English
+        - name: zh
+          title: 繁體中文
+      default: en
+
+    - name: systemPrompt
+      title: Custom system prompt (overrides persona template when non-empty)
+      type: String
+      default: ''
+
+    - name: systemPromptVar
+      title: Use a variable's Description as the system prompt
+      type: Variable
+      suggested:
+        - continuous
+        - nominal
+        - ordinal
+      permitted:
+        - numeric
+        - factor
+      default: NULL
+...

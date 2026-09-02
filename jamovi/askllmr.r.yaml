@@ -1,0 +1,43 @@
+---
+name:  askllmr
+title: R code tutor
+jrs:   '1.1'
+
+items:
+    - name:  instructions
+      title: ''
+      type:  Preformatted
+      visible: true
+      clearWith: []
+
+    - name:  code
+      title: 'R code — paste into Rj Editor'
+      type:  Preformatted
+      visible: true
+      clearWith: []
+
+    - name:  explanation
+      title: 'What this code does'
+      type:  Preformatted
+      visible: true
+      clearWith: []
+
+    - name:  links
+      title: ''
+      type:  Html
+      visible: true
+      clearWith: []
+
+    - name:  caveat
+      title: ''
+      type:  Preformatted
+      visible: true
+      clearWith: []
+
+    - name:  meta
+      title: ''
+      type:  Preformatted
+      visible: true
+      clearWith: []
+
+...

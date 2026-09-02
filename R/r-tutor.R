@@ -125,3 +125,31 @@
 
     list(en = r_en, zh = r_zh)
 }
+
+#' R code tutor 的引導文字(先英文整段,再中文整段),零網路,供 .init() 顯示
+#'
+#' M-A2 骨架階段:`.run()` 尚未接上真正的 LLM 邏輯(見 M-A3),此段文字
+#' 是骨架 `.b.R` 唯一輸出的內容,先佔位說明如何操作面板。排版比照
+#' `.askllm_guide_text()`:段落區塊文字語言一致,先英文再中文。
+.askllmr_guide_text <- function() {
+    paste(
+        'R code tutor — pick variables, describe what the R code should do,',
+        'and tick Submit to get code you can paste into the Rj Editor.',
+        '',
+        '1. Select the variables the code should work on.',
+        '2. Describe what the code should do (English or Chinese both work).',
+        '3. Tick "Submit" to send; the code appears in a moment.',
+        '',
+        'This is a scaffold build: the LLM wiring for this analysis is not',
+        'connected yet.',
+        '',
+        'R code tutor —— 選擇變項、描述你想要的 R 程式碼,',
+        '勾選 Submit 即可取得可貼進 Rj Editor 的程式碼。',
+        '',
+        '1. 勾選程式碼要處理的變項。',
+        '2. 描述你想要的 R 程式碼(英文或中文皆可)。',
+        '3. 勾選「Submit」送出,稍候即可看到程式碼。',
+        '',
+        '此為骨架階段:本分析尚未接上真正的 LLM 邏輯。',
+        sep = '\n')
+}
