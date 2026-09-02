@@ -92,11 +92,6 @@ options:
           title: 繁體中文
       default: en
 
-    - name: systemPrompt
-      title: Custom system prompt (overrides persona template when non-empty)
-      type: String
-      default: ''
-
     - name: systemPromptVar
       title: Use a variable's Description as the system prompt
       type: Variable

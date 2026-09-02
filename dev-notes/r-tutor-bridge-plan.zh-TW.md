@@ -207,6 +207,8 @@ M-A5 文件與常青頁（原 M-R3,依賴不變)
 ## 五、未決／簽核點（推薦預設）
 
 > **作者簽核（2026-09-02，讀法 A）**：#3 **共用三人格**；#1 命名 → `name: askllmr`、**menuTitle/title：「R code tutor」**、subtitle「Get R code to paste into Rj Editor」；#2 **同 menuGroup: askLLM**（與現有 `askllm` 併入同一 askLLM 選單下拉，已確認）；#4 **`testConnection` 保留**於 R code tutor（只省 `includeCatalog`/`enableActions`/`llmColumns`/`maxLevels`，共 13 選項）；**UI：`submit` CheckBox 排最後**（順序 `includeSummary` → `testConnection` → `submit`）；#5、#6、#9、#10 依推薦預設接受。→ §2.1/§2.2 依此調整（menuTitle=R code tutor、testConnection ✔、submit 置末）。
+>
+> **追加簽核（2026-09-02，M-A2 面板檢視後）**：`askllmr` **移除 `systemPrompt` TextBox**，自訂 system prompt **只走 `systemPromptVar`（variable Description）**——那是比 jus 單行框更好編輯的介面，面板更精簡（13→**12 選項**）。M-A3 的 `.b.R`：`custom = var_desc`（讀 systemPromptVar 的 jmv-desc），無 TextBox 分支；`.askllmr_system_prompt(system_prompt=)` 簽名不變（餵 var_desc）。諮詢分析 `askllm` 的 `systemPrompt` **維持不動**（已 commit、避免既存 .omv 相容問題；是否一併精簡另議）。
 
 | # | 問題 | 推薦預設 | 簽核 |
 |---|---|---|---|

@@ -69,7 +69,3 @@ children:
             name: role
           - type: ComboBox
             name: promptLang
-          - type: TextBox
-            name: systemPrompt
-            format: string
-            width: largest

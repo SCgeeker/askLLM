@@ -16,7 +16,6 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             baseUrl = "",
             role = "consultant",
             promptLang = "en",
-            systemPrompt = "",
             systemPromptVar = NULL, ...) {
 
             super$initialize(
@@ -85,10 +84,6 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "en",
                     "zh"),
                 default="en")
-            private$..systemPrompt <- jmvcore::OptionString$new(
-                "systemPrompt",
-                systemPrompt,
-                default="")
             private$..systemPromptVar <- jmvcore::OptionVariable$new(
                 "systemPromptVar",
                 systemPromptVar,
@@ -111,7 +106,6 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..baseUrl)
             self$.addOption(private$..role)
             self$.addOption(private$..promptLang)
-            self$.addOption(private$..systemPrompt)
             self$.addOption(private$..systemPromptVar)
         }),
     active = list(
@@ -125,7 +119,6 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         baseUrl = function() private$..baseUrl$value,
         role = function() private$..role$value,
         promptLang = function() private$..promptLang$value,
-        systemPrompt = function() private$..systemPrompt$value,
         systemPromptVar = function() private$..systemPromptVar$value),
     private = list(
         ..vars = NA,
@@ -138,7 +131,6 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..baseUrl = NA,
         ..role = NA,
         ..promptLang = NA,
-        ..systemPrompt = NA,
         ..systemPromptVar = NA)
 )
 
@@ -231,7 +223,6 @@ askllmrBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param baseUrl .
 #' @param role .
 #' @param promptLang .
-#' @param systemPrompt .
 #' @param systemPromptVar .
 #' @return A results object containing:
 #' \tabular{llllll}{
@@ -256,7 +247,6 @@ askllmr <- function(
     baseUrl = "",
     role = "consultant",
     promptLang = "en",
-    systemPrompt = "",
     systemPromptVar = NULL) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
@@ -282,7 +272,6 @@ askllmr <- function(
         baseUrl = baseUrl,
         role = role,
         promptLang = promptLang,
-        systemPrompt = systemPrompt,
         systemPromptVar = systemPromptVar)
 
     analysis <- askllmrClass$new(
