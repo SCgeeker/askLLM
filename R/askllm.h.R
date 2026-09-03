@@ -250,7 +250,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 weightsSupport = 'none')
         }))
 
-#' Ask LLM about your data
+#' jamovi Module Guider
 #'
 #' 
 #' @param data .

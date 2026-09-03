@@ -15,19 +15,20 @@ description: >-
   Google Gemini, OpenRouter, GitHub Models, local Ollama, and any
   OpenAI-compatible endpoint.
 analyses:
-  - title: Ask LLM about your data
+  - title: jamovi Module Guider
     name: askllm
     ns: askLLM
     category: analyses
     menuGroup: askLLM
-    menuTitle: Ask LLM about your data
+    menuTitle: jamovi Module Guider
+    menuSubtitle: Ask LLM how to use your jamovi
   - title: R code tutor
     name: askllmr
     ns: askLLM
     category: analyses
     menuGroup: askLLM
     menuTitle: R code tutor
-    menuSubtitle: Get R code to paste into Rj Editor
+    menuSubtitle: Ask LLM how to compose R code in Rj
 usesNative: true
 minApp: 1.0.8
 

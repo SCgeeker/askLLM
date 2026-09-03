@@ -1,7 +1,9 @@
 ---
 name:  askllm
-title: Ask LLM about your data
+title: jamovi Module Guider
 menuGroup: askLLM
+menuTitle: jamovi Module Guider
+menuSubtitle: Ask LLM how to use your jamovi
 version: '1.2.0'
 jas: '1.2'
 

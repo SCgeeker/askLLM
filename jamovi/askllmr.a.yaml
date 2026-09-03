@@ -3,7 +3,7 @@ name:  askllmr
 title: R code tutor
 menuGroup: askLLM
 menuTitle: R code tutor
-menuSubtitle: Get R code to paste into Rj Editor
+menuSubtitle: Ask LLM how to compose R code in Rj
 version: '1.2.0'
 jas: '1.2'
 
