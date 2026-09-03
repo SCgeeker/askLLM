@@ -166,6 +166,8 @@ test_that('links_html:installed=TRUE 時不含安裝提示,含開啟 Rj 與連�
     expect_true(grepl('Rj Editor', html, fixed = TRUE))
     expect_true(grepl(.ASKLLMR_LEARN_R_URL, html, fixed = TRUE))
     expect_true(grepl('Learn R with Rj', html, fixed = TRUE))
+    expect_true(grepl('choose-model.html', html, fixed = TRUE))
+    expect_true(grepl('Choose a model', html, fixed = TRUE))
     expect_false(grepl('jamovi library', html, fixed = TRUE))
 })
 

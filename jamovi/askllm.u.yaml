@@ -45,9 +45,9 @@ children:
       - type: CheckBox
         name: includeCatalog
       - type: CheckBox
-        name: submit
-      - type: CheckBox
         name: testConnection
+      - type: CheckBox
+        name: submit
   - type: CollapseBox
     label: LLM settings
     collapsed: true

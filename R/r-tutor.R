@@ -251,7 +251,8 @@
 #' @param installed 本機是否已裝 Rj(`scan_rj()$installed`)。
 #' @param url 教材頁網址,預設 `.ASKLLMR_LEARN_R_URL`(測試可覆寫)。
 #' @return `character(1)` 字面 HTML。
-.askllmr_links_html <- function(installed, url = .ASKLLMR_LEARN_R_URL) {
+.askllmr_links_html <- function(installed, url = .ASKLLMR_LEARN_R_URL,
+                                model_url = .ASKLLM_CHOOSE_MODEL_URL) {
     install_line <- if (!isTRUE(installed))
         '<p>Install Rj: Modules ▸ jamovi library</p>'
     else
@@ -260,7 +261,9 @@
         '<p>Open Rj: Analyses ▸ R ▸ Rj ▸ Rj Editor</p>',
         install_line,
         '<p><a href="', url, '" target="_blank" rel="noopener noreferrer">',
-        'Learn R with Rj</a></p>')
+        'Learn R with Rj</a></p>',
+        '<p><a href="', model_url, '" target="_blank" rel="noopener noreferrer">',
+        'Choose a model to use with askLLM</a></p>')
 }
 
 #' R code tutor 的 caveat 文字(M-A3;先英文整段,再中文整段)
