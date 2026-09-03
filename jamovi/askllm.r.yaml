@@ -17,23 +17,19 @@ items:
     - name:  jmvResults
       title: 'Analyses run'
       type:  Preformatted
+      visible: false
       clearWith: []
 
     - name:  actionNote
       title: 'What the assistant did'
       type:  Preformatted
+      visible: false
       clearWith: []
 
     - name:  plan
       title: 'Action plan (audit)'
       type:  Preformatted
-      clearWith: []
-
-    - name:  llmColumns
-      title: ''
-      type:  Output
-      initInRun: true
-      measureType: continuous
+      visible: false
       clearWith: []
 
     - name:  meta

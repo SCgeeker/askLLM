@@ -84,7 +84,7 @@ test_that('build_payload: 全預設參數(不含 system_prompt_var)與升版前�
     expect_identical(p_old, p_new)
 })
 
-test_that('resolve_custom 搭配 .askllm_system_prompt: 空 var_desc 與空 systemPrompt 時仍降級為模板', {
+test_that('resolve_custom 搭配 .askllm_system_prompt: 空 var_desc 與空 systemPrompt 時仍降級為模板(+ 雙向邊界句恆附加)', {
     custom <- .askllm_resolve_custom('', '')
     txt <- .askllm_system_prompt(role = 'consultant', lang = 'en',
                                   system_prompt = custom, has_catalog = FALSE)
@@ -94,5 +94,7 @@ test_that('resolve_custom 搭配 .askllm_system_prompt: 空 var_desc 與空 syst
         'summary statistics. Be concise, accurate, and practical. If the',
         'summary is insufficient to answer, say so briefly rather than guessing.',
         sep = ' ')
-    expect_identical(txt, legacy)
+    # 「Module Guider 精簡 + 雙向 prompt 邊界」打破 v1.1 逐字降級保證:
+    # 恆附加 .ASKLLM_R_REDIRECT_SUFFIX$en(見 R/askllm.b.R)。
+    expect_identical(txt, paste(legacy, .ASKLLM_R_REDIRECT_SUFFIX$en))
 })

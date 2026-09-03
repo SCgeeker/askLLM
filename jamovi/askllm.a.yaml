@@ -42,15 +42,6 @@ options:
       type: Bool
       default: false
 
-    - name: enableActions
-      title: 'Enable actions (let the assistant run analyses)'
-      type: Bool
-      default: false
-
-    - name: llmColumns
-      type: Output
-      hidden: true
-
     - name: testConnection
       title: 'Test Connection (no LLM call, no billing)'
       type: Bool
@@ -112,11 +103,6 @@ options:
         - name: zh
           title: 繁體中文
       default: en
-
-    - name: systemPrompt
-      title: Custom system prompt (overrides persona template when non-empty)
-      type: String
-      default: ''
 
     - name: systemPromptVar
       title: Use a variable's Description as the system prompt

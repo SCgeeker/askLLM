@@ -11,7 +11,6 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             includeSummary = TRUE,
             includeCatalog = TRUE,
             submit = FALSE,
-            enableActions = FALSE,
             testConnection = FALSE,
             provider = "nim",
             model = "meta/llama-3.1-8b-instruct",
@@ -19,7 +18,6 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             maxLevels = 10,
             role = "consultant",
             promptLang = "en",
-            systemPrompt = "",
             systemPromptVar = NULL, ...) {
 
             super$initialize(
@@ -54,12 +52,6 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "submit",
                 submit,
                 default=FALSE)
-            private$..enableActions <- jmvcore::OptionBool$new(
-                "enableActions",
-                enableActions,
-                default=FALSE)
-            private$..llmColumns <- jmvcore::OptionOutput$new(
-                "llmColumns")
             private$..testConnection <- jmvcore::OptionBool$new(
                 "testConnection",
                 testConnection,
@@ -104,10 +96,6 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "en",
                     "zh"),
                 default="en")
-            private$..systemPrompt <- jmvcore::OptionString$new(
-                "systemPrompt",
-                systemPrompt,
-                default="")
             private$..systemPromptVar <- jmvcore::OptionVariable$new(
                 "systemPromptVar",
                 systemPromptVar,
@@ -125,8 +113,6 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..includeSummary)
             self$.addOption(private$..includeCatalog)
             self$.addOption(private$..submit)
-            self$.addOption(private$..enableActions)
-            self$.addOption(private$..llmColumns)
             self$.addOption(private$..testConnection)
             self$.addOption(private$..provider)
             self$.addOption(private$..model)
@@ -134,7 +120,6 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..maxLevels)
             self$.addOption(private$..role)
             self$.addOption(private$..promptLang)
-            self$.addOption(private$..systemPrompt)
             self$.addOption(private$..systemPromptVar)
         }),
     active = list(
@@ -143,8 +128,6 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         includeSummary = function() private$..includeSummary$value,
         includeCatalog = function() private$..includeCatalog$value,
         submit = function() private$..submit$value,
-        enableActions = function() private$..enableActions$value,
-        llmColumns = function() private$..llmColumns$value,
         testConnection = function() private$..testConnection$value,
         provider = function() private$..provider$value,
         model = function() private$..model$value,
@@ -152,7 +135,6 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         maxLevels = function() private$..maxLevels$value,
         role = function() private$..role$value,
         promptLang = function() private$..promptLang$value,
-        systemPrompt = function() private$..systemPrompt$value,
         systemPromptVar = function() private$..systemPromptVar$value),
     private = list(
         ..vars = NA,
@@ -160,8 +142,6 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..includeSummary = NA,
         ..includeCatalog = NA,
         ..submit = NA,
-        ..enableActions = NA,
-        ..llmColumns = NA,
         ..testConnection = NA,
         ..provider = NA,
         ..model = NA,
@@ -169,7 +149,6 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..maxLevels = NA,
         ..role = NA,
         ..promptLang = NA,
-        ..systemPrompt = NA,
         ..systemPromptVar = NA)
 )
 
@@ -182,7 +161,6 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         jmvResults = function() private$.items[["jmvResults"]],
         actionNote = function() private$.items[["actionNote"]],
         plan = function() private$.items[["plan"]],
-        llmColumns = function() private$.items[["llmColumns"]],
         meta = function() private$.items[["meta"]]),
     private = list(),
     public=list(
@@ -205,23 +183,19 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 options=options,
                 name="jmvResults",
                 title="Analyses run",
+                visible=FALSE,
                 clearWith=list()))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="actionNote",
                 title="What the assistant did",
+                visible=FALSE,
                 clearWith=list()))
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="plan",
                 title="Action plan (audit)",
-                clearWith=list()))
-            self$add(jmvcore::Output$new(
-                options=options,
-                name="llmColumns",
-                title="",
-                initInRun=TRUE,
-                measureType="continuous",
+                visible=FALSE,
                 clearWith=list()))
             self$add(jmvcore::Preformatted$new(
                 options=options,
@@ -247,7 +221,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 pause = NULL,
                 completeWhenFilled = FALSE,
                 requiresMissings = FALSE,
-                weightsSupport = 'none')
+                weightsSupport = 'auto')
         }))
 
 #' jamovi Module Guider
@@ -259,7 +233,6 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param includeSummary .
 #' @param includeCatalog .
 #' @param submit .
-#' @param enableActions .
 #' @param testConnection .
 #' @param provider .
 #' @param model .
@@ -267,7 +240,6 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param maxLevels .
 #' @param role .
 #' @param promptLang .
-#' @param systemPrompt .
 #' @param systemPromptVar .
 #' @return A results object containing:
 #' \tabular{llllll}{
@@ -276,7 +248,6 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$jmvResults} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$actionNote} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$plan} \tab \tab \tab \tab \tab a preformatted \cr
-#'   \code{results$llmColumns} \tab \tab \tab \tab \tab an output \cr
 #'   \code{results$meta} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'
@@ -288,7 +259,6 @@ askllm <- function(
     includeSummary = TRUE,
     includeCatalog = TRUE,
     submit = FALSE,
-    enableActions = FALSE,
     testConnection = FALSE,
     provider = "nim",
     model = "meta/llama-3.1-8b-instruct",
@@ -296,7 +266,6 @@ askllm <- function(
     maxLevels = 10,
     role = "consultant",
     promptLang = "en",
-    systemPrompt = "",
     systemPromptVar = NULL) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
@@ -317,7 +286,6 @@ askllm <- function(
         includeSummary = includeSummary,
         includeCatalog = includeCatalog,
         submit = submit,
-        enableActions = enableActions,
         testConnection = testConnection,
         provider = provider,
         model = model,
@@ -325,7 +293,6 @@ askllm <- function(
         maxLevels = maxLevels,
         role = role,
         promptLang = promptLang,
-        systemPrompt = systemPrompt,
         systemPromptVar = systemPromptVar)
 
     analysis <- askllmClass$new(

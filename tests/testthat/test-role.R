@@ -1,24 +1,30 @@
 # test-role.R — 項目 1:人格選擇(role 選擇器)+ 顯式語言選單(promptLang)
 #
-# 降級保證(最重要的回歸鎖):role='consultant' + lang='en' + systemPrompt=''
-# 時,.askllm_system_prompt() 回傳字串必須與 v1.1 現行字串逐字相同。
+# 「Module Guider 精簡 + 雙向 prompt 邊界」(見 dev-notes)打破了 v1.1 的逐字
+# 降級保證:.askllm_system_prompt() 現在**恆**在末尾附加
+# .ASKLLM_R_REDIRECT_SUFFIX[[lang]](把 R 程式碼請求導向 sibling 分析
+# 「R code tutor」)。以下回歸鎖改為「base/catalog 內容不變 + 含邊界句」,
+# 不再是與 v1.1 逐字相同。
 
-# ---- 回歸鎖:consultant/en/空自訂 ≡ 現行字串 ---------------------------------
+# ---- 回歸鎖:consultant/en/空自訂 ≡ v1.1 base + 邊界句 -----------------------
 
-test_that('consultant/en/空白自訂 prompt 與 v1.1 現行字串逐字相同(has_catalog=FALSE)', {
+test_that('consultant/en/空白自訂 prompt = v1.1 現行字串 + R 導引邊界句(has_catalog=FALSE)', {
     legacy <- paste(
         'You are a statistical analysis assistant embedded in jamovi.',
         'Answer the user\'s questions about their dataset using the provided',
         'summary statistics. Be concise, accurate, and practical. If the',
         'summary is insufficient to answer, say so briefly rather than guessing.',
         sep = ' ')
+    want <- paste(legacy, .ASKLLM_R_REDIRECT_SUFFIX$en)
 
     got <- .askllm_system_prompt(role = 'consultant', lang = 'en',
                                   system_prompt = '', has_catalog = FALSE)
-    expect_identical(got, legacy)
+    expect_identical(got, want)
+    # 明確斷言邊界句存在(而非僅逐字比對整段組成)
+    expect_true(grepl('R code tutor', got, fixed = TRUE))
 })
 
-test_that('consultant/en/空白自訂 prompt 與 v1.1 現行字串逐字相同(has_catalog=TRUE)', {
+test_that('consultant/en/空白自訂 prompt = v1.1 現行字串 + catalog 約束句 + 邊界句(has_catalog=TRUE)', {
     legacy_base <- paste(
         'You are a statistical analysis assistant embedded in jamovi.',
         'Answer the user\'s questions about their dataset using the provided',
@@ -32,11 +38,11 @@ test_that('consultant/en/空白自訂 prompt 與 v1.1 現行字串逐字相同(h
         'provided available-modules list; never name a module that is not in that',
         'list, even one you believe exists, and never invent menu paths.',
         sep = ' ')
-    legacy <- paste(legacy_base, legacy_catalog)
+    want <- paste(legacy_base, legacy_catalog, .ASKLLM_R_REDIRECT_SUFFIX$en)
 
     got <- .askllm_system_prompt(role = 'consultant', lang = 'en',
                                   system_prompt = '', has_catalog = TRUE)
-    expect_identical(got, legacy)
+    expect_identical(got, want)
 })
 
 test_that('舊呼叫方式(僅 has_catalog 具名參數,無 role/lang)仍與現行字串相同', {
@@ -94,11 +100,11 @@ test_that('consultant/zh 為中文版本且與 en 版不同', {
 
 # ---- systemPrompt 自訂覆蓋:非空時整段覆蓋模板,但 catalog 約束句仍附加 ------
 
-test_that('systemPrompt 非空時整段覆蓋 role x lang 模板', {
+test_that('systemPrompt 非空時整段覆蓋 role x lang 模板(但雙向邊界句恆附加)', {
     custom <- 'Custom instructions: only answer in bullet points.'
     txt <- .askllm_system_prompt(role = 'tutor', lang = 'en',
                                   system_prompt = custom, has_catalog = FALSE)
-    expect_identical(txt, custom)
+    expect_identical(txt, paste(custom, .ASKLLM_R_REDIRECT_SUFFIX$en))
     # 不應混入 tutor 模板內容
     expect_false(grepl('Socratic', txt, ignore.case = TRUE))
 })
@@ -176,13 +182,18 @@ test_that('build_payload:role/promptLang/systemPrompt 皆用預設值時,與舊�
 # (askllmr)的 .askllmr_system_prompt()(定義於 R/r-tutor.R):它恆附加
 # .ASKLLM_RJ_SUFFIX(R 家教是主體,不是可關閉的後綴),故不再有「r_code=FALSE
 # 逐字相同」的降級案例,改測「六格皆為 base + RJ_SUFFIX」的組成公式。
+#
+# 「Module Guider 精簡 + 雙向 prompt 邊界」再加一層:.askllmr_system_prompt()
+# 現在恆在末尾附加 .ASKLLM_JAMOVI_REDIRECT_SUFFIX[[lang]](對稱於 askllm 的
+# .ASKLLM_R_REDIRECT_SUFFIX),故組成公式改為「base + RJ_SUFFIX + JAMOVI_REDIRECT_SUFFIX」。
 
-test_that('askllmr_system_prompt:六種 (role, lang) 皆為 base + RJ_SUFFIX 的組合', {
+test_that('askllmr_system_prompt:六種 (role, lang) 皆為 base + RJ_SUFFIX + 邊界句 的組合', {
     roles <- c('consultant', 'tutor', 'explainer')
     langs <- c('en', 'zh')
     for (r in roles) for (l in langs) {
         got <- .askllmr_system_prompt(role = r, lang = l)
-        want <- paste(.ASKLLM_R_PROMPTS[[r]][[l]], .ASKLLM_RJ_SUFFIX[[r]][[l]])
+        want <- paste(.ASKLLM_R_PROMPTS[[r]][[l]], .ASKLLM_RJ_SUFFIX[[r]][[l]],
+                      .ASKLLM_JAMOVI_REDIRECT_SUFFIX[[l]])
         expect_identical(got, want, info = paste('role =', r, ', lang =', l))
     }
 })
@@ -269,4 +280,69 @@ test_that('askllmr_system_prompt:未知 role 落回 consultant 且仍含 rj suff
     expect_identical(txt,
         .askllmr_system_prompt(role = 'consultant', lang = 'en'))
     expect_true(grepl('Rj Editor and run it', txt, fixed = TRUE))
+})
+
+# ---- 雙向 prompt 邊界:Module Guider(askllm)↔ R code tutor(askllmr) -------
+#
+# 真機發現 Module Guider 被問「give me R」時會傾倒 R 碼、越界。作者定案:
+# 兩分析的 system prompt 皆恆附加一句邊界,把對方領域的請求導去 sibling
+# 分析。以下鎖住邊界句在六種 (role, lang) 組合下皆存在,且中英皆備。
+
+test_that('askllm(Module Guider):六種 (role, lang) 皆含「導向 R code tutor」邊界句(英文關鍵字)', {
+    roles <- c('consultant', 'tutor', 'explainer')
+    langs <- c('en', 'zh')
+    for (r in roles) for (l in langs) {
+        txt <- .askllm_system_prompt(role = r, lang = l, has_catalog = FALSE)
+        expect_true(grepl('R code tutor', txt, fixed = TRUE),
+                    info = paste('role =', r, ', lang =', l))
+    }
+})
+
+test_that('askllm(Module Guider):英文邊界句提及 sibling 選單路徑,中文邊界句提及對應中文句', {
+    txt_en <- .askllm_system_prompt(role = 'consultant', lang = 'en', has_catalog = FALSE)
+    expect_true(grepl('Analyses ▸ askLLM ▸ R code tutor', txt_en, fixed = TRUE))
+    expect_true(grepl('do not write R code yourself here', txt_en, fixed = TRUE))
+
+    txt_zh <- .askllm_system_prompt(role = 'consultant', lang = 'zh', has_catalog = FALSE)
+    expect_true(grepl('R code tutor', txt_zh, fixed = TRUE))
+    expect_true(grepl('不要在此自行撰寫 R 程式碼', txt_zh, fixed = TRUE))
+})
+
+test_that('askllm(Module Guider):邊界句在 has_catalog/enable_actions 任意組合下皆存在(恆附加,不可降級關閉)', {
+    combos <- expand.grid(has_catalog = c(FALSE, TRUE),
+                          enable_actions = c(FALSE, TRUE))
+    for (i in seq_len(nrow(combos))) {
+        txt <- .askllm_system_prompt(role = 'consultant', lang = 'en',
+                                      has_catalog = combos$has_catalog[i],
+                                      enable_actions = combos$enable_actions[i])
+        expect_true(grepl('R code tutor', txt, fixed = TRUE),
+                    info = paste(combos[i, ], collapse = ','))
+    }
+})
+
+test_that('askllmr(R code tutor):六種 (role, lang) 皆含「導向 jamovi Module Guider」邊界句', {
+    roles <- c('consultant', 'tutor', 'explainer')
+    langs <- c('en', 'zh')
+    for (r in roles) for (l in langs) {
+        txt <- .askllmr_system_prompt(role = r, lang = l)
+        expect_true(grepl('jamovi Module Guider', txt, fixed = TRUE),
+                    info = paste('role =', r, ', lang =', l))
+    }
+})
+
+test_that('askllmr(R code tutor):英文邊界句提及 sibling 分析名稱,中文邊界句提及對應中文句', {
+    txt_en <- .askllmr_system_prompt(role = 'consultant', lang = 'en')
+    expect_true(grepl('jamovi Module Guider', txt_en, fixed = TRUE))
+    expect_true(grepl('redirect them to the "jamovi Module Guider"', txt_en, fixed = TRUE))
+
+    txt_zh <- .askllmr_system_prompt(role = 'consultant', lang = 'zh')
+    expect_true(grepl('jamovi Module Guider', txt_zh, fixed = TRUE))
+    expect_true(grepl('請引導其改用「jamovi Module Guider」分析', txt_zh, fixed = TRUE))
+})
+
+test_that('askllmr(R code tutor):邊界句在自訂 system_prompt 覆蓋 base 時仍恆附加', {
+    custom <- 'Custom instructions: only use base R.'
+    txt <- .askllmr_system_prompt(role = 'consultant', lang = 'en',
+                                   system_prompt = custom)
+    expect_true(grepl('jamovi Module Guider', txt, fixed = TRUE))
 })

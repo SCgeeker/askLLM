@@ -42,12 +42,16 @@ test_that('.ASKLLM_R_PROMPTS:六格彼此不同(人格語氣有差異)', {
 
 # ---- .askllmr_system_prompt:base 選擇 + 恆附 RJ_SUFFIX ---------------------
 
-test_that('system_prompt:六格皆為 base + RJ_SUFFIX 的組合(公式驗證)', {
+# 「Module Guider 精簡 + 雙向 prompt 邊界」:.askllmr_system_prompt() 現在恆在
+# 末尾附加 .ASKLLM_JAMOVI_REDIRECT_SUFFIX[[lang]](導向 sibling 分析「jamovi
+# Module Guider」),故組成公式改為「base + RJ_SUFFIX + JAMOVI_REDIRECT_SUFFIX」。
+test_that('system_prompt:六格皆為 base + RJ_SUFFIX + 邊界句 的組合(公式驗證)', {
     roles <- c('consultant', 'tutor', 'explainer')
     langs <- c('en', 'zh')
     for (r in roles) for (l in langs) {
         got <- .askllmr_system_prompt(role = r, lang = l)
-        want <- paste(.ASKLLM_R_PROMPTS[[r]][[l]], .ASKLLM_RJ_SUFFIX[[r]][[l]])
+        want <- paste(.ASKLLM_R_PROMPTS[[r]][[l]], .ASKLLM_RJ_SUFFIX[[r]][[l]],
+                      .ASKLLM_JAMOVI_REDIRECT_SUFFIX[[l]])
         expect_identical(got, want, info = paste(r, l))
     }
 })

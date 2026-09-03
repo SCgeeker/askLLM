@@ -170,12 +170,31 @@
             '並向你詢問能處理下方所述資料集的程式碼;',
             '請假設使用者沒有 R 背景。')))
 
-#' 送給 LLM 的 R code tutor system prompt(M-A3)
+#' 雙向 prompt 邊界句(對稱於諮詢分析 `.ASKLLM_R_REDIRECT_SUFFIX`):恆附加
+#'
+#' R code tutor(`askllmr`)的定位是提供貼進 Rj Editor 的 R 程式碼——不是
+#' jamovi 選單導覽員。若使用者其實是想知道「該用哪個 jamovi 分析／選單
+#' 路徑」,應引導改用 sibling 分析「jamovi Module Guider」,而不是自行
+#' 猜測、捏造選單路徑。與 `.ASKLLM_RJ_SUFFIX`(R 家教規則,per-role)不同,
+#' 此句與人格無關、恆定附加,故獨立成一個常數。
+.ASKLLM_JAMOVI_REDIRECT_SUFFIX <- list(
+    en = paste(
+        'If the user is actually asking which jamovi analysis or menu path',
+        'to use (not R code), do not guess menu paths yourself; redirect',
+        'them to the "jamovi Module Guider" analysis instead.',
+        sep = ' '),
+    zh = paste0(
+        '若使用者其實是想知道該使用哪個 jamovi 分析或選單路徑(而非 R 程式碼),',
+        '請不要自行猜測選單路徑,請引導其改用「jamovi Module Guider」分析。'))
+
+#' 送給 LLM 的 R code tutor system prompt(M-A3;雙向邊界句見下方說明)
 #'
 #' 優先序:`system_prompt`(去空白後非空)＞ `.ASKLLM_R_PROMPTS[[role]][[lang]]`。
 #' **恆**接 `.ASKLLM_RJ_SUFFIX[[role]][[lang]]`——R 家教規則(單一 code block、
 #' `data`、Rj 未裝時改教 Syntax Mode 等)是這個分析的主體,不是可關閉的後綴,
 #' 故不像諮詢分析的 `has_catalog`/`enable_actions` 那樣是條件式附加。
+#' 最後**恆**接 `.ASKLLM_JAMOVI_REDIRECT_SUFFIX[[lang]]`(雙向邊界,對稱於
+#' 諮詢分析 `askllm` 的 `.ASKLLM_R_REDIRECT_SUFFIX`)。
 #' 未知 role/lang 防禦性落回 `consultant`/`en`。
 #'
 #' `has_rj_env` 目前保留參數、不改變輸出字串(`<rj_environment>` 缺席時的
@@ -192,7 +211,8 @@
     custom <- trimws(system_prompt %||% '')
     base <- if (nzchar(custom)) custom else .ASKLLM_R_PROMPTS[[role]][[lang]]
 
-    paste(base, .ASKLLM_RJ_SUFFIX[[role]][[lang]])
+    paste(base, .ASKLLM_RJ_SUFFIX[[role]][[lang]],
+          .ASKLLM_JAMOVI_REDIRECT_SUFFIX[[lang]])
 }
 
 #' 把 LLM 回覆拆成「程式碼」與「說明」(M-A3)

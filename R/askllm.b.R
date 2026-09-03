@@ -182,6 +182,28 @@
         '僅在該模組名稱明確出現於提供的「可用模組清單」中時才可建議該模組;',
         '絕不可提及不在清單中的模組(即使你認為它存在),也絕不可捏造選單路徑。'))
 
+#' 雙向 prompt 邊界句(Module Guider 精簡 + 雙向邊界):固定守界,恆附加
+#'
+#' Module Guider(`askllm`)的定位是推薦該跑哪個 jamovi GUI 分析、逐字引用
+#' 選單路徑——不是 R 產碼助理。真機發現使用者問「give me R」時,舊版會直接
+#' 傾倒 R 程式碼、越界進入 sibling 分析(R code tutor,`askllmr`)的領域。
+#' 此句與三人格 base、catalog 約束句、動作能力句(皆條件式附加)不同:
+#' **不受 has_catalog/enable_actions 影響,一律附加**,故獨立成一個常數,
+#' 不塞進 `.ASKLLM_PROMPTS`(那是三人格 base 身分,不是守界句)。
+#'
+#' 這會打破 `.askllm_system_prompt()` 的 v1.1 逐字降級保證(見下方函式說明)
+#' ——作者定案的預期改動,見 dev-notes「Module Guider 精簡＋雙向 prompt 邊界」。
+.ASKLLM_R_REDIRECT_SUFFIX <- list(
+    en = paste(
+        'If the user asks for R code, do not write R code yourself here;',
+        'redirect them to the "R code tutor" analysis',
+        '(Analyses ▸ askLLM ▸ R code tutor) instead.',
+        sep = ' '),
+    zh = paste0(
+        '若使用者要求 R 程式碼,請不要在此自行撰寫 R 程式碼,',
+        '請引導其改用「R code tutor」分析',
+        '(Analyses ▸ askLLM ▸ R code tutor)。'))
+
 #' 動作能力句(Phase 1:enable_actions=TRUE 時附加,治「捏造動作能力」幻覺)
 #'
 #' 按人格分工三份(對照 `.ASKLLM_PROMPTS` 亦 per-role)。三者在動作模式的區別軸:
@@ -253,9 +275,14 @@
 #' has_catalog = TRUE 時,不論走模板或自訂 system_prompt,一律以單一空白
 #' 接續附加對應語言的 catalog 約束句。
 #'
-#' 降級保證:role='consultant'、lang='en'、system_prompt=''、
-#' has_catalog=FALSE、enable_actions=FALSE(預設)時,
-#' 回傳字串與 v1.0/v1.1 逐字相同。
+#' **雙向 prompt 邊界(不可降級關閉)**:不論 role/lang/has_catalog/
+#' enable_actions 為何,一律在最後附加 `.ASKLLM_R_REDIRECT_SUFFIX[[lang]]`
+#' ——把 R 程式碼請求導向 sibling 分析「R code tutor」。
+#' **此舉打破 v1.0/v1.1 的逐字降級保證**(作者定案的預期改動,見
+#' dev-notes「Module Guider 精簡＋雙向 prompt 邊界」):即使
+#' role='consultant'、lang='en'、system_prompt=''、has_catalog=FALSE、
+#' enable_actions=FALSE(預設),回傳字串仍會比 v1.1 多出邊界句這一段;
+#' 回歸測試已改為「base/catalog/action 內容不變 + 含邊界句」而非逐字比對。
 .askllm_system_prompt <- function(role = 'consultant', lang = 'en',
                                   system_prompt = '', has_catalog = FALSE,
                                   enable_actions = FALSE) {
@@ -265,12 +292,12 @@
     custom <- trimws(system_prompt %||% '')
     base <- if (nzchar(custom)) custom else .ASKLLM_PROMPTS[[role]][[lang]]
 
-    # 降級保證:has_catalog=FALSE 且 enable_actions=FALSE 時回傳 base(逐字同 v1.1)
     out <- base
     if (isTRUE(has_catalog))
         out <- paste(out, .ASKLLM_CATALOG_SUFFIX[[lang]])
     if (isTRUE(enable_actions))
         out <- paste(out, .ASKLLM_ACTION_SUFFIX[[role]][[lang]])  # role 已落回三者之一
+    out <- paste(out, .ASKLLM_R_REDIRECT_SUFFIX[[lang]])  # 雙向邊界,恆附加
     out
 }
 
@@ -469,6 +496,10 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             # 掛在 attr(self$data[[varName]], 'jmv-desc') 上,但這個機制沒有
             # 文件保證,headless/單元測試環境也不存在此 attribute,故全程
             # 防禦性處理:變數未選、attr 不存在、或讀取拋錯,一律靜默降級為 NULL。
+            # Module Guider 精簡(移除 Enable actions/Custom system prompt UI 後):
+            # 自訂 system prompt 只走 systemPromptVar 的 jmv-desc,不再有
+            # systemPrompt TextBox 來源(底層 .askllm_resolve_custom() 簽名不變,
+            # 第二引數固定傳 ''——保留兩來源優先序純函式,供未來若恢復 UI 重用)。
             var_desc <- if (!is.null(opt$systemPromptVar) && nzchar(opt$systemPromptVar)) {
                 tryCatch(
                     attr(self$data[[opt$systemPromptVar]], 'jmv-desc'),
@@ -476,15 +507,14 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             } else {
                 NULL
             }
-            custom <- .askllm_resolve_custom(var_desc %||% '', opt$systemPrompt %||% '')
+            custom <- .askllm_resolve_custom(var_desc %||% '', '')
 
             payload <- .askllm_build_payload(
                 question, summary_text, spec$base_url, model,
                 context_text = context_text,
                 role = opt$role, prompt_lang = opt$promptLang,
                 system_prompt = custom,
-                system_prompt_var = opt$systemPromptVar %||% '',
-                enable_actions = isTRUE(opt$enableActions))
+                system_prompt_var = opt$systemPromptVar %||% '')
 
             # --- 3. state 快取比對 ----------------------------------------
             st <- self$results$answer$state
@@ -494,13 +524,6 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
 
             if (identical(decision, 'cached')) {
                 self$results$answer$setContent(st$text)
-                # 動作模式:state 有存動作結果時一併回放(否則表格會在重問時消失)
-                if (!is.null(st$jmv_text) && nzchar(st$jmv_text))
-                    self$results$jmvResults$setContent(st$jmv_text)
-                if (!is.null(st$note_text) && nzchar(st$note_text))
-                    self$results$actionNote$setContent(st$note_text)
-                if (!is.null(st$plan_text) && nzchar(st$plan_text))
-                    self$results$plan$setContent(st$plan_text)
                 self$results$meta$setContent(paste0(st$meta_line, ' · cached'))
                 self$results$instructions$setContent(paste0(
                     '(cache replay, no API call / 快取回放,未呼叫 API)\n\n',
@@ -535,82 +558,12 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             self$results$meta$setStatus('running')
             private$.checkpoint()
 
-            # --- 6*. 動作模式:結構化計畫 → 白名單驗證 → 執行 jmv → 呈現 ----
-            # 整段包 tryCatch:任何 runtime 失敗降級為錯誤訊息,絕不 crash 分析。
-            # 安全邊界在 validate_plan(白名單);exec_analysis 本地執行不課金。
-            if (isTRUE(opt$enableActions)) {
-                started_a <- Sys.time()
-                out <- tryCatch({
-                    sys <- .askllm_system_prompt(
-                        role = opt$role, lang = opt$promptLang,
-                        system_prompt = custom,
-                        has_catalog = !is.null(catalog_text_value),
-                        enable_actions = TRUE)
-                    chat <- make_chat(base_url = spec$base_url, model = model,
-                                      api_key = api_key, system_prompt = sys,
-                                      max_tokens = 4096)
-                    prompt <- build_prompt(question, summary_text,
-                                           catalog_text = catalog_text_value,
-                                           available_text = available_text_value)
-                    plan <- ask_llm_structured(chat, prompt,
-                                               action_type = .askllm_action_type())
-                    validated <- validate_plan(plan, names(self$data))
-                    exres <- lapply(validated$actions,
-                                    function(a) exec_action(a, self$data))
-                    list(ok = TRUE, reply = plan$reply %||% '',
-                         rendered = .askllm_render_actions(validated, exres),
-                         method = plan$method %||% 'text',
-                         exres = exres)
-                }, error = function(e) list(ok = FALSE, error = conditionMessage(e)))
-
-                self$results$answer$setStatus('complete')
-                self$results$meta$setStatus('complete')
-
-                if (isTRUE(out$ok)) {
-                    has_catalog <- !is.null(catalog_text_value)
-                    elapsed_a <- as.numeric(
-                        difftime(Sys.time(), started_a, units = 'secs'))
-                    # 構件 4:清除圍欄行,讓 Preformatted 顯示不留 ``` 殘留
-                    reply_text <- .askllm_strip_fences(out$reply)
-                    self$results$answer$setContent(reply_text)
-                    if (nzchar(out$rendered$jmv_text))
-                        self$results$jmvResults$setContent(out$rendered$jmv_text)
-                    if (nzchar(out$rendered$note_text))
-                        self$results$actionNote$setContent(out$rendered$note_text)
-                    if (nzchar(out$rendered$plan_text))
-                        self$results$plan$setContent(out$rendered$plan_text)
-                    meta_line <- paste0(.askllm_meta_line(model, elapsed_a),
-                                        ' · actions:', out$method)
-                    self$results$meta$setContent(meta_line)
-
-                    # Phase 2:compute_column 成功者寫回 Output 計算欄。
-                    # 關鍵(Rj 模式):先啟用 Output 選項(value=TRUE)才能建欄,
-                    # 見 .askllm_fill_output();整段防禦性,失敗不毀分析。
-                    cc <- Filter(function(r) isTRUE(r$ok) &&
-                                 identical(r$type, 'compute_column'), out$exres)
-                    if (length(cc) > 0)
-                        tryCatch(
-                            .askllm_fill_output(
-                                self$options$option('llmColumns'),
-                                self$results$llmColumns, cc,
-                                as.integer(rownames(self$data))),
-                            error = function(e) NULL)
-
-                    self$results$answer$setState(list(
-                        payload = payload, text = reply_text, meta_line = meta_line,
-                        has_catalog = has_catalog,
-                        jmv_text = out$rendered$jmv_text,
-                        note_text = out$rendered$note_text,
-                        plan_text = out$rendered$plan_text))
-                    self$results$instructions$setContent(
-                        .askllm_caveat_text(has_catalog = has_catalog))
-                } else {
-                    self$results$instructions$setContent(paste0(
-                        out$error %||% '動作執行失敗',
-                        '\n\n修正後重新勾選 Submit。'))
-                }
-                return()
-            }
+            # 動作模式(結構化計畫 → 白名單驗證 → 執行 jmv → 呈現)已隨 Module
+            # Guider 精簡從 UI 撤下(見 dev-notes 精簡規劃):enableActions/
+            # llmColumns 選項已從 a.yaml/r.yaml 移除,此處不再有對應分支。
+            # 底層 acting 實作(R/action-*.R、.askllm_fill_output()、
+            # .ASKLLM_ACTION_SUFFIX、.askllm_system_prompt(enable_actions=) 本體)
+            # 原樣保留、休眠備用,供未來若要恢復動作模式時重新接線。
 
             # --- 6. 呼叫 --------------------------------------------------
             res <- ask_llm(

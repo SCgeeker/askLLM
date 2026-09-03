@@ -48,8 +48,6 @@ children:
         name: submit
       - type: CheckBox
         name: testConnection
-      - type: CheckBox
-        name: enableActions
   - type: CollapseBox
     label: LLM settings
     collapsed: true
@@ -76,7 +74,3 @@ children:
             name: role
           - type: ComboBox
             name: promptLang
-          - type: TextBox
-            name: systemPrompt
-            format: string
-            width: largest
