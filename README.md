@@ -2,7 +2,7 @@
 
 **Ask an LLM about *your* data — right inside jamovi.**
 
-Select the variables you care about, type a question in plain English (or Chinese), and askLLM sends a summary of those variables to an LLM of your choice, which answers with your dataset in mind — including concrete jamovi menu paths for the analysis it suggests. v1.1 scans your installed jamovi modules and attaches the real menu tree to the LLM, ensuring that suggested paths reference only what actually exists on your machine (tested: 18/18 verbatim hits).
+Select the variables you care about, type a question in plain English (or Chinese), and askLLM sends a summary of those variables to an LLM of your choice, which answers with your dataset in mind. askLLM is one module with **two analyses** — one for picking the right jamovi analysis, one for writing the R code to run it yourself. See [Two analyses](#two-analyses) below.
 
 [中文版 README](README.zh-TW.md)
 
@@ -44,17 +44,30 @@ If askLLM isn't in the library yet, or you have a locally built `.jmo`:
 
 Note: a `.jmo` file is built for a specific **OS × CPU architecture × jamovi series** combination (see the filename, e.g. `askLLM_1.1.0_win64_jamovi-2.7.jmo`). It will only install on a matching jamovi. See [`dist/README.md`](dist/README.md) for details.
 
+## Two analyses
+
+askLLM is one module with two analyses, both under **Analyses ▸ askLLM**. Pick the one that matches what you're asking.
+
+| | **jamovi Module Guider** | **R code tutor** |
+|---|---|---|
+| Question it answers | "Which jamovi analysis should I run?" | "How do I write the R code for this?" |
+| Output | A recommended analysis, with the exact menu path quoted verbatim | R code to paste into the **Rj Editor** and run yourself |
+| Grounded in | Your installed jamovi modules and their real menu trees | The R packages actually bundled with your Rj environment, plus `data` |
+| If you ask for the other thing | Points you to R code tutor | Points you to jamovi Module Guider |
+
+Neither analysis runs anything for you — Module Guider tells you where to click, R code tutor writes code that *you* execute in the **Rj Editor**, a module available only in the **desktop** version of jamovi (not jamovi Cloud). Both send only summary statistics of the variables you select, never raw data rows (see [Privacy](#privacy) below). For a guided tour of R code tutor plus a self-contained R crash course, see **[Learn R with Rj](https://scgeeker.github.io/askLLM/learn-r.html)**.
+
 ## Quick start
 
-1. Open a dataset in jamovi, then run **askLLM** from the analysis menu.
+1. Open a dataset in jamovi, run **askLLM** from the analysis menu, and choose **jamovi Module Guider** or **R code tutor** from the dropdown.
 2. Tick the **Variables to describe** you want the LLM to know about, and type your **question**.
 3. Tick **Submit** to send. The answer appears in a few seconds, along with the model name and elapsed time.
 
 Untick **Submit** before editing your question, then re-tick it — this avoids triggering a new (billable) call on every keystroke.
 
-**Include installed modules** (enabled by default) automatically scans your jamovi modules and feeds them to the LLM, so path suggestions accurately match your installed analyses. Untick this option to revert to v1.0 behavior.
+**Include installed modules** (jamovi Module Guider only, enabled by default) automatically scans your jamovi modules and feeds them to the LLM, so path suggestions accurately match your installed analyses. Untick this option to revert to v1.0 behavior. R code tutor scans your Rj environment instead, unconditionally, so code suggestions only use packages you actually have.
 
-**Use a variable's Description as the system prompt** (under "LLM settings") lets you drive the persona from your dataset instead of typing it in the module: fill in a variable's **Description** in jamovi's variable Setup panel (e.g. a persona or task instruction), pick that variable here, and its Description is used as the system prompt. Priority order: this variable's Description (if selected and non-empty) > the **Custom system prompt** text box > the Persona template. This is handy for codebooks that already document per-variable context you want the LLM to use.
+**Use a variable's Description as the system prompt** (under "LLM settings") lets you drive the persona from your dataset instead of typing it in the module: fill in a variable's **Description** in jamovi's variable Setup panel (e.g. a persona or task instruction), pick that variable here, and its Description is used as the system prompt. In jamovi Module Guider, priority order is: this variable's Description (if selected and non-empty) > the **Custom system prompt** text box > the Persona template. R code tutor has no Custom system prompt text box — there it's the variable's Description (if selected and non-empty) > the Persona template. This is handy for codebooks that already document per-variable context you want the LLM to use.
 
 ## Supported providers
 
@@ -75,18 +88,23 @@ To compare how different models answer the same question about the same data, us
 
 **LLMs produce confident-sounding content that is wrong.** In v1.0 testing, every model got jamovi **menu paths** wrong at least once — including menus that do not exist in jamovi at all. v1.1 has substantially mitigated this problem via module directory scanning (tested: 100% hit rate, 18/18 with zero fabrication). Statistical suggestions remain broadly sensible, but other limitations (applicability of suggestions, numerical verification) still require your own judgment.
 
+**Verification is asymmetric between the two analyses.** jamovi Module Guider's menu-path suggestions can be checked mechanically against your installed modules, as above. R code tutor's R code has no equivalent hard verifier — R is Turing-complete, so no scan can prove arbitrary generated code correct. That is why R code tutor only teaches: it hands you code to review and run yourself in Rj, and never executes anything on your behalf.
+
 Full test notes and teaching suggestions: **[Limitations and usage advice](docs/LIMITATIONS.en.md)**.
 
 ## Privacy
 
+Both analyses share the same privacy design:
+
 - What is sent to the LLM is **summary statistics of the variables you selected** (counts, means, SDs, factor level frequencies, etc.) — **never the raw data rows**.
 - API keys are read from your local environment variables or a local `.Renviron` file. They are **never written into the `.omv` file** and are not visible anywhere in the jamovi UI.
-- **The names and menu lists of your installed modules** (environmental metadata, no data values) are sent along with the summary to help the LLM ensure suggestions reference only real paths. You can disable this with the "Include installed modules" option.
+- **jamovi Module Guider** also sends the names and menu lists of your installed modules (environmental metadata, no data values), so suggestions reference only real paths. You can disable this with the "Include installed modules" option.
+- **R code tutor** also sends the **names** of the R packages bundled with your Rj environment (never their contents), so suggested code only uses packages you actually have. It never runs R for you — you paste the code into Rj and run it yourself.
 - If you need **zero data to leave your machine**, choose the **Ollama (local)** provider — everything, including the LLM itself, runs on your own computer.
 
 ## Privacy by design vs. agentic AI
 
-JASP 0.98 (released 2026-07-02) introduced "Fully Integrated AI," which uses an agentic architecture: it sends complete analysis results and outputs to the LLM for processing. askLLM uses a different information architecture — a consultation model that **sends only summary statistics, never the raw data rows**. The two designs carry fundamentally different privacy implications when handling sensitive data.
+JASP 0.98 (released 2026-07-02) introduced "Fully Integrated AI," which uses an agentic architecture: it sends complete analysis results and outputs to the LLM for processing. askLLM uses a different information architecture — a consultation model that **sends only summary statistics, never the raw data rows**, in both of its analyses. The two designs carry fundamentally different privacy implications when handling sensitive data.
 
 ### askLLM vs. JASP 0.98 AI comparison
 

@@ -4,7 +4,7 @@ title: jamovi Module Guider
 menuGroup: askLLM
 menuTitle: jamovi Module Guider
 menuSubtitle: Ask LLM how to use your jamovi
-version: '1.2.0'
+version: '1.3.0'
 jas: '1.2'
 
 options:

@@ -1,0 +1,82 @@
+{
+  "version": "1.0",
+  "updated": "2026-09-03",
+  "note": "Machine-readable index for docs/learn-r.html. Keep in sync with that page. Used by tools/release-check.R (check_learn_r_links) to verify external links stay live. docs.jamovi.org may return 403 to non-browser HEAD/GET requests — such hits are WARN, not FAIL.",
+  "sections": [
+    {
+      "id": "syntax",
+      "title_en": "See the R behind an analysis",
+      "title_zh": "看分析背後的 R",
+      "links": []
+    },
+    {
+      "id": "rj",
+      "title_en": "Run your own R in jamovi",
+      "title_zh": "在 jamovi 裡跑你的 R",
+      "links": [
+        {
+          "id": "rj-overview",
+          "title": "Rj Editor (Combining jamovi and R)",
+          "url": "https://docs.jamovi.org/usermanual/um_6_jamovi_and_R.html#rj-editor",
+          "license": "CC BY-SA 4.0",
+          "level": "beginner",
+          "tags": ["rj", "jamovi"]
+        }
+      ]
+    },
+    {
+      "id": "learn",
+      "title_en": "Learn R from scratch",
+      "title_zh": "從頭學 R",
+      "links": [
+        {
+          "id": "psyteachr",
+          "title": "PsyTeachR",
+          "url": "https://psyteachr.github.io/",
+          "license": "see site (per-course)",
+          "level": "beginner",
+          "tags": ["r", "psychology", "course"]
+        },
+        {
+          "id": "r4ds",
+          "title": "R for Data Science (2e)",
+          "url": "https://r4ds.hadley.nz/",
+          "license": "CC BY-NC-ND 3.0",
+          "level": "beginner",
+          "tags": ["r", "tidyverse", "link-out-only"]
+        },
+        {
+          "id": "r-intro",
+          "title": "An Introduction to R",
+          "url": "https://cran.r-project.org/doc/manuals/r-release/R-intro.html",
+          "license": "R manual license (redistributable with notice)",
+          "level": "intermediate",
+          "tags": ["r", "official"]
+        },
+        {
+          "id": "posit-cheatsheets",
+          "title": "Posit cheatsheets",
+          "url": "https://posit.co/resources/cheatsheets/",
+          "license": "CC BY (per sheet; some CC BY-SA)",
+          "level": "beginner",
+          "tags": ["r", "reference"]
+        }
+      ]
+    },
+    {
+      "id": "jmv",
+      "title_en": "Write R with jamovi's functions",
+      "title_zh": "用 jamovi 自家函式寫 R",
+      "links": [
+        {
+          "id": "jamovi-and-r",
+          "title": "Combining jamovi and R",
+          "url": "https://docs.jamovi.org/usermanual/um_6_jamovi_and_R.html",
+          "license": "CC BY-SA 4.0",
+          "level": "intermediate",
+          "tags": ["jmv", "jamovi", "syntax-mode"]
+        }
+      ]
+    }
+  ]
+}

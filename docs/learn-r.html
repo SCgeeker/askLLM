@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en" data-ui-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>askLLM · Learn R with Rj</title>
+<style>
+  :root{
+    --paper:#eef1f5; --card:#ffffff; --ink:#141b23; --muted:#5a6675;
+    --line:#d5dce4; --accent:#0f6f86; --accent-soft:#d7ebef;
+    --local:#2f7d5b; --local-soft:#dcefe4; --warn-soft:#f6ecd6; --warn-ink:#8a6414;
+    --code-bg:#eaf0f4; --code-ink:#0d3f4c;
+    --shadow:0 1px 2px rgba(20,27,35,.05),0 8px 24px rgba(20,27,35,.06);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0f141a; --card:#161d25; --ink:#e7ecf1; --muted:#93a1b1;
+      --line:#28323d; --accent:#3fb0c4; --accent-soft:#123039; --local:#57b98a;
+      --local-soft:#12291f; --warn-soft:#332a14; --warn-ink:#e6c063;
+      --code-bg:#0c1218; --code-ink:#8fd6e2;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0f141a; --card:#161d25; --ink:#e7ecf1; --muted:#93a1b1;
+    --line:#28323d; --accent:#3fb0c4; --accent-soft:#123039; --local:#57b98a;
+    --local-soft:#12291f; --warn-soft:#332a14; --warn-ink:#e6c063;
+    --code-bg:#0c1218; --code-ink:#8fd6e2;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"]{
+    --paper:#eef1f5; --card:#ffffff; --ink:#141b23; --muted:#5a6675;
+    --line:#d5dce4; --accent:#0f6f86; --accent-soft:#d7ebef; --local:#2f7d5b;
+    --local-soft:#dcefe4; --warn-soft:#f6ecd6; --warn-ink:#8a6414;
+    --code-bg:#eaf0f4; --code-ink:#0d3f4c;
+    --shadow:0 1px 2px rgba(20,27,35,.05),0 8px 24px rgba(20,27,35,.06);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
+      "PingFang TC","Microsoft JhengHei","Noto Sans TC","Noto Sans CJK TC",
+      Helvetica,Arial,sans-serif;
+    line-height:1.6; letter-spacing:.005em; -webkit-font-smoothing:antialiased;
+  }
+  code,kbd,.mono{
+    font-family:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,
+      "Liberation Mono",monospace; font-variant-ligatures:none;
+  }
+  :root[data-ui-lang="en"] .zh{display:none}
+  :root[data-ui-lang="zh"] .en{display:none}
+  .wrap{max-width:1000px;margin:0 auto;padding:clamp(20px,4vw,48px)}
+  .topbar{display:flex;justify-content:space-between;align-items:center;
+    gap:16px;flex-wrap:wrap;margin-bottom:clamp(28px,5vw,48px)}
+  .brand{display:flex;align-items:baseline;gap:10px}
+  .brand b{font-size:1.05rem;letter-spacing:-.01em}
+  .eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:.16em;
+    color:var(--accent);font-weight:700;border:1px solid var(--accent);
+    border-radius:100px;padding:2px 9px}
+  .controls{display:flex;gap:8px}
+  .controls button{font:inherit;font-size:.82rem;color:var(--ink);
+    background:var(--card);border:1px solid var(--line);border-radius:100px;
+    padding:6px 13px;cursor:pointer;transition:border-color .15s,background .15s}
+  .controls button:hover{border-color:var(--accent)}
+  .controls button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  h1{font-size:clamp(1.9rem,4.6vw,3rem);line-height:1.08;letter-spacing:-.02em;
+    margin:.1em 0 .35em;text-wrap:balance;font-weight:800}
+  .lede{font-size:clamp(1.02rem,2vw,1.24rem);color:var(--muted);max-width:62ch;margin:0}
+  .accent{color:var(--accent)}
+  section{margin-top:clamp(40px,6vw,64px)}
+  .step-h{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .step-n{font:700 .8rem/1 ui-monospace,monospace;color:var(--accent);
+    border:1px solid var(--accent);border-radius:8px;padding:6px 8px;letter-spacing:.05em}
+  h2{font-size:clamp(1.25rem,2.6vw,1.6rem);margin:0;letter-spacing:-.01em;
+    text-wrap:balance;font-weight:750}
+  .sub{color:var(--muted);margin:.1em 0 22px;max-width:66ch}
+  .two{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:20px}
+  .role{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 20px;box-shadow:var(--shadow)}
+  .role h3{margin:0 0 4px;font-size:1.08rem}
+  .role .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;
+    color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:2px 8px}
+  .role p{margin:.6em 0 0;font-size:.92rem;color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{font:inherit;text-align:left;cursor:pointer;background:var(--card);
+    border:1px solid var(--line);border-radius:100px;padding:9px 16px;color:var(--ink);
+    transition:all .15s;font-size:.92rem}
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+  .chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;box-shadow:var(--shadow);position:relative;
+    transition:box-shadow .2s,border-color .2s;scroll-margin-top:20px}
+  .card.dim{opacity:.4;filter:saturate(.5)}
+  .card.hit{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),var(--shadow)}
+  .card h3{margin:0 0 4px;font-size:1.12rem;letter-spacing:-.01em}
+  .card .best{color:var(--muted);font-size:.9rem;margin:0 0 12px;min-height:2.4em}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .badge{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;
+    padding:3px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+  .badge.free{background:var(--local-soft);color:var(--local)}
+  .badge.lic{background:var(--warn-soft);color:var(--warn-ink)}
+  .steps{margin:.2em 0 0;padding-left:1.15em;font-size:.9rem}
+  .steps li{margin:.4em 0}
+  .card a.go{display:inline-block;margin-top:14px;font-weight:650;font-size:.9rem;
+    color:var(--accent);text-decoration:none;border-bottom:1.5px solid transparent;
+    transition:border-color .15s}
+  .card a.go:hover{border-color:var(--accent)}
+  .card a.go::after{content:" →"}
+  .note{font-size:.8rem;color:var(--muted);margin:12px 0 0;padding-top:12px;
+    border-top:1px dashed var(--line)}
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:12px 14px;
+    overflow-x:auto;margin:.6em 0;font-size:.85rem;border:1px solid var(--line)}
+  pre code{background:none;padding:0}
+  .kv{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:.86rem;align-items:baseline}
+  .kv dt{color:var(--muted);white-space:nowrap}
+  .kv dd{margin:0;min-width:0}
+  .kv code{background:var(--code-bg);color:var(--code-ink);border-radius:5px;padding:1px 6px;font-size:.86em}
+  .privacy{background:var(--local-soft);border:1px solid var(--local);border-radius:var(--radius);
+    padding:20px 22px;display:flex;gap:16px;align-items:flex-start}
+  .privacy .dot{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:var(--local);margin-top:9px}
+  .privacy h2{color:var(--local)}
+  .privacy p{margin:.3em 0 0;font-size:.92rem}
+  footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted);
+    font-size:.85rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  footer a{color:var(--accent)}
+  @media (max-width:520px){ footer{flex-direction:column;gap:6px} }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand"><span class="eyebrow">askLLM</span><b><span class="en">Learn R with Rj</span><span class="zh">跟著 Rj 學 R</span></b></div>
+    <div class="controls">
+      <button id="langBtn" type="button" aria-label="Switch language">中文</button>
+      <button id="themeBtn" type="button" aria-label="Switch theme">◐ Theme</button>
+    </div>
+  </div>
+
+  <header>
+    <h1>
+      <span class="en">Learn R, right next to <span class="accent">your own data</span>.</span>
+      <span class="zh">用<span class="accent">自己的資料</span>學 R。</span>
+    </h1>
+    <p class="lede">
+      <span class="en">jamovi is R underneath. This quick tour shows you how to see it, write it, and
+        learn R — using the data you have open in jamovi, with askLLM as your learning guide.</span>
+      <span class="zh">jamovi 的底層就是 R。這份快速導覽頁教你怎麼看、怎麼寫、怎麼學 R：用你在 jamovi
+        開啟的資料，讓 askLLM 當你的學習嚮導。</span>
+    </p>
+  </header>
+
+  <!-- Two analyses -->
+  <section>
+    <div class="step-h"><span class="step-n">askLLM</span>
+      <h2><span class="en">Two helpers, two jobs</span><span class="zh">兩個助手、兩種工作</span></h2></div>
+    <p class="sub">
+      <span class="en">Under <b>Analyses ▸ askLLM</b> you get two analyses. Pick the one that matches what you want.</span>
+      <span class="zh">在 <b>Analyses ▸ askLLM</b> 底下有兩個分析，挑你需要的那個。</span></p>
+    <div class="two">
+      <div class="role">
+        <span class="tag">jamovi Module Guider</span>
+        <p><span class="en"><b>Which analysis should I run?</b> Recommends the right jamovi analysis and the exact
+          menu path, grounded in the modules you actually have installed.</span>
+          <span class="zh"><b>我該跑哪個分析？</b>推薦合適的 jamovi 分析與精確選單路徑，根據你實際安裝的模組。</span></p>
+      </div>
+      <div class="role">
+        <span class="tag">R code tutor</span>
+        <p><span class="en"><b>Give me the R code.</b> Writes R that works on your dataset for you to paste into the
+          <b>Rj Editor</b> and run yourself — the tool teaches, you execute.</span>
+          <span class="zh"><b>給我 R 程式碼。</b>針對你的資料寫 R，貼進 <b>Rj Editor</b> 就能跑——工具教，你來執行。</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 1 chips -->
+  <section>
+    <div class="step-h"><span class="step-n">01</span>
+      <h2><span class="en">What do you want to do?</span><span class="zh">你想做什麼？</span></h2></div>
+    <p class="sub">
+      <span class="en">Tap one to highlight the matching path.</span>
+      <span class="zh">點一個就會標出對應的路徑。</span></p>
+    <div class="chips" role="group">
+      <button class="chip" type="button" aria-pressed="false" data-pick="syntax">
+        <span class="en">See the R behind an analysis</span><span class="zh">看分析背後的 R</span></button>
+      <button class="chip" type="button" aria-pressed="false" data-pick="rj">
+        <span class="en">Run my own R inside jamovi</span><span class="zh">在 jamovi 裡跑我自己的 R</span></button>
+      <button class="chip" type="button" aria-pressed="false" data-pick="learn">
+        <span class="en">Learn R from scratch</span><span class="zh">從頭學 R</span></button>
+      <button class="chip" type="button" aria-pressed="false" data-pick="jmv">
+        <span class="en">Write R with jamovi's own functions</span><span class="zh">用 jamovi 自家函式寫 R</span></button>
+    </div>
+  </section>
+
+  <!-- STEP 2 cards -->
+  <section>
+    <div class="step-h"><span class="step-n">02</span>
+      <h2><span class="en">Pick a path</span><span class="zh">挑一條路</span></h2></div>
+    <div class="grid">
+
+      <!-- Syntax Mode -->
+      <article class="card" id="syntax">
+        <h3><span class="en">See the R behind an analysis</span><span class="zh">看分析背後的 R</span></h3>
+        <p class="best"><span class="en">Zero typing. jamovi shows the exact R it ran for any analysis.</span>
+          <span class="zh">不用打字。任何分析，jamovi 都會顯示它實際跑過的 R。</span></p>
+        <div class="badges"><span class="badge">Syntax Mode</span><span class="badge free">Built in</span></div>
+        <ol class="steps">
+          <li><span class="en">Run any analysis (e.g. ANOVA).</span><span class="zh">跑任一分析（例如 ANOVA）。</span></li>
+          <li><span class="en">Top-right <b>⋮</b> menu → <b>Syntax mode</b>.</span><span class="zh">右上 <b>⋮</b> 選單 → <b>Syntax mode</b>。</span></li>
+          <li><span class="en">Each result now shows its <code>jmv::</code> R call — copy it into Rj.</span>
+            <span class="zh">每個結果現在都會顯示對應的 <code>jmv::</code> R 呼叫——複製到 Rj 就好。</span></li>
+        </ol>
+        <p class="note"><span class="en">This is the safest way to learn: the code is exactly what jamovi ran, so it can't be wrong.</span>
+          <span class="zh">這是最安全的學法：程式碼就是 jamovi 跑的那份，不會錯。</span></p>
+      </article>
+
+      <!-- Rj -->
+      <article class="card" id="rj">
+        <h3><span class="en">Run your own R in jamovi</span><span class="zh">在 jamovi 裡跑你的 R</span></h3>
+        <p class="best"><span class="en">The Rj Editor runs R against your open dataset — no separate R install needed.</span>
+          <span class="zh">Rj Editor 用你開著的資料跑 R——不必另外裝 R。</span></p>
+        <div class="badges"><span class="badge">Rj Editor</span><span class="badge free">Free module</span></div>
+        <dl class="kv">
+          <dt><span class="en">Open</span><span class="zh">開啟</span></dt><dd>Analyses ▸ R ▸ Rj ▸ Rj Editor</dd>
+          <dt><span class="en">Your data</span><span class="zh">你的資料</span></dt><dd><code>data</code></dd>
+          <dt><span class="en">Run</span><span class="zh">執行</span></dt><dd><span class="en">the ▶ / run button</span><span class="zh">▶ / 執行鍵</span></dd>
+        </dl>
+        <pre><code># the open dataset is a data.frame called `data`
+model &lt;- aov(len ~ dose, data = data)
+summary(model)</code></pre>
+        <a class="go" href="https://docs.jamovi.org/usermanual/um_6_jamovi_and_R.html#rj-editor" target="_blank" rel="noopener">
+          <span class="en">Rj Editor guide</span><span class="zh">Rj Editor 說明</span></a>
+        <p class="note"><span class="en">Rj is a module for the <b>desktop</b> version of jamovi (not jamovi Cloud). It uses the R packages bundled with Rj (tidyverse, readr, haven, and more); "Rj Editor +" can write results back as columns.</span>
+          <span class="zh">Rj 是<b>桌面版</b> jamovi 的模組（jamovi Cloud 沒有）。它用 Rj 隨附的 R 套件（tidyverse、readr、haven 等）；「Rj Editor +」可把結果存回成欄位。</span></p>
+      </article>
+
+      <!-- Learn R -->
+      <article class="card" id="learn">
+        <h3><span class="en">Learn R from scratch</span><span class="zh">從頭學 R</span></h3>
+        <p class="best"><span class="en">Beginner-friendly, community-standard references.</span>
+          <span class="zh">適合初學者的社群標準教材。</span></p>
+        <div class="badges"><span class="badge">Reference</span></div>
+        <dl class="kv">
+          <dt>PsyTeachR</dt><dd><span class="en">course-based, psychology-focused</span><span class="zh">課程式、以心理學為主</span></dd>
+          <dt>R for Data Science</dt><dd><span class="en">the modern intro</span><span class="zh">現代入門</span> · <span class="badge lic">CC BY-NC-ND</span></dd>
+          <dt>An Introduction to R</dt><dd><span class="en">official manual</span><span class="zh">官方手冊</span></dd>
+          <dt>Posit cheatsheets</dt><dd><span class="en">one-page summaries</span><span class="zh">一頁式速查</span> · <span class="badge lic">CC BY</span></dd>
+        </dl>
+        <a class="go" href="https://r4ds.hadley.nz/" target="_blank" rel="noopener">
+          <span class="en">Start with R for Data Science</span><span class="zh">從 R for Data Science 開始</span></a>
+        <p class="note"><span class="en">Also: <a href="https://psyteachr.github.io/" target="_blank" rel="noopener">PsyTeachR</a> · <a href="https://cran.r-project.org/doc/manuals/r-release/R-intro.html" target="_blank" rel="noopener">An Introduction to R</a> · <a href="https://posit.co/resources/cheatsheets/" target="_blank" rel="noopener">Posit cheatsheets</a></span>
+          <span class="zh">另有：<a href="https://psyteachr.github.io/" target="_blank" rel="noopener">PsyTeachR</a> · <a href="https://cran.r-project.org/doc/manuals/r-release/R-intro.html" target="_blank" rel="noopener">An Introduction to R</a> · <a href="https://posit.co/resources/cheatsheets/" target="_blank" rel="noopener">Posit cheatsheets</a></span></p>
+      </article>
+
+      <!-- jmv -->
+      <article class="card" id="jmv">
+        <h3><span class="en">Write R with jamovi's functions</span><span class="zh">用 jamovi 自家函式寫 R</span></h3>
+        <p class="best"><span class="en">The <code>jmv</code> package reproduces jamovi analyses in R, one function per analysis.</span>
+          <span class="zh"><code>jmv</code> 套件在 R 裡重現 jamovi 分析，一個分析一個函式。</span></p>
+        <div class="badges"><span class="badge">jmv package</span></div>
+        <pre><code># same as Analyses ▸ ANOVA ▸ One-Way ANOVA
+jmv::anovaOneW(data = data, deps = "len",
+               group = "dose", phMethod = "tukey")</code></pre>
+        <a class="go" href="https://docs.jamovi.org/usermanual/um_6_jamovi_and_R.html" target="_blank" rel="noopener">
+          <span class="en">Combining jamovi and R</span><span class="zh">結合 jamovi 與 R</span></a>
+        <p class="note"><span class="en">Tip: run the analysis in jamovi first, switch on Syntax Mode, and copy the <code>jmv::</code> call it generated.</span>
+          <span class="zh">訣竅：先在 jamovi 跑分析、開啟 Syntax Mode，再複製產生的 <code>jmv::</code> 呼叫。</span></p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- Privacy -->
+  <section>
+    <div class="privacy">
+      <span class="dot" aria-hidden="true"></span>
+      <div>
+        <h2><span class="en">What askLLM sends</span><span class="zh">askLLM 送出什麼</span></h2>
+        <p><span class="en">The <b>R code tutor</b> sends only <b>summary statistics</b> of the variables you pick, plus your
+          question and the <b>names</b> of the R packages bundled with your Rj module — never the raw data rows,
+          never the data itself. It never runs the R for you: you paste it into Rj and run it yourself. With a local
+          model (Ollama) nothing leaves your machine at all.</span>
+          <span class="zh"><b>R code tutor</b> 只送出你所選變數的<b>摘要統計量</b>、你的問題，以及 Rj 隨附套件的<b>名稱</b>——
+          絕不送原始資料列、絕不送資料本身。它也絕不替你執行 R：你貼進 Rj 自己執行。搭配本機模型（Ollama），完全零外送。</span></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span><span class="en">askLLM — ask an LLM about your data, inside jamovi.</span><span class="zh">askLLM——在 jamovi 內就數據向 LLM 提問。</span></span>
+    <span><a href="https://github.com/SCgeeker/askLLM" target="_blank" rel="noopener">github.com/SCgeeker/askLLM</a></span>
+  </footer>
+
+</div>
+
+<script>
+  var root = document.documentElement;
+  document.getElementById('langBtn').addEventListener('click', function(){
+    var toZh = root.getAttribute('data-ui-lang') === 'en';
+    root.setAttribute('data-ui-lang', toZh ? 'zh' : 'en');
+    root.setAttribute('lang', toZh ? 'zh-Hant' : 'en');
+    this.textContent = toZh ? 'English' : '中文';
+  });
+  document.getElementById('themeBtn').addEventListener('click', function(){
+    var dark = matchMedia('(prefers-color-scheme: dark)').matches;
+    var cur = root.getAttribute('data-theme') || (dark ? 'dark' : 'light');
+    root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+  });
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){
+      var on = chip.getAttribute('aria-pressed') === 'true';
+      chips.forEach(function(c){ c.setAttribute('aria-pressed','false'); });
+      if(on){ cards.forEach(function(c){ c.classList.remove('dim','hit'); }); return; }
+      chip.setAttribute('aria-pressed','true');
+      var pick = chip.getAttribute('data-pick');
+      cards.forEach(function(c){
+        var hit = c.id === pick;
+        c.classList.toggle('hit', hit);
+        c.classList.toggle('dim', !hit);
+      });
+      var el = document.getElementById(pick);
+      if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+    });
+  });
+</script>
+</body>
+</html>

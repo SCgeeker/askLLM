@@ -2,7 +2,7 @@
 
 **在 jamovi 裡直接問 LLM 關於「你的資料」的問題。**
 
-勾選你關心的變項,輸入問題(中英文皆可),askLLM 會把這些變項的摘要統計送給你選擇的 LLM,讓它針對你的資料集回答——甚至會給出具體的 jamovi 選單路徑建議。v1.1 新增掃描你實際安裝的 jamovi 模組,把真實選單樹附給 LLM,讓建議只引用真實路徑(實測 18/18 逐字命中)。
+勾選你關心的變項,輸入問題(中英文皆可),askLLM 會把這些變項的摘要統計送給你選擇的 LLM,讓它針對你的資料集回答。askLLM 是一個模組、**兩個分析**——一個幫你挑該跑的 jamovi 分析,一個幫你寫該用的 R 程式碼。詳見下方[兩個分析](#兩個分析)。
 
 [English README](README.md)
 
@@ -44,17 +44,30 @@
 
 注意:`.jmo` 檔綁定特定的**作業系統 × CPU 架構 × jamovi 系列版本**(見檔名,如 `askLLM_1.1.0_win64_jamovi-2.7.jmo`),只能安裝到相符的 jamovi。詳見 [`dist/README.zh-TW.md`](dist/README.zh-TW.md)。
 
+## 兩個分析
+
+askLLM 是一個模組,底下有兩個分析,都在 **Analyses ▸ askLLM** 下拉選單裡。看你要問的是哪一種,挑對應的那個。
+
+| | **jamovi Module Guider** | **R code tutor** |
+|---|---|---|
+| 回答什麼 | 「我該跑哪個 jamovi 分析?」 | 「這個分析的 R 程式碼要怎麼寫?」 |
+| 給出什麼 | 推薦的分析,並逐字引用選單路徑 | 可貼進 **Rj Editor** 自己執行的 R 程式碼 |
+| 接地依據 | 你實際安裝的 jamovi 模組與其真實選單樹 | 你 Rj 環境實際隨附的 R 套件,加上 `data` |
+| 問錯分析時 | 引導你改用 R code tutor | 引導你改用 jamovi Module Guider |
+
+兩個分析都不會替你動手——Module Guider 告訴你去哪裡點,R code tutor 寫出程式碼讓*你*在 **Rj Editor** 裡執行;Rj 是**桌面版** jamovi 才有的模組(jamovi Cloud 沒有)。兩者都只送出你所選變項的摘要統計,絕不送原始資料列(詳見下方[隱私聲明](#隱私聲明))。想搭配 R code tutor 逛一輪、順便學一點 R,見**[跟著 Rj 學 R](https://scgeeker.github.io/askLLM/learn-r.html)**。
+
 ## 快速開始(三步)
 
-1. 在 jamovi 開啟資料集,從分析選單執行 **askLLM**。
+1. 在 jamovi 開啟資料集,從分析選單執行 **askLLM**,再從下拉選單挑 **jamovi Module Guider** 或 **R code tutor**。
 2. 勾選要讓 LLM 知道的**變項(Variables to describe)**,並輸入你的**問題**。
 3. 勾選 **Submit** 送出。數秒後即可看到回覆,並附上模型名稱與耗時。
 
 修改問題前請先取消勾選 **Submit**,改好再重新勾選——避免每次改動都觸發一次新的(計費)呼叫。
 
-**Include installed modules**(預設開啟)會自動掃描你的 jamovi 模組並供給 LLM,讓路徑建議精準對應你安裝的分析;取消勾選此選項即回到 v1.0 行為。
+**Include installed modules**(僅 jamovi Module Guider 有,預設開啟)會自動掃描你的 jamovi 模組並供給 LLM,讓路徑建議精準對應你安裝的分析;取消勾選此選項即回到 v1.0 行為。R code tutor 則是無條件掃描你的 Rj 環境,確保產出的程式碼只用你實際有的套件。
 
-**Use a variable's Description as the system prompt**(在「LLM settings」內)可讓你直接用資料集本身驅動人格,不必在模組裡另外輸入:在 jamovi 變數的 Setup 面板中填入該變數的**Description**(如人格設定或任務指示),在此選取該變數,系統即會以它的 Description 作為 system prompt。優先序:該變數的 Description(有選取且非空時)＞**Custom system prompt** 文字框 ＞ Persona 模板。適合已在 codebook 中記錄好各變數情境、想直接讓 LLM 沿用的情境。
+**Use a variable's Description as the system prompt**(在「LLM settings」內)可讓你直接用資料集本身驅動人格,不必在模組裡另外輸入:在 jamovi 變數的 Setup 面板中填入該變數的**Description**(如人格設定或任務指示),在此選取該變數,系統即會以它的 Description 作為 system prompt。在 jamovi Module Guider,優先序是:該變數的 Description(有選取且非空時)＞**Custom system prompt** 文字框 ＞ Persona 模板。R code tutor 沒有 Custom system prompt 文字框,優先序是:該變數的 Description(有選取且非空時)＞ Persona 模板。適合已在 codebook 中記錄好各變數情境、想直接讓 LLM 沿用的情境。
 
 ## 支援的 Provider
 
@@ -75,18 +88,23 @@
 
 **LLM 會產生看似合理卻錯誤的內容。** v1.0 實測發現各家模型最常編造的是 **jamovi 選單路徑**(連 jamovi 沒有的選單都寫得很肯定);v1.1 已透過模組目錄掃描大幅緩解此問題(實測命中率 100%, 18/18 零虛構)。統計建議方向則大致合理,其他限制(統計建議適用性、數值查證)仍需自行判斷。
 
+**兩個分析的查證方式不對等。** jamovi Module Guider 給的選單路徑可以拿你實際安裝的模組機械核對,如上所述。R code tutor 產的 R 程式碼就沒有等價的硬查證——R 是 Turing-complete,任何掃描都不可能證明任意生成的程式碼一定對。這正是 R code tutor 定位為「教學」的原因:它把程式碼交給你審閱、由你在 Rj 裡執行,絕不替你代跑。
+
 完整的實測記錄與教學建議見 **[限制與使用建議](docs/LIMITATIONS.zh-TW.md)**。
 
 ## 隱私聲明
 
+兩個分析共用同一套隱私設計:
+
 - 送出給 LLM 的是**你所選變項的摘要統計**(如筆數、平均數、標準差、類別變項各水準次數等),**不是原始資料列**。
 - API 金鑰只存於你本機的環境變數或 `.Renviron` 檔案,**不會寫入 `.omv` 檔案**,也不會出現在 jamovi 介面上任何地方。
-- **已安裝模組的名稱與選單清單**(環境中繼資料,不含資料值)會隨摘要送出供 LLM 參考,用以確保建議的路徑都真實存在;你可用「Include installed modules」選項關閉此功能。
+- **jamovi Module Guider** 還會送出已安裝模組的名稱與選單清單(環境中繼資料,不含資料值),用以確保建議的路徑都真實存在;你可用「Include installed modules」選項關閉此功能。
+- **R code tutor** 還會送出你 Rj 環境隨附的 R 套件**名稱**(絕不含套件內容),確保產出的程式碼只用你實際有的套件。它絕不替你執行 R——程式碼由你貼進 Rj、自己跑。
 - 若你需要**完全零資料外送**,請選擇 **Ollama(本機)** 這個 provider——包含 LLM 本身在內,一切都在你自己的電腦上執行。
 
 ## 隱私設計 vs. 代理式 AI
 
-JASP 0.98(2026-07-02 起)推出「完全整合 AI」,採取代理型設計:把分析結果與輸出本身完整送給 LLM 處理。askLLM 採取不同的資訊架構——諮詢型設計,**僅送摘要統計量,絕不送原始資料列**。兩種設計在面對敏感資料時的隱私風險有本質差異。
+JASP 0.98(2026-07-02 起)推出「完全整合 AI」,採取代理型設計:把分析結果與輸出本身完整送給 LLM 處理。askLLM 採取不同的資訊架構——諮詢型設計,兩個分析都**僅送摘要統計量,絕不送原始資料列**。兩種設計在面對敏感資料時的隱私風險有本質差異。
 
 ### askLLM vs. JASP 0.98 AI 比較
 

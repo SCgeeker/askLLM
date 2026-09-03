@@ -2,7 +2,7 @@
 
 askLLM lets an LLM read a summary of your data and suggest analyses, but **LLMs produce confident-sounding content that is wrong (hallucination)**. This page records the error types observed in testing and the usage advice that follows from them.
 
-**This document's v1.0 baseline testing motivated the v1.1 catalog mechanism; each section now includes a v1.1 mitigation note.**
+**This document's v1.0 baseline testing motivated the v1.1 catalog mechanism; each section now includes a v1.1 mitigation note.** Testing below was performed on **jamovi Module Guider** (originally the module's only analysis); see [Two analyses, two verification stories](#two-analyses-two-verification-stories) for how these findings carry over to **R code tutor**.
 
 Original v1.0 test method: `tools/compare-models.R` asked one question each about `iris` and `mtcars`, comparing `openai/gpt-4o-mini`, `openai/gpt-4.1`, `openai/gpt-4.1-mini`, and `microsoft/phi-4` on GitHub Models (2026-07-21). v1.1 validation appears in the v1.1 Mitigation sections below.
 
@@ -66,6 +66,15 @@ The models suggested descriptives, ANOVA, correlation and PCA for iris, and mult
 `meta/meta-llama-3.1-8b-instruct` appears in the GitHub Models catalog but returns **HTTP 400 `Unknown model`** when called. `meta/llama-3.3-70b-instruct` from the same family works fine.
 
 **Advice**: after switching models, ask one trivial question to confirm it works before relying on it.
+
+## Two analyses, two verification stories
+
+askLLM is one module with two analyses — **jamovi Module Guider** and **R code tutor** — and they differ in how far you can mechanically check their answers.
+
+- **jamovi Module Guider has a hard verifier.** Its universe of possible answers is bounded: a finite set of menu paths in jamovi's own installed modules. That is exactly what the v1.1 catalog mechanism checks against (§1), and it is why the 18/18 verbatim-hit result above is a meaningful, machine-checkable claim.
+- **R code tutor has no equivalent verifier, by nature of the problem.** R is Turing-complete — there is no finite catalog of "valid R code" to scan against, and no scan can prove that an arbitrary generated snippet does what it claims, runs without error, or produces the right numbers for your data. Grounding R code tutor in your actual Rj package list (so it doesn't suggest a package you don't have) reduces one class of error, the same way module scanning does for menu paths — but it cannot substitute for reviewing the code itself.
+- **This is why R code tutor's design is "teach, don't execute."** It writes R for you to read, paste into the **Rj Editor**, and run yourself — you are the one who executes it and sees whether it works. askLLM never runs arbitrary R on your behalf. This is a deliberate safety boundary, not a missing feature: treat R code tutor's output the way you would treat code from any tutorial or forum answer — read it before you run it, and let Rj's own errors and your own results be the check.
+- **Practical advice**: for jamovi Module Guider, spot-check the occasional path yourself but you can otherwise trust the mechanism (§1). For R code tutor, always read the code before running it, run it on your actual data rather than skimming it, and compare its output against a jamovi built-in analysis when one exists (e.g. Syntax Mode's `jmv::` call for the same analysis) as a second, independent check.
 
 ## Overall usage advice
 

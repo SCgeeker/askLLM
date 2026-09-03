@@ -35,7 +35,7 @@
 # 需求 / Requirements:
 #   devtools、jmvtools、openssl(或 digest);verify/publish 另需 gh CLI。
 
-JAMOVI_HOME   <- 'C:/Program Files/jamovi 2.7.37.0'
+JAMOVI_HOME   <- 'C:/Program Files/jamovi 28.1.0.0'
 JAMOVI_SERIES <- '2.7'
 PLATFORM_TAG  <- 'win64'
 
@@ -137,6 +137,60 @@ check_known_modules_freshness <- function(path = 'inst/catalog/known-modules.yam
                    age, threshold_days)
     cat(msg, '\n', sep = '')
     invisible(msg)
+}
+
+# ---- learn-r.html 外部連結檢查(提醒閘,不阻擋;永不 stop()) -----------------
+#
+# docs/learn-r.json 列出 docs/learn-r.html 引用的外部教材連結。此檢查對每個
+# URL 發 HEAD(405/403 時改 GET),只 WARN 不 FAIL。docs.jamovi.org 對非瀏覽器
+# 請求會回 403(屬預期,人可正常開),無網路時整段略過並 WARN。
+
+check_learn_r_links <- function(path = 'docs/learn-r.json', timeout = 5) {
+    line <- function(mark, url, detail = '')
+        cat(sprintf('  [%s] %-58s %s\n', mark, url, detail))
+
+    if (!requireNamespace('httr2', quietly = TRUE) ||
+        !requireNamespace('jsonlite', quietly = TRUE)) {
+        cat('WARN: check_learn_r_links 需要 httr2 與 jsonlite\n'); return(invisible())
+    }
+    if (!file.exists(path)) {
+        cat(sprintf('WARN: learn-r.json not found (%s)\n', path)); return(invisible())
+    }
+    doc <- tryCatch(jsonlite::fromJSON(path, simplifyVector = FALSE),
+                    error = function(e) NULL)
+    if (is.null(doc)) {
+        cat(sprintf('WARN: learn-r.json unreadable (%s)\n', path)); return(invisible())
+    }
+
+    urls <- unlist(lapply(doc$sections, function(s)
+        vapply(s$links, function(l) if (is.null(l$url)) '' else l$url, character(1))))
+    urls <- unique(urls[nzchar(urls)])
+    if (!length(urls)) { cat('OK: learn-r.json 無外部連結\n'); return(invisible()) }
+
+    status_of <- function(u, method) {
+        req <- httr2::req_method(
+            httr2::req_error(
+                httr2::req_timeout(httr2::request(u), timeout),
+                is_error = function(resp) FALSE),
+            method)
+        httr2::resp_status(httr2::req_perform(req))
+    }
+
+    cat(sprintf('learn-r.json 連結檢查(%d 個 URL):\n', length(urls)))
+    for (u in urls) {
+        st <- tryCatch({
+            s <- status_of(u, 'HEAD')
+            if (s %in% c(403L, 405L)) s <- tryCatch(status_of(u, 'GET'),
+                                                    error = function(e) s)
+            s
+        }, error = function(e) NA_integer_)
+
+        if (is.na(st))                     line('WARN', u, '連線失敗(無網路?)')
+        else if (st >= 200 && st < 400)    line('OK',   u, sprintf('HTTP %d', st))
+        else if (st == 403)                line('WARN', u, 'HTTP 403(擋 bot,人可開)')
+        else                               line('WARN', u, sprintf('HTTP %d', st))
+    }
+    invisible()
 }
 
 # ---- 主流程 -----------------------------------------------------------------
