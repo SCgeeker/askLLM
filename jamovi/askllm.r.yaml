@@ -14,24 +14,6 @@ items:
       type:  Preformatted
       clearWith: []
 
-    - name:  jmvResults
-      title: 'Analyses run'
-      type:  Preformatted
-      visible: false
-      clearWith: []
-
-    - name:  actionNote
-      title: 'What the assistant did'
-      type:  Preformatted
-      visible: false
-      clearWith: []
-
-    - name:  plan
-      title: 'Action plan (audit)'
-      type:  Preformatted
-      visible: false
-      clearWith: []
-
     - name:  meta
       title: ''
       type:  Preformatted

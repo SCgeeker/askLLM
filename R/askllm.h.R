@@ -158,9 +158,6 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     active = list(
         instructions = function() private$.items[["instructions"]],
         answer = function() private$.items[["answer"]],
-        jmvResults = function() private$.items[["jmvResults"]],
-        actionNote = function() private$.items[["actionNote"]],
-        plan = function() private$.items[["plan"]],
         meta = function() private$.items[["meta"]]),
     private = list(),
     public=list(
@@ -178,24 +175,6 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 options=options,
                 name="answer",
                 title="Response",
-                clearWith=list()))
-            self$add(jmvcore::Preformatted$new(
-                options=options,
-                name="jmvResults",
-                title="Analyses run",
-                visible=FALSE,
-                clearWith=list()))
-            self$add(jmvcore::Preformatted$new(
-                options=options,
-                name="actionNote",
-                title="What the assistant did",
-                visible=FALSE,
-                clearWith=list()))
-            self$add(jmvcore::Preformatted$new(
-                options=options,
-                name="plan",
-                title="Action plan (audit)",
-                visible=FALSE,
                 clearWith=list()))
             self$add(jmvcore::Preformatted$new(
                 options=options,
@@ -245,9 +224,6 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' \tabular{llllll}{
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$answer} \tab \tab \tab \tab \tab a preformatted \cr
-#'   \code{results$jmvResults} \tab \tab \tab \tab \tab a preformatted \cr
-#'   \code{results$actionNote} \tab \tab \tab \tab \tab a preformatted \cr
-#'   \code{results$plan} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$meta} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'
