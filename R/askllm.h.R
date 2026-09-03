@@ -190,7 +190,7 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 options=options,
                 name="",
-                title="Ask LLM about your data")
+                title="jamovi Module Guider")
             self$add(jmvcore::Preformatted$new(
                 options=options,
                 name="instructions",

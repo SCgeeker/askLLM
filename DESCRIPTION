@@ -1,6 +1,6 @@
 Package: askLLM
 Type: Package
-Title: Ask LLM about your data
+Title: jamovi Module Guider
 Version: 1.2.0
 Author: Sau-Chin Chen <pmsp96@gmail.com>
 Maintainer: Sau-Chin Chen <pmsp96@gmail.com>
