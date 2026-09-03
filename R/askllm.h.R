@@ -158,6 +158,7 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     active = list(
         instructions = function() private$.items[["instructions"]],
         answer = function() private$.items[["answer"]],
+        links = function() private$.items[["links"]],
         meta = function() private$.items[["meta"]]),
     private = list(),
     public=list(
@@ -175,6 +176,11 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 options=options,
                 name="answer",
                 title="Response",
+                clearWith=list()))
+            self$add(jmvcore::Html$new(
+                options=options,
+                name="links",
+                title="",
                 clearWith=list()))
             self$add(jmvcore::Preformatted$new(
                 options=options,
@@ -224,6 +230,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' \tabular{llllll}{
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$answer} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$links} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$meta} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
 #'

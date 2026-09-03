@@ -410,6 +410,22 @@
         sep = '\n')
 }
 
+#' Module Guider 結果面板的常青頁連結(Html item `links`,靜態,置於 .init)
+#'
+#' 諮詢分析的「延伸幫助」:選一個能用的模型(choose-model)、想改用 R 就去學
+#' (learn-r)。真 `<a href>`,`.init()` 設定、零網路。learn-r URL 沿用
+#' r-tutor.R 的 `.ASKLLMR_LEARN_R_URL`(同一頁,不重複定義)。
+.ASKLLM_CHOOSE_MODEL_URL <- 'https://scgeeker.github.io/askLLM/choose-model.html'
+
+.askllm_guide_links_html <- function(model_url = .ASKLLM_CHOOSE_MODEL_URL,
+                                     learn_url = .ASKLLMR_LEARN_R_URL) {
+    paste0(
+        '<p><a href="', model_url, '" target="_blank" rel="noopener noreferrer">',
+        'Choose a model to use with askLLM</a></p>',
+        '<p><a href="', learn_url, '" target="_blank" rel="noopener noreferrer">',
+        'Learn R with Rj</a></p>')
+}
+
 # =============================================================================
 # R6 分析類別:防抖狀態機。.run() 嚴格依序,全程 tryCatch 保底。
 # =============================================================================
@@ -422,6 +438,7 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
         # 只設定引導文字,零網路
         .init = function() {
             self$results$instructions$setContent(.askllm_guide_text())
+            self$results$links$setContent(.askllm_guide_links_html())
         },
 
         # 狀態機外層:任何未預期 R error → instructions 顯示,不讓 jamovi 紅字

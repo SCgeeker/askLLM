@@ -294,3 +294,10 @@ test_that('askllmr_caveat_text: 末句提醒數值以 jamovi 為準(中英皆有
     expect_true(grepl('jamovi is correct', txt, ignore.case = TRUE))
     expect_true(grepl('以 jamovi 為準', txt, fixed = TRUE))
 })
+
+test_that('askllm_guide_links_html: Module Guider 的常青頁真連結', {
+    h <- .askllm_guide_links_html()
+    expect_true(grepl('choose-model.html', h, fixed = TRUE))
+    expect_true(grepl('learn-r.html', h, fixed = TRUE))
+    expect_true(grepl('<a href=', h, fixed = TRUE))
+})
