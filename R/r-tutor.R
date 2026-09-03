@@ -126,11 +126,154 @@
     list(en = r_en, zh = r_zh)
 }
 
-#' R code tutor 的引導文字(先英文整段,再中文整段),零網路,供 .init() 顯示
+#' R code tutor 的三人格 base 身分句(M-A3,3 x 2 短句)
 #'
-#' M-A2 骨架階段:`.run()` 尚未接上真正的 LLM 邏輯(見 M-A3),此段文字
-#' 是骨架 `.b.R` 唯一輸出的內容,先佔位說明如何操作面板。排版比照
-#' `.askllm_guide_text()`:段落區塊文字語言一致,先英文再中文。
+#' 與 `.ASKLLM_PROMPTS`(諮詢分析)平行,但定位為「內嵌於 jamovi 的 R
+#' 程式撰寫家教」,而非統計顧問。三人格語氣差異(consultant 直接給碼、
+#' tutor 蘇格拉底式引導、explainer 零基礎逐步解說)在此只點出定位,
+#' 實際教學規則(單一 code block、`data`、不建議 install.packages() 等)
+#' 由 `.ASKLLM_RJ_SUFFIX` 承擔(見 `.askllmr_system_prompt()`)。
+.ASKLLM_R_PROMPTS <- list(
+    consultant = list(
+        en = paste(
+            'You are an R coding tutor embedded in jamovi. The user writes R',
+            'in jamovi\'s Rj Editor and asks you for code that works on the',
+            'dataset described below.',
+            sep = ' '),
+        zh = paste0(
+            '你是內嵌於 jamovi 的 R 程式撰寫家教。',
+            '使用者會在 jamovi 的 Rj Editor 中撰寫 R 程式碼,',
+            '並向你詢問能處理下方所述資料集的程式碼。')),
+    tutor = list(
+        en = paste(
+            'You are an R coding tutor embedded in jamovi, teaching through',
+            'Socratic dialogue. The user writes R in jamovi\'s Rj Editor and',
+            'asks you for code that works on the dataset described below;',
+            'guide them to write it themselves rather than handing over a',
+            'finished solution.',
+            sep = ' '),
+        zh = paste0(
+            '你是內嵌於 jamovi 的 R 程式撰寫家教,採用蘇格拉底式教學法。',
+            '使用者會在 jamovi 的 Rj Editor 中撰寫 R 程式碼,',
+            '並向你詢問能處理下方所述資料集的程式碼;',
+            '請引導他們自己寫出程式碼,而非直接給出完整解答。')),
+    explainer = list(
+        en = paste(
+            'You are an R coding tutor embedded in jamovi, helping complete',
+            'beginners write R. The user writes R in jamovi\'s Rj Editor and',
+            'asks you for code that works on the dataset described below;',
+            'assume no prior background in R.',
+            sep = ' '),
+        zh = paste0(
+            '你是內嵌於 jamovi 的 R 程式撰寫家教,協助完全沒有程式基礎的初學者。',
+            '使用者會在 jamovi 的 Rj Editor 中撰寫 R 程式碼,',
+            '並向你詢問能處理下方所述資料集的程式碼;',
+            '請假設使用者沒有 R 背景。')))
+
+#' 送給 LLM 的 R code tutor system prompt(M-A3)
+#'
+#' 優先序:`system_prompt`(去空白後非空)＞ `.ASKLLM_R_PROMPTS[[role]][[lang]]`。
+#' **恆**接 `.ASKLLM_RJ_SUFFIX[[role]][[lang]]`——R 家教規則(單一 code block、
+#' `data`、Rj 未裝時改教 Syntax Mode 等)是這個分析的主體,不是可關閉的後綴,
+#' 故不像諮詢分析的 `has_catalog`/`enable_actions` 那樣是條件式附加。
+#' 未知 role/lang 防禦性落回 `consultant`/`en`。
+#'
+#' `has_rj_env` 目前保留參數、不改變輸出字串(`<rj_environment>` 缺席時的
+#' 教學行為已寫在 `.ASKLLM_RJ_COMMON` 裡),供未來視接地狀態切換文案時使用。
+#'
+#' @param custom 已解析過的自訂 system prompt(見 `.askllm_resolve_custom()`),
+#'   `askllmr` 無 `systemPrompt` TextBox,只能來自 `systemPromptVar`(變數
+#'   Description)。
+.askllmr_system_prompt <- function(role = 'consultant', lang = 'en',
+                                   system_prompt = '', has_rj_env = FALSE) {
+    if (is.null(role) || !role %in% names(.ASKLLM_R_PROMPTS)) role <- 'consultant'
+    if (is.null(lang) || !lang %in% c('en', 'zh')) lang <- 'en'
+
+    custom <- trimws(system_prompt %||% '')
+    base <- if (nzchar(custom)) custom else .ASKLLM_R_PROMPTS[[role]][[lang]]
+
+    paste(base, .ASKLLM_RJ_SUFFIX[[role]][[lang]])
+}
+
+#' 把 LLM 回覆拆成「程式碼」與「說明」(M-A3)
+#'
+#' 決定性、不依賴 structured output:抓**第一個** fenced code block(```` ``` ````
+#' 或 ```` ```r ```` 等語言標記皆可)的內容為 `code`(去圍欄、保留內部縮排原樣),
+#' 其餘文字(去圍欄,經 `.askllm_strip_fences()`)為 `explanation`。
+#' 無 fenced block 時 `code = ''`、`explanation` 為去圍欄全文。
+#' `NULL`/空字串輸入 → 兩者皆 `''`。
+#'
+#' @param text LLM 回覆全文
+#' @return `list(code = <chr(1)>, explanation = <chr(1)>)`
+.askllmr_split <- function(text) {
+    if (is.null(text) || !nzchar(text)) return(list(code = '', explanation = ''))
+
+    pattern <- '(?s)```[A-Za-z0-9_+-]*[ \t]*\r?\n(.*?)\r?\n?```'
+    m <- regexpr(pattern, text, perl = TRUE)
+    if (m[1] == -1)
+        return(list(code = '', explanation = .askllm_strip_fences(text)))
+
+    full <- regmatches(text, m)
+    inner <- regmatches(text, regexec(pattern, text, perl = TRUE))[[1]][2]
+
+    rest <- sub(full, '', text, fixed = TRUE)
+    list(code = inner, explanation = .askllm_strip_fences(rest))
+}
+
+#' R code tutor 常青教材頁網址(M-A3;檔案層常數,字面測試防誤刪)
+.ASKLLMR_LEARN_R_URL <- 'https://scgeeker.github.io/askLLM/learn-r.html'
+
+#' `links` 結果項的字面 HTML(M-A3;無 htmltools 依賴)
+#'
+#' 內容:開啟 Rj 的選單路徑 + 常青教材頁連結;`installed = FALSE`(Rj 未裝)
+#' 時額外加一行「從 jamovi library 安裝 Rj」的提示。
+#'
+#' @param installed 本機是否已裝 Rj(`scan_rj()$installed`)。
+#' @param url 教材頁網址,預設 `.ASKLLMR_LEARN_R_URL`(測試可覆寫)。
+#' @return `character(1)` 字面 HTML。
+.askllmr_links_html <- function(installed, url = .ASKLLMR_LEARN_R_URL) {
+    install_line <- if (!isTRUE(installed))
+        '<p>Install Rj: Modules ▸ jamovi library</p>'
+    else
+        ''
+    paste0(
+        '<p>Open Rj: Analyses ▸ R ▸ Rj ▸ Rj Editor</p>',
+        install_line,
+        '<p><a href="', url, '" target="_blank" rel="noopener noreferrer">',
+        'Learn R with Rj</a></p>')
+}
+
+#' R code tutor 的 caveat 文字(M-A3;先英文整段,再中文整段)
+#'
+#' 固定句(R code 由 LLM 生成、執行前請查證)+ `.askllm_rj_caveat_lines()`
+#' 的三態句(依 `has_rj_env` 而異)+ 末句(數值與 jamovi 輸出不符時以 jamovi
+#' 為準)。與諮詢分析的 `.askllm_caveat_text()` 平行,但主題是「程式碼」而
+#' 非「選單路徑」。
+#'
+#' @param has_rj_env 見 `.askllm_rj_caveat_lines()`:`TRUE`/`FALSE` 兩態各附
+#'   一句,`NA`(預設)不附加。
+.askllmr_caveat_text <- function(has_rj_env = NA) {
+    lines <- .askllm_rj_caveat_lines(has_rj_env)
+
+    paste(c(
+        '⚠ This code is generated by an LLM and may be wrong.',
+        '  Please verify it before running:',
+        lines$en,
+        '  • Where numbers disagree with jamovi output, jamovi is correct.',
+        '',
+        '⚠ 程式碼由 LLM 生成,可能有誤,執行前請務必自行查證:',
+        lines$zh,
+        '  • 數值與 jamovi 輸出不符時,以 jamovi 為準。'),
+        collapse = '\n')
+}
+
+#' R code tutor 的引導文字(先英文整段,再中文整段),零網路,供 .init() 與守門顯示
+#'
+#' M-A3:接上真邏輯後的正式雙語引導,取代 M-A2 骨架階段的佔位文字。
+#' 含隱私揭露句:只送出摘要統計 + 已安裝 Rj 隨附套件的**名稱**(環境中繼
+#' 資料,並非你的資料本身)。下方 `links` 連到的教材為模組內建靜態文字,
+#' 不由 askLLM 主動連網抓取。排版比照 `.askllm_guide_text()`:段落區塊
+#' 文字語言一致,先英文再中文。
 .askllmr_guide_text <- function() {
     paste(
         'R code tutor — pick variables, describe what the R code should do,',
@@ -140,8 +283,21 @@
         '2. Describe what the code should do (English or Chinese both work).',
         '3. Tick "Submit" to send; the code appears in a moment.',
         '',
-        'This is a scaffold build: the LLM wiring for this analysis is not',
-        'connected yet.',
+        'Privacy:',
+        'After you tick Submit, the SUMMARY STATISTICS of the selected',
+        'variables (never the raw data rows) are sent to the chosen LLM',
+        'service, together with the NAMES of the R packages bundled with',
+        'your installed Rj (environment metadata, none of your data) so the',
+        'code fits what you actually have. Use Ollama (local) if you prefer',
+        'zero data to leave your machine.',
+        '',
+        'The guidance text on this panel is bundled with the module;',
+        'askLLM does not fetch teaching material over the network on your',
+        'behalf.',
+        '',
+        'Debounce:',
+        'Untick "Submit" before editing your question, then re-tick it,',
+        'so that edits do not each trigger a new call (and billing).',
         '',
         'R code tutor —— 選擇變項、描述你想要的 R 程式碼,',
         '勾選 Submit 即可取得可貼進 Rj Editor 的程式碼。',
@@ -150,6 +306,36 @@
         '2. 描述你想要的 R 程式碼(英文或中文皆可)。',
         '3. 勾選「Submit」送出,稍候即可看到程式碼。',
         '',
-        '此為骨架階段:本分析尚未接上真正的 LLM 邏輯。',
+        '隱私提醒:',
+        '勾選 Submit 後,所選變項的「摘要統計」(非原始資料列)',
+        '將傳送到所選的 LLM 服務,連同你已安裝 Rj 隨附套件的「名稱」',
+        '(環境中繼資料,不含你的任何資料內容),讓程式碼符合你實際擁有的環境。',
+        '若不希望任何資料外送,可改用 Ollama(本機)。',
+        '',
+        '本面板的引導文字為模組內建的靜態內容;',
+        'askLLM 不會自動連網抓取教材。',
+        '',
+        '防抖提醒:',
+        '修改問題前請先取消「Submit」勾選,改好後再重新勾選,',
+        '以免每次改動都觸發一次呼叫(與計費)。',
+        sep = '\n')
+}
+
+#' Rj 未裝時的靜態提示(M-A3;先英文整段,再中文整段,零 LLM)
+#'
+#' 前置於 `instructions` 顯示:說明改教 jamovi 的 Syntax Mode,並提及可從
+#' jamovi library 安裝 Rj 以取得完整 R 程式碼產生能力。
+.askllmr_no_rj_text <- function() {
+    paste(
+        'Rj is not installed on this machine, so R code cannot be grounded',
+        'in a real R environment here. Code will instead be adapted to',
+        'jamovi\'s Syntax Mode (open Syntax Mode to see the `jmv::` code',
+        'jamovi itself generates); you can install Rj from the jamovi',
+        'library to unlock full R code generation.',
+        '',
+        '本機尚未安裝 Rj,因此無法針對真實 R 環境產生接地的程式碼。',
+        '將改為教你使用 jamovi 的 Syntax Mode',
+        '(開啟 Syntax Mode 即可看到 jamovi 自動產生的 `jmv::` 程式碼);',
+        '你可以從 jamovi library 安裝 Rj 以取得完整的 R 程式碼產生功能。',
         sep = '\n')
 }
