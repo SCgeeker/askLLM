@@ -25,9 +25,17 @@
 
 ### S1. 範圍邊界／非目標（最重要）
 Jonathon 定調：**agent／自動化屬未來的 MCP API 層，不屬 analysis module**。故 askLLM 明確劃線：
-- **範圍內（sanctioned engine-layer 面，Jonathon 未反對）**：諮詢問答；跑內建分析並渲染；**Output 值快照＋checkbox consent**；**validated formula suggestion**（LLM 提案 → 對照 76-function whitelist ＋現有變數名檢核 → 引導「貼進 Data ▸ Filters」）。
+- **範圍內（sanctioned engine-layer 面，Jonathon 未反對）**：諮詢問答；跑內建分析並渲染；**Output 值快照＋checkbox consent**（**狀態更正，見下方「漂移修正」**：此路徑 UI 已撤下，現為已休眠／保留備用，非現行啟用功能）；**validated formula suggestion**（LLM 提案 → 對照 76-function whitelist ＋現有變數名檢核 → 引導「貼進 Data ▸ Filters」）。
 - **非目標（移交未來 MCP API，模組不做）**：live formula 寫入（Computed/Filter/Transform，屬 client↔server 的 DataSetRR，engine 協定無此路）、attach 使用者 live session（需 access_key，實測 401 擋掉）、任何 agent 式自動化。
 - 作用：防止日後 vibe-drift 把模組往 agent 層擠。**「advising → acting」的 acting 僅限上述快照/建議層。**
+
+**漂移修正（2026-09-10）**：上一條「範圍內」把「Output 值快照＋checkbox consent」列為現行範圍，但該路徑對應的 UI 已隨 Module Guider 精簡撤下。實據：`R/askllm.b.R` 約 line 577-582 註解明載，動作模式（結構化計畫 → 白名單驗證 → 執行 jmv → 呈現）「已隨 Module Guider 精簡**從 UI 撤下**：`enableActions`／`llmColumns` 選項已從 a.yaml/r.yaml 移除」；底層 `R/action-*.R`、`.askllm_fill_output()` 等實作「原樣保留、**休眠備用**，供未來若要恢復動作模式時重新接線」。`jamovi/askllm.a.yaml` 現況確認查無任何 action 相關選項。故此項狀態應標為**已休眠／保留備用**，不是現行啟用中的範圍內功能，也不是已移除、不支援——只是目前 UI 無法觸達。
+
+**邊界宣告（copilot，2026-09-10 升為明文原則）**：askLLM 是使用者的 copilot。所有對資料、分析、程式碼的操作**一律由使用者親自執行**；askLLM 只提供建議。
+- 它**會**：建議分析策略、建議 jamovi 選單路徑、建議可貼進 Rj 的 R 程式碼。
+- 它**不會**：代替使用者執行分析、寫入資料欄、驅動 jamovi 介面、做任何 agent 式自動化。
+
+**迭代工作流程**：使用者可在提示詞中**自行摘要前一階段的執行結果**——例如在階段 n+1 的提問裡摘要階段 n 的執行結果——讓 LLM 據以提供階段 n+1 的操作或程式碼建議。迭代的每一步都由使用者執行與判讀。**限制**：askLLM **不讀取** jamovi 的分析輸出，這是平台限制（jamovi 不向模組開放分析結果），不是尚未實作的功能；迭代靠的是使用者手動把結果摘要寫進提示詞。詳細操作示範見姊妹專案 `stat-skills-tutorials`，本文件不重複教學步驟。
 
 ### S2. `.h.R` 永不手改（升為明文規則）
 社群共同痛點（Serdar：「half the tokens go to editing .h.R」；Nour：在 skill 頂部加規則）＋本專案已踩過（prepare 找不到 jamovi 時手補 h.R 三次）。現 `jmvtools::prepare(home="C:/Program Files/jamovi 28.1.0.0")` 已可用 → **手補法退役**。規則：**`.h.R` 是產生檔，一律 `jmvtools::prepare` 重生，禁止手改**（寫進 CLAUDE.md／skill）。
@@ -44,6 +52,22 @@ Jonathon 對 LLM 模組最大抱怨：把所有表格/列都在 `.run()` 填、�
 
 ### S6. MCP prototype 分軌（相鄰，非本計畫）
 作者已有 rough MCP prototype；Jonathon 在建真 MCP API。此屬 **jmv-agent／automation 軌**，與 askLLM 模組分開。prototype 原則（read-only first、write 需明確確認、localhost-only、server 為最終 validator）對齊 Jonathon 即將公布的 MCP 設計。此計畫不含此軌，僅記錄分野。
+
+#### S6 更新（2026-08-12）：edit-models 討論的交接
+
+> 來源：Jonathon 2026-08-11 貼文 `askLLM_hand_tests/2026-08-11-mcp-edit-models.md`；分析文件 `askLLM_hand_tests/2026-08-12-editmodels-to-mcp-surface.md`（九種 edit model × 12 個能力原子 C1–C12）；step-2 回覆已於 2026-08-12 發送（`slack_communications.md` 該節標 SENT）。
+
+**已發送的 step-2 主張三點**：plan-then-execute 的 tool 應無副作用、回傳可序列化 change-set，第二步才 commit；suggestion layer 表面是 UI、底下要求 server 有 pending 一級狀態；jamovi 的 compute graph 已是反應式，可能已解掉一半 staleness。
+
+**待辦（依可獨立執行程度排序）**：
+
+1. **`formulaMessage` 時序實測**（唯一現在就能做、不必等 upstream 的一項）。分析文件第三部分推出一個死結：**若硬驗只在套用時發生，suggestion layer 結構性做不到「送出合法提案」**，解法只有一個形狀——與套用解耦的 **validate-only / dry-run 端點**。整條論證掛在「`formulaMessage` 是套用之後才回」這個**未實測**假設上。作法：Frame B 自起 headless session，送一個非法公式，觀察回應時序。測出來即可把 validate-only 端點從推論升級為有實證的具體請求。
+2. **step-3 素材（待 Jonathon 回應後再定方向）**。step-2 刻意只出三點，保留兩個論點未發：(a) **驗證器與編輯模型正交**——管線應為 LLM 提案 → server 硬驗 → 才進編輯模型的軟閘；非法公式不該進 suggestion layer 佔用使用者注意力。可查核的缺口陳述：Jonathon 8/05 全段談驗證未提編輯模型，8/11 全文談編輯模型未出現「驗證／合法性／sanity check」任一詞。(b) **gating 強度應隨 blast radius 變**——綠點統一視覺化成立（事後追溯的資訊需求與 blast radius 無關），但事前把關的資訊需求**是** blast radius 的函數。
+3. **修正分析文件第四部分的支點**。該部分的收斂結論建立在「原文九種 edit model 全是 client 側概念」。此判斷**偏弱**：jamovi 的狀態住在 server，pending／checkpoint／undo stack 若不在 server 表達，client 做不到；且 Jonathon 自述「implementing MCP is 98% of the job」。應降級為開放問題而非收斂支點——它會改變 Frame B 可做的範圍。Jonathon 的回覆可能直接澄清。
+
+**需作者裁決的張力**：**plan-then-execute 與 S6 現有原則「write 需明確確認」相衝**——前者恰恰是把批准上移到意圖層、之後不再逐項確認。建議解（尚未寫成原則）：**批准單位隨 blast radius 變**——變數描述於 plan 層一次批准，計算變數／filter 維持逐項確認。此即分析文件第二部分的主論證回頭套用於自身原則。
+
+**張力解消（2026-09-10）**：上述張力**已由本次（S1）的 copilot 邊界宣告解消**——askLLM 不寫入任何東西，就不存在「批准單位多大」的問題。此張力自此**只存在於 jmv-agent／MCP 軌**，不影響 askLLM 模組本身。上方原始張力敘述保留作紀錄，不刪除。
 
 ---
 

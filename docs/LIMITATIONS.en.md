@@ -80,7 +80,7 @@ askLLM is one module with two analyses — **jamovi Module Guider** and **R code
 
 1. **Treat askLLM as a starting point for brainstorming, not as a statistical consultant's conclusion.** It is good at turning your data's features into candidate analyses, poor at giving steps you can follow blindly.
 2. **Always check menu paths yourself.** This was the most consistent error source in testing.
-3. **Keep "Attach data summary" ticked.** Without it the model is guessing outright — in one test it invented "8 samples across Saguaro / Palo Verde / Ironwood" for a dataset containing nothing of the sort.
+3. **Keep "Attach data summary" ticked.** Without it the model is guessing outright. Given no data it will not say so; it will make something up, such as "8 samples across Saguaro / Palo Verde / Ironwood" for a dataset containing nothing of the sort. (Illustrative of the failure mode, not a recorded test result; for hallucinations actually observed in testing, see the menu paths in §1.1.)
 4. **With beginners, pair it with teacher commentary.** Students struggle to tell a wrong *path* from a wrong *recommendation*.
 5. **Cross-check two or more models.** Agreement between models raises confidence in the suggested analysis; paths still need verifying.
 6. **Do not use it to replace assumption checks or result interpretation.** jamovi's Assumption Checks and actual output are the authority.

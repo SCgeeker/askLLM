@@ -4,6 +4,20 @@
 
 Select the variables you care about, type a question in plain English (or Chinese), and askLLM sends a summary of those variables to an LLM of your choice, which answers with your dataset in mind. askLLM is one module with **two analyses** — one for picking the right jamovi analysis, one for writing the R code to run it yourself. See [Two analyses](#two-analyses) below.
 
+**askLLM is your copilot, not an autopilot.** It only advises: analysis strategies, jamovi menu paths, and R code you can paste into the Rj Editor. You run the analysis, you write to any column, you drive the jamovi interface — askLLM does none of that for you.
+
+For a multi-step analysis, iterate like this. Summarise the previous step's results in your next question, and the LLM builds its suggestion for the next step on that. askLLM does not read jamovi's analysis output (a platform limitation, not a missing feature), so you are the one who carries each result back. For worked examples, see the companion project `stat-skills-tutorials`.
+
+<!--
+Note for developers: the acting implementation (R/action-*.R, .askllm_fill_output()) is kept
+intact but dormant — the enableActions/llmColumns options were removed from a.yaml/r.yaml.
+See the explanatory comment in R/askllm.b.R. The copilot boundary above is a stated principle,
+not merely a description of the current build: that path either stays dormant, or, if it is
+ever re-wired, must still leave execution to the user. Recorded in
+dev-notes/execution-plan.zh-TW.md, S1.
+-->
+
+
 [中文版 README](README.zh-TW.md)
 
 ## Screenshots
