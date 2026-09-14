@@ -76,6 +76,48 @@
             '請逐行為程式碼加上 `#` 註解,在程式碼之前先定義用到的統計名詞,',
             '並假設使用者完全沒有 R 背景。')))
 
+#' HTML-escape 純函式(M-A4:修 Preformatted 長行溢出 bug 用)
+#'
+#' 依序 `&` -> `&lt;` -> `&gt;`(`&` 必須最先轉,否則會把後面產生的
+#' `&lt;`/`&gt;` 中的 `&` 再轉一次)。`NULL` 輸入回傳 `''`。
+#' 供 `.askllm_wrap_html()` 呼叫,也可單獨測試。
+#'
+#' @param text 原始字串(可為 `NULL`)。
+#' @return `character(1)`,已完成 HTML-escape。
+.askllm_html_escape <- function(text) {
+    if (is.null(text)) return('')
+    text <- gsub('&', '&amp;', text, fixed = TRUE)
+    text <- gsub('<', '&lt;', text, fixed = TRUE)
+    text <- gsub('>', '&gt;', text, fixed = TRUE)
+    text
+}
+
+#' 把文字包成會視覺換行的 `<pre>`(M-A4:修 Preformatted 長行溢出 bug 用)
+#'
+#' 根因(見 dev-notes 調查紀錄):`Preformatted` 結果項在 jamovi 的
+#' `white-space` 為 `pre`,長行不換行、橫向溢出面板邊界;同分析的 `Html`
+#' 結果項預設會換行,不受影響。修法:LLM 輸出的三個文字結果項(`askllm` 的
+#' `answer`;`askllmr` 的 `code`、`explanation`)改為 `Html` 型別,
+#' 內容經 `.askllm_html_escape()` 逃逸後包進本函式產生的 `<pre>`。
+#'
+#' **關鍵**:只用 CSS `white-space:pre-wrap` 做「視覺」換行,絕不插入真正的
+#' `\n` —— R code tutor 的 `code` 欄位必須原樣可複製貼回 Rj Editor 執行;
+#' `pre-wrap` 不改變文字內容本身,escape 的實體字元在瀏覽器複製貼上時會還原
+#' 為原字元,程式碼因此仍保持可執行、逐字相同。
+#'
+#' 若 jamovi 的 `Html` 結果項過濾行內 `style` 屬性,這裡的換行修復不會生
+#' 效——此風險無法在 headless 測試中驗證,需真機 GUI 確認。
+#'
+#' @param text 原始字串(可為 `NULL`,視為 `''`)。
+#' @return `character(1)`:`'<pre style="white-space:pre-wrap; ',
+#'   'overflow-wrap:anywhere; margin:0">' + escape(text) + '</pre>'`。
+.askllm_wrap_html <- function(text) {
+    paste0(
+        '<pre style="white-space:pre-wrap; overflow-wrap:anywhere; margin:0">',
+        .askllm_html_escape(text),
+        '</pre>')
+}
+
 #' 把 fenced code block 的圍欄行(``` 或 ```r 等語言標記)改為空行(構件 4)
 #'
 #' 純函式,不改內容行的縮排,只清空「整行只有圍欄標記(可含前導空白/語言

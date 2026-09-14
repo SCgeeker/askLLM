@@ -157,13 +157,13 @@ askllmrResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="",
                 visible=TRUE,
                 clearWith=list()))
-            self$add(jmvcore::Preformatted$new(
+            self$add(jmvcore::Html$new(
                 options=options,
                 name="code",
                 title="R code \u2014 paste into Rj Editor",
                 visible=TRUE,
                 clearWith=list()))
-            self$add(jmvcore::Preformatted$new(
+            self$add(jmvcore::Html$new(
                 options=options,
                 name="explanation",
                 title="What this code does",
@@ -227,8 +227,8 @@ askllmrBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a preformatted \cr
-#'   \code{results$code} \tab \tab \tab \tab \tab a preformatted \cr
-#'   \code{results$explanation} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$code} \tab \tab \tab \tab \tab a html \cr
+#'   \code{results$explanation} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$links} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$caveat} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$meta} \tab \tab \tab \tab \tab a preformatted \cr

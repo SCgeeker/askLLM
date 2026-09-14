@@ -11,7 +11,7 @@ items:
 
     - name:  answer
       title: Response
-      type:  Preformatted
+      type:  Html
       clearWith: []
 
     - name:  links

@@ -540,7 +540,7 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 if (is.null(st)) NULL else st$payload, payload)
 
             if (identical(decision, 'cached')) {
-                self$results$answer$setContent(st$text)
+                self$results$answer$setContent(.askllm_wrap_html(st$text))
                 self$results$meta$setContent(paste0(st$meta_line, ' · cached'))
                 self$results$instructions$setContent(paste0(
                     '(cache replay, no API call / 快取回放,未呼叫 API)\n\n',
@@ -605,7 +605,7 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             if (isTRUE(res$ok)) {
                 # 構件 4:清除圍欄行,讓 Preformatted 顯示不留 ``` 殘留
                 reply_text <- .askllm_strip_fences(res$text)
-                self$results$answer$setContent(reply_text)
+                self$results$answer$setContent(.askllm_wrap_html(reply_text))
                 meta_line <- .askllm_meta_line(model, res$elapsed_s)
                 self$results$meta$setContent(meta_line)
                 has_catalog <- !is.null(catalog_text_value)

@@ -118,8 +118,9 @@ askllmrClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 if (is.null(st)) NULL else st$payload, payload)
 
             if (identical(decision, 'cached')) {
-                self$results$code$setContent(st$code)
-                self$results$explanation$setContent(st$explanation)
+                self$results$code$setContent(.askllm_wrap_html(st$code))
+                self$results$explanation$setContent(
+                    .askllm_wrap_html(st$explanation))
                 self$results$meta$setContent(paste0(st$meta_line, ' · cached'))
                 self$results$caveat$setContent(
                     .askllmr_caveat_text(has_rj_env = st$has_rj_env))
@@ -183,8 +184,9 @@ askllmrClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
 
             if (isTRUE(res$ok)) {
                 parts <- .askllmr_split(res$text)
-                self$results$code$setContent(parts$code)
-                self$results$explanation$setContent(parts$explanation)
+                self$results$code$setContent(.askllm_wrap_html(parts$code))
+                self$results$explanation$setContent(
+                    .askllm_wrap_html(parts$explanation))
                 meta_line <- .askllm_meta_line(model, res$elapsed_s)
                 self$results$meta$setContent(meta_line)
                 self$results$caveat$setContent(

@@ -12,13 +12,13 @@ items:
 
     - name:  code
       title: 'R code — paste into Rj Editor'
-      type:  Preformatted
+      type:  Html
       visible: true
       clearWith: []
 
     - name:  explanation
       title: 'What this code does'
-      type:  Preformatted
+      type:  Html
       visible: true
       clearWith: []
 

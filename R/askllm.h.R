@@ -172,7 +172,7 @@ askllmResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 name="instructions",
                 title="Instructions",
                 clearWith=list()))
-            self$add(jmvcore::Preformatted$new(
+            self$add(jmvcore::Html$new(
                 options=options,
                 name="answer",
                 title="Response",
@@ -229,7 +229,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$instructions} \tab \tab \tab \tab \tab a preformatted \cr
-#'   \code{results$answer} \tab \tab \tab \tab \tab a preformatted \cr
+#'   \code{results$answer} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$links} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$meta} \tab \tab \tab \tab \tab a preformatted \cr
 #' }
