@@ -33,17 +33,13 @@ dev-notes/execution-plan.zh-TW.md, S1.
 <details>
 <summary>More screens</summary>
 
-**Guidance and privacy notice when the analysis opens**
+**One module, two copilots — the askLLM menu**
 
-![Three-step guidance and privacy notice](docs/img/guide.en.png)
+![The askLLM analysis menu showing jamovi Module Guider and R code tutor](docs/img/menu.png)
 
-**Waiting state after you submit**
+**Test Connection — check your key without spending a call**
 
-![Waiting for a response from the LLM](docs/img/waiting.en.png)
-
-**Key setup instructions when no API key is configured (bilingual)**
-
-![API key setup instructions](docs/img/key-setup.en.png)
+![Test Connection result: API key is valid, key source shown, no billing](docs/img/test-connection.png)
 
 </details>
 

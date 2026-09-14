@@ -28,17 +28,13 @@
 <details>
 <summary>更多畫面</summary>
 
-**開啟分析時的引導與隱私提醒**
+**一個模組、兩個 copilot——askLLM 選單**
 
-![三步驟教學與隱私提醒](docs/img/guide.zh-TW.png)
+![askLLM 分析選單,顯示 jamovi Module Guider 與 R code tutor](docs/img/menu.png)
 
-**送出後的等待狀態**
+**Test Connection——不花一次呼叫就驗證金鑰**
 
-![正在等候 LLM 回覆](docs/img/waiting.zh-TW.png)
-
-**尚未設定金鑰時的教學畫面(中英雙語)**
-
-![金鑰設定教學](docs/img/key-setup.zh-TW.png)
+![Test Connection 結果:金鑰有效、顯示金鑰來源、零計費](docs/img/test-connection.png)
 
 </details>
 
