@@ -35,8 +35,7 @@
 # 需求 / Requirements:
 #   devtools、jmvtools、openssl(或 digest);verify/publish 另需 gh CLI。
 
-JAMOVI_HOME   <- 'C:/Program Files/jamovi 28.1.0.0'
-JAMOVI_SERIES <- '2.7'
+JAMOVI_HOME   <- 'C:/Program Files/jamovi 28.2.0.0'
 PLATFORM_TAG  <- 'win64'
 
 # ---- 內部工具 ---------------------------------------------------------------
@@ -251,8 +250,7 @@ release_check <- function(root = getwd(),
     # 4. 重建並捕捉 .jmo
     dist_dir <- file.path(root, 'dist')
     dir.create(dist_dir, showWarnings = FALSE)
-    target <- file.path(dist_dir, sprintf('askLLM_%s_%s_jamovi-%s.jmo',
-                                          dv, PLATFORM_TAG, JAMOVI_SERIES))
+    target <- file.path(dist_dir, sprintf('askLLM_%s_%s.jmo', dv, PLATFORM_TAG))
 
     if (!build) {
         .rc_msg('....', '建置', '未重建(build = TRUE 可重建)')

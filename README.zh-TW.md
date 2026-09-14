@@ -15,6 +15,12 @@
 
 [English README](README.md)
 
+## 三十秒看懂 askLLM
+
+- **接地,不是亂猜** —— 建議被限制在你機器上真的裝了的東西:真實的 jamovi 選單路徑,以及你 Rj 環境真的有的 R 套件(v1.1 實測:選單路徑逐字命中 18/18,零虛構)。
+- **你的資料還是你的** —— 只送摘要統計,API 金鑰不會寫進 `.omv` 檔;選 Ollama 則完全不外送。
+- **是 copilot,不是自動駕駛** —— 只給建議(選單路徑、R 程式碼),分析永遠由你親手跑。
+
 ## 螢幕截圖
 
 ![勾選變項、輸入問題,LLM 針對你的資料回答,並給出具體的 jamovi 選單路徑](docs/img/hero.zh-TW.png)
@@ -36,22 +42,18 @@
 
 </details>
 
-## 安裝方式
+## 適合誰用
 
-### A. 從 jamovi library 安裝(上架後)
+**如果你是這樣的人,askLLM 適合你 ——**
 
-開啟 jamovi,點選右上角 `⊕` 圖示 → **jamovi library** → 搜尋「askLLM」→ **Install**。
+- 你用 jamovi 教統計或做研究,想教學生「怎麼跟 AI 協作又不被它唬」;
+- 你不太寫 R,但想用 AI 當進 R 的階梯(這正是 R code tutor 的用途);
+- 你的資料敏感、或機構禁止上雲——用 Ollama 讓一切都在本機執行。
 
-### B. Side-load `.jmo` 檔案
+**askLLM 刻意不做的事 ——**
 
-若尚未上架、或你有本地建置好的 `.jmo` 檔:
-
-1. 在 jamovi 中點選右上角 `⊕` 圖示。
-2. 切換到 **Side-load** 分頁。
-3. 選擇 `.jmo` 檔(見本 repo 的 [`dist/`](dist/) 目錄)。
-4. 等待安裝完成。
-
-注意:`.jmo` 檔綁定特定的**作業系統 × CPU 架構 × jamovi 系列版本**(見檔名,如 `askLLM_1.1.0_win64_jamovi-2.7.jmo`),只能安裝到相符的 jamovi。詳見 [`dist/README.zh-TW.md`](dist/README.zh-TW.md)。
+- 它不會替你跑分析、不會寫入資料欄、不會操作 jamovi 介面(這是設計原則,不是缺功能);
+- 若你想要「AI 全自動跑分析」,askLLM 不是那種工具。
 
 ## 兩個分析
 
@@ -65,6 +67,19 @@ askLLM 是一個模組,底下有兩個分析,都在 **Analyses ▸ askLLM** 下�
 | 問錯分析時 | 引導你改用 R code tutor | 引導你改用 jamovi Module Guider |
 
 兩個分析都不會替你動手——Module Guider 告訴你去哪裡點,R code tutor 寫出程式碼讓*你*在 **Rj Editor** 裡執行;Rj 是**桌面版** jamovi 才有的模組(jamovi Cloud 沒有)。兩者都只送出你所選變項的摘要統計,絕不送原始資料列(詳見下方[隱私聲明](#隱私聲明))。想搭配 R code tutor 逛一輪、順便學一點 R,見**[跟著 Rj 學 R](https://scgeeker.github.io/askLLM/learn-r.html)**。
+
+## 安裝方式
+
+askLLM 以側載(side-load)`.jmo` 檔的方式發佈。
+
+**支援環境(目前版本):** Windows 64-bit、jamovi 28.2.0.0。
+
+1. 在 jamovi 中點選右上角 `⊕` 圖示。
+2. 切換到 **Side-load** 分頁。
+3. 選擇 `.jmo` 檔(見本 repo 的 [`dist/`](dist/) 目錄)。
+4. 等待安裝完成。
+
+`.jmo` 檔綁定特定的**作業系統 × CPU 架構**(見檔名,如 `askLLM_1.3.0_win64.jmo`),只能安裝到相符的平台:為 Windows 建置的檔案無法安裝到 macOS 或 Linux。詳見 [`dist/README.zh-TW.md`](dist/README.zh-TW.md)。
 
 ## 快速開始(三步)
 
@@ -145,7 +160,7 @@ JASP 0.98(2026-07-02 起)推出「完全整合 AI」,採取代理型設計:把�
 從原始碼建置並安裝到指定的 jamovi 安裝路徑:
 
 ```r
-jmvtools::install(home = "C:/Program Files/jamovi 2.7.37.0")
+jmvtools::install(home = "C:/Program Files/jamovi 28.2.0.0")
 ```
 
 執行測試套件(純函式單元測試,以一般系統 R 執行,非 jamovi 內建 R):

@@ -5,15 +5,16 @@ This folder holds the compiled jamovi module package(s) for askLLM, produced by 
 ## Filename format
 
 ```
-askLLM_<version>_<platform>_jamovi-<series>.jmo
+askLLM_<version>_<platform>.jmo
 ```
 
-Example: `askLLM_1.0.0_win64_jamovi-2.7.jmo` means:
+Example: `askLLM_1.3.0_win64.jmo` means:
 
 - `askLLM` — module name
-- `1.0.0` — module version (from `DESCRIPTION` / `jamovi/0000.yaml`)
+- `1.3.0` — module version (from `DESCRIPTION` / `jamovi/0000.yaml`)
 - `win64` — target OS and CPU architecture (Windows 64-bit)
-- `jamovi-2.7` — target jamovi **series** (major.minor), not jamovi's exact point release
+
+The filename used to carry a `jamovi-<series>` tag as well. That came from the 1.0.0 build convention and has been dropped: the module manifest declares only `jms: '1.0'`, the module spec version, and a build made against jamovi 2.7 was verified running on jamovi 28.2.0.0. Tagging a series in the filename told users the file would not work for them when it does.
 
 ## Platform binding
 
@@ -21,11 +22,10 @@ A `.jmo` is **not** universal. It is built for one specific combination of:
 
 1. **Operating system** (Windows / macOS / Linux)
 2. **CPU architecture** (e.g. x64)
-3. **jamovi series** (e.g. 2.7.x) — because bundled R and CRAN snapshot versions differ across series
 
-Installing a `.jmo` built for a different OS, architecture, or jamovi series than the one you're running will fail or behave unpredictably. If you're on a different platform, rebuild from source (see below) rather than using a file from this folder.
+Installing a `.jmo` built for a different OS or architecture than the one you're running will fail or behave unpredictably.
 
-> Note: the `.jmo` currently checked in here (`askLLM_0.0.0_win64_jamovi-2.7.jmo`) has a stale `0.0.0` version tag left over from an early build (see `dev-notes/M0-result.en.md`), while the module's actual version is `1.0.0`. Rebuild before shipping to get a correctly versioned filename.
+Across jamovi versions the picture is softer. Bundled R and CRAN snapshot versions do differ between jamovi releases, so one build is not guaranteed to work everywhere. What can be reported is what was tested: the 1.3.0 build runs on jamovi 28.2.0.0. If you're on a different platform, rebuild from source (see below) rather than using a file from this folder.
 
 ## How to rebuild
 

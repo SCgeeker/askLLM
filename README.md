@@ -20,6 +20,12 @@ dev-notes/execution-plan.zh-TW.md, S1.
 
 [中文版 README](README.zh-TW.md)
 
+## In 30 seconds
+
+- **Grounded, not guessing** — suggestions are constrained to what is actually installed on your machine: real jamovi menu paths, and R packages your Rj environment actually has (v1.1 testing: 18/18 menu paths quoted verbatim, zero fabrication).
+- **Your data stays yours** — only summary statistics are sent, API keys never touch your `.omv` file, and with Ollama nothing leaves your machine at all.
+- **A copilot, not an autopilot** — it only advises (menu paths, R code); you always run the analysis yourself.
+
 ## Screenshots
 
 ![Pick variables, ask a question, and the LLM answers about your dataset — with concrete jamovi menu paths](docs/img/hero.en.png)
@@ -41,22 +47,18 @@ dev-notes/execution-plan.zh-TW.md, S1.
 
 </details>
 
-## Installation
+## Who is this for
 
-### A. From the jamovi library (once published)
+**askLLM is for you if —**
 
-Open jamovi, click the `⊕` icon (top right) → **jamovi library** → search for "askLLM" → **Install**.
+- you teach or do research with jamovi and want to show students how to collaborate with an AI without being misled by it;
+- you don't write much R but want an AI as a stepping stone into it (that is what R code tutor is for);
+- your data is sensitive or your institution forbids the cloud — run everything locally with Ollama.
 
-### B. Side-load the `.jmo` file
+**What askLLM deliberately does not do —**
 
-If askLLM isn't in the library yet, or you have a locally built `.jmo`:
-
-1. In jamovi, click the `⊕` icon (top right).
-2. Go to the **Side-load** tab.
-3. Choose the `.jmo` file (see [`dist/`](dist/) in this repo).
-4. Wait for installation to finish.
-
-Note: a `.jmo` file is built for a specific **OS × CPU architecture × jamovi series** combination (see the filename, e.g. `askLLM_1.1.0_win64_jamovi-2.7.jmo`). It will only install on a matching jamovi. See [`dist/README.md`](dist/README.md) for details.
+- it never runs an analysis for you, never writes to a data column, never drives the jamovi interface (a design principle, not a missing feature);
+- if you want an AI that runs analyses fully automatically, askLLM is not that tool.
 
 ## Two analyses
 
@@ -70,6 +72,19 @@ askLLM is one module with two analyses, both under **Analyses ▸ askLLM**. Pick
 | If you ask for the other thing | Points you to R code tutor | Points you to jamovi Module Guider |
 
 Neither analysis runs anything for you — Module Guider tells you where to click, R code tutor writes code that *you* execute in the **Rj Editor**, a module available only in the **desktop** version of jamovi (not jamovi Cloud). Both send only summary statistics of the variables you select, never raw data rows (see [Privacy](#privacy) below). For a guided tour of R code tutor plus a self-contained R crash course, see **[Learn R with Rj](https://scgeeker.github.io/askLLM/learn-r.html)**.
+
+## Installation
+
+askLLM is distributed as a side-loaded `.jmo` file.
+
+**Supported environment (current release):** Windows 64-bit, jamovi 28.2.0.0.
+
+1. In jamovi, click the `⊕` icon (top right).
+2. Go to the **Side-load** tab.
+3. Choose the `.jmo` file (see [`dist/`](dist/) in this repo).
+4. Wait for installation to finish.
+
+A `.jmo` file is built for one specific **OS × CPU architecture** combination (see the filename, e.g. `askLLM_1.3.0_win64.jmo`), and installs only on a matching platform: a file built for Windows will not install on macOS or Linux. See [`dist/README.md`](dist/README.md) for details.
 
 ## Quick start
 
@@ -150,7 +165,7 @@ JASP 0.98 (released 2026-07-02) introduced "Fully Integrated AI," which uses an 
 Build from source and install into a specific jamovi installation:
 
 ```r
-jmvtools::install(home = "C:/Program Files/jamovi 2.7.37.0")
+jmvtools::install(home = "C:/Program Files/jamovi 28.2.0.0")
 ```
 
 Run the test suite (pure-function unit tests, run under a regular system R — not the jamovi-bundled R):
