@@ -53,6 +53,16 @@ dev-notes/execution-plan.zh-TW.md, S1.
 
 ![Explainer persona answering the same question in plain terms](docs/img/persona-explainer.png)
 
+**Drive the persona from your data — a variable's Description as the system prompt**
+
+The `PS` variable's Description holds an instruction — *"You have to elaborate the reasons of your suggestions."*
+
+![The PS variable's Description used as the system prompt](docs/img/var-description-field.png)
+
+Select it under "Use a variable's Description as the system prompt", and the answer spells out its reasoning.
+
+![Module Guider elaborating its reasons, driven by the variable Description](docs/img/var-description.png)
+
 **Test Connection — check your key without spending a call**
 
 ![Test Connection result: API key is valid, key source shown, no billing](docs/img/test-connection.png)

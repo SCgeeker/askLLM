@@ -48,6 +48,16 @@
 
 ![Explainer 人格以淺白方式回答同一題](docs/img/persona-explainer.png)
 
+**用資料驅動人格——變數的 Description 當 system prompt**
+
+`PS` 變數的 Description 寫著一句指示:**"You have to elaborate the reasons of your suggestions."**
+
+![PS 變數的 Description 被用作 system prompt](docs/img/var-description-field.png)
+
+在「Use a variable's Description as the system prompt」選它,回覆便逐項闡述理由。
+
+![Module Guider 因變數 Description 成為 system prompt 而詳述理由](docs/img/var-description.png)
+
 **Test Connection——不花一次呼叫就驗證金鑰**
 
 ![Test Connection 結果:金鑰有效、顯示金鑰來源、零計費](docs/img/test-connection.png)
