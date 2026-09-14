@@ -37,6 +37,22 @@ dev-notes/execution-plan.zh-TW.md, S1.
 
 ![The askLLM analysis menu showing jamovi Module Guider and R code tutor](docs/img/menu.png)
 
+**R code tutor — code you paste into Rj, grounded in your Rj packages**
+
+![R code tutor result: code block, explanation, Open Rj link, and caveat](docs/img/r-code-tutor.png)
+
+**The full loop — paste the code into Rj and run it yourself**
+
+![The generated code pasted into the Rj Editor with its R output beside it](docs/img/rj-loop.png)
+
+**Three personas, one question — Consultant, Tutor, Explainer**
+
+![Consultant persona answering the missing-data question](docs/img/persona-consultant.png)
+
+![Tutor persona answering the same question with guiding hints](docs/img/persona-tutor.png)
+
+![Explainer persona answering the same question in plain terms](docs/img/persona-explainer.png)
+
 **Test Connection — check your key without spending a call**
 
 ![Test Connection result: API key is valid, key source shown, no billing](docs/img/test-connection.png)

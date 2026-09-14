@@ -32,6 +32,22 @@
 
 ![askLLM 分析選單,顯示 jamovi Module Guider 與 R code tutor](docs/img/menu.png)
 
+**R code tutor——可貼進 Rj 的程式碼,接地於你的 Rj 套件**
+
+![R code tutor 結果:程式碼區、解說、Open Rj 連結與 caveat](docs/img/r-code-tutor.png)
+
+**完整迴圈——把程式碼貼進 Rj、自己執行**
+
+![產出的程式碼貼進 Rj Editor,右側是 R 輸出](docs/img/rj-loop.png)
+
+**同一題、三種語氣——Consultant／Tutor／Explainer**
+
+![Consultant 人格回答遺漏值問題](docs/img/persona-consultant.png)
+
+![Tutor 人格以引導式提示回答同一題](docs/img/persona-tutor.png)
+
+![Explainer 人格以淺白方式回答同一題](docs/img/persona-explainer.png)
+
 **Test Connection——不花一次呼叫就驗證金鑰**
 
 ![Test Connection 結果:金鑰有效、顯示金鑰來源、零計費](docs/img/test-connection.png)
