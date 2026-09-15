@@ -18,20 +18,43 @@ dev-notes/execution-plan.zh-TW.md, S1.
 -->
 
 
-[中文版 README](README.zh-TW.md)
-
 ## In 30 seconds
 
 - **Grounded, not guessing** — suggestions are constrained to what is actually installed on your machine: real jamovi menu paths, and R packages your Rj environment actually has (v1.1 testing: 18/18 menu paths quoted verbatim, zero fabrication).
 - **Your data stays yours** — only summary statistics are sent, API keys never touch your `.omv` file, and with Ollama nothing leaves your machine at all.
 - **A copilot, not an autopilot** — it only advises (menu paths, R code); you always run the analysis yourself.
 
-## Screenshots
-
 ![Pick variables, ask a question, and the LLM answers about your dataset — with concrete jamovi menu paths](docs/img/hero.en.png)
 
-<details>
-<summary>More screens</summary>
+[中文版 README](README.zh-TW.md)
+
+## Who is this for
+
+**askLLM is for you if —**
+
+- you teach or do research with jamovi and want to show students how to collaborate with an AI without being misled by it;
+- you don't write much R but want an AI as a stepping stone into it (that is what R code tutor is for);
+- your data is sensitive or your institution forbids the cloud — run everything locally with Ollama.
+
+**What askLLM deliberately does not do —**
+
+- it never runs an analysis for you, never writes to a data column, never drives the jamovi interface (a design principle, not a missing feature);
+- if you want an AI that runs analyses fully automatically, askLLM is not that tool.
+
+## Two analyses
+
+askLLM is one module with two analyses, both under **Analyses ▸ askLLM**. Pick the one that matches what you're asking.
+
+| | **jamovi Module Guider** | **R code tutor** |
+|---|---|---|
+| Question it answers | "Which jamovi analysis should I run?" | "How do I write the R code for this?" |
+| Output | A recommended analysis, with the exact menu path quoted verbatim | R code to paste into the **Rj Editor** and run yourself |
+| Grounded in | Your installed jamovi modules and their real menu trees | The R packages actually bundled with your Rj environment, plus `data` |
+| If you ask for the other thing | Points you to R code tutor | Points you to jamovi Module Guider |
+
+Neither analysis runs anything for you — Module Guider tells you where to click, R code tutor writes code that *you* execute in the **Rj Editor**, a module available only in the **desktop** version of jamovi (not jamovi Cloud). Both send only summary statistics of the variables you select, never raw data rows (see [Privacy](#privacy) below). For a guided tour of R code tutor plus a self-contained R crash course, see **[Learn R with Rj](https://scgeeker.github.io/askLLM/learn-r.html)**.
+
+## Screenshots
 
 **One module, two copilots — the askLLM menu**
 
@@ -66,34 +89,6 @@ Select it under "Use a variable's Description as the system prompt", and the ans
 **Test Connection — check your key without spending a call**
 
 ![Test Connection result: API key is valid, key source shown, no billing](docs/img/test-connection.png)
-
-</details>
-
-## Who is this for
-
-**askLLM is for you if —**
-
-- you teach or do research with jamovi and want to show students how to collaborate with an AI without being misled by it;
-- you don't write much R but want an AI as a stepping stone into it (that is what R code tutor is for);
-- your data is sensitive or your institution forbids the cloud — run everything locally with Ollama.
-
-**What askLLM deliberately does not do —**
-
-- it never runs an analysis for you, never writes to a data column, never drives the jamovi interface (a design principle, not a missing feature);
-- if you want an AI that runs analyses fully automatically, askLLM is not that tool.
-
-## Two analyses
-
-askLLM is one module with two analyses, both under **Analyses ▸ askLLM**. Pick the one that matches what you're asking.
-
-| | **jamovi Module Guider** | **R code tutor** |
-|---|---|---|
-| Question it answers | "Which jamovi analysis should I run?" | "How do I write the R code for this?" |
-| Output | A recommended analysis, with the exact menu path quoted verbatim | R code to paste into the **Rj Editor** and run yourself |
-| Grounded in | Your installed jamovi modules and their real menu trees | The R packages actually bundled with your Rj environment, plus `data` |
-| If you ask for the other thing | Points you to R code tutor | Points you to jamovi Module Guider |
-
-Neither analysis runs anything for you — Module Guider tells you where to click, R code tutor writes code that *you* execute in the **Rj Editor**, a module available only in the **desktop** version of jamovi (not jamovi Cloud). Both send only summary statistics of the variables you select, never raw data rows (see [Privacy](#privacy) below). For a guided tour of R code tutor plus a self-contained R crash course, see **[Learn R with Rj](https://scgeeker.github.io/askLLM/learn-r.html)**.
 
 ## Installation
 

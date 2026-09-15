@@ -13,20 +13,43 @@
 -->
 
 
-[English README](README.md)
-
 ## 三十秒看懂 askLLM
 
 - **接地,不是亂猜** —— 建議被限制在你機器上真的裝了的東西:真實的 jamovi 選單路徑,以及你 Rj 環境真的有的 R 套件(v1.1 實測:選單路徑逐字命中 18/18,零虛構)。
 - **你的資料還是你的** —— 只送摘要統計,API 金鑰不會寫進 `.omv` 檔;選 Ollama 則完全不外送。
 - **是 copilot,不是自動駕駛** —— 只給建議(選單路徑、R 程式碼),分析永遠由你親手跑。
 
-## 螢幕截圖
-
 ![勾選變項、輸入問題,LLM 針對你的資料回答,並給出具體的 jamovi 選單路徑](docs/img/hero.zh-TW.png)
 
-<details>
-<summary>更多畫面</summary>
+[English README](README.md)
+
+## 適合誰用
+
+**如果你是這樣的人,askLLM 適合你 ——**
+
+- 你用 jamovi 教統計或做研究,想教學生「怎麼跟 AI 協作又不被它唬」;
+- 你不太寫 R,但想用 AI 當進 R 的階梯(這正是 R code tutor 的用途);
+- 你的資料敏感、或機構禁止上雲——用 Ollama 讓一切都在本機執行。
+
+**askLLM 刻意不做的事 ——**
+
+- 它不會替你跑分析、不會寫入資料欄、不會操作 jamovi 介面(這是設計原則,不是缺功能);
+- 若你想要「AI 全自動跑分析」,askLLM 不是那種工具。
+
+## 兩個分析
+
+askLLM 是一個模組,底下有兩個分析,都在 **Analyses ▸ askLLM** 下拉選單裡。看你要問的是哪一種,挑對應的那個。
+
+| | **jamovi Module Guider** | **R code tutor** |
+|---|---|---|
+| 回答什麼 | 「我該跑哪個 jamovi 分析?」 | 「這個分析的 R 程式碼要怎麼寫?」 |
+| 給出什麼 | 推薦的分析,並逐字引用選單路徑 | 可貼進 **Rj Editor** 自己執行的 R 程式碼 |
+| 接地依據 | 你實際安裝的 jamovi 模組與其真實選單樹 | 你 Rj 環境實際隨附的 R 套件,加上 `data` |
+| 問錯分析時 | 引導你改用 R code tutor | 引導你改用 jamovi Module Guider |
+
+兩個分析都不會替你動手——Module Guider 告訴你去哪裡點,R code tutor 寫出程式碼讓*你*在 **Rj Editor** 裡執行;Rj 是**桌面版** jamovi 才有的模組(jamovi Cloud 沒有)。兩者都只送出你所選變項的摘要統計,絕不送原始資料列(詳見下方[隱私聲明](#隱私聲明))。想搭配 R code tutor 逛一輪、順便學一點 R,見**[跟著 Rj 學 R](https://scgeeker.github.io/askLLM/learn-r.html)**。
+
+## 螢幕截圖
 
 **一個模組、兩個 copilot——askLLM 選單**
 
@@ -61,34 +84,6 @@
 **Test Connection——不花一次呼叫就驗證金鑰**
 
 ![Test Connection 結果:金鑰有效、顯示金鑰來源、零計費](docs/img/test-connection.png)
-
-</details>
-
-## 適合誰用
-
-**如果你是這樣的人,askLLM 適合你 ——**
-
-- 你用 jamovi 教統計或做研究,想教學生「怎麼跟 AI 協作又不被它唬」;
-- 你不太寫 R,但想用 AI 當進 R 的階梯(這正是 R code tutor 的用途);
-- 你的資料敏感、或機構禁止上雲——用 Ollama 讓一切都在本機執行。
-
-**askLLM 刻意不做的事 ——**
-
-- 它不會替你跑分析、不會寫入資料欄、不會操作 jamovi 介面(這是設計原則,不是缺功能);
-- 若你想要「AI 全自動跑分析」,askLLM 不是那種工具。
-
-## 兩個分析
-
-askLLM 是一個模組,底下有兩個分析,都在 **Analyses ▸ askLLM** 下拉選單裡。看你要問的是哪一種,挑對應的那個。
-
-| | **jamovi Module Guider** | **R code tutor** |
-|---|---|---|
-| 回答什麼 | 「我該跑哪個 jamovi 分析?」 | 「這個分析的 R 程式碼要怎麼寫?」 |
-| 給出什麼 | 推薦的分析,並逐字引用選單路徑 | 可貼進 **Rj Editor** 自己執行的 R 程式碼 |
-| 接地依據 | 你實際安裝的 jamovi 模組與其真實選單樹 | 你 Rj 環境實際隨附的 R 套件,加上 `data` |
-| 問錯分析時 | 引導你改用 R code tutor | 引導你改用 jamovi Module Guider |
-
-兩個分析都不會替你動手——Module Guider 告訴你去哪裡點,R code tutor 寫出程式碼讓*你*在 **Rj Editor** 裡執行;Rj 是**桌面版** jamovi 才有的模組(jamovi Cloud 沒有)。兩者都只送出你所選變項的摘要統計,絕不送原始資料列(詳見下方[隱私聲明](#隱私聲明))。想搭配 R code tutor 逛一輪、順便學一點 R,見**[跟著 Rj 學 R](https://scgeeker.github.io/askLLM/learn-r.html)**。
 
 ## 安裝方式
 
