@@ -6,7 +6,7 @@ Select the variables you care about, type a question in plain English (or Chines
 
 **askLLM is your copilot, not an autopilot.** It only advises: analysis strategies, jamovi menu paths, and R code you can paste into the Rj Editor. You run the analysis, you write to any column, you drive the jamovi interface — askLLM does none of that for you.
 
-For a multi-step analysis, iterate like this. Summarise the previous step's results in your next question, and the LLM builds its suggestion for the next step on that. askLLM does not read jamovi's analysis output (a platform limitation, not a missing feature), so you are the one who carries each result back. For worked examples, see the companion project `stat-skills-tutorials`.
+For a multi-step analysis, iterate like this. Summarise the previous step's results in your next question, and the LLM builds its suggestion for the next step on that. askLLM does not read jamovi's analysis output (a platform limitation, not a missing feature), so you are the one who carries each result back. For worked examples plus a full statistics course, see the companion project **[stat-skills-tutorials](https://scgeeker.github.io/stat-skills-tutorials/)**.
 
 <!--
 Note for developers: the acting implementation (R/action-*.R, .askllm_fill_output()) is kept

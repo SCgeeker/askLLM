@@ -6,7 +6,7 @@
 
 **askLLM 是你的 copilot,不是自動駕駛。** 它只給建議:分析策略、jamovi 選單路徑、可貼進 Rj Editor 的 R 程式碼。資料、分析、程式碼一律由你自己執行——askLLM 不會替你跑分析,不會寫入欄位,也不會操作 jamovi 介面。
 
-多階段的分析可以這樣迭代:在下一次提問時,自己把上一階段的執行結果摘要寫進提示詞,讓 LLM 據此給下一階段的操作或程式碼建議。askLLM 不讀取 jamovi 的分析輸出(平台限制,不是未實作的功能),所以每一步的結果都由你手動帶回來。操作示範見姊妹專案 `stat-skills-tutorials`。
+多階段的分析可以這樣迭代:在下一次提問時,自己把上一階段的執行結果摘要寫進提示詞,讓 LLM 據此給下一階段的操作或程式碼建議。askLLM 不讀取 jamovi 的分析輸出(平台限制,不是未實作的功能),所以每一步的結果都由你手動帶回來。操作示範與完整統計教學見姊妹專案 **[stat-skills-tutorials](https://scgeeker.github.io/stat-skills-tutorials/)**。
 
 <!--
 備註(給開發者):動作模式的底層實作(R/action-*.R、.askllm_fill_output())原樣保留,但已休眠——UI 選項 enableActions/llmColumns 已從 a.yaml/r.yaml 撤下,見 R/askllm.b.R 的說明註解。上方的 copilot 邊界是明文原則,不是現況描述:該路徑目前保持休眠,要恢復接線仍須由使用者親自執行,不得變成代跑模組。裁決紀錄見 dev-notes/execution-plan.zh-TW.md 的 S1。
