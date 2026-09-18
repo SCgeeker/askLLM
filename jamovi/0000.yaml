@@ -1,7 +1,7 @@
 ---
 title: askLLM
 name: askLLM
-version: 1.3.0
+version: 1.3.1
 jms: '1.0'
 authors:
   - Sau-Chin Chen
@@ -13,7 +13,8 @@ description: >-
   jamovi. Selected variables' summary statistics (never raw rows) are attached
   to your question so answers are grounded in your data. Supports NVIDIA NIM,
   Google Gemini, OpenRouter, GitHub Models, local Ollama, and any
-  OpenAI-compatible endpoint.
+  OpenAI-compatible endpoint. New to the statistics? Full tutorials:
+  https://scgeeker.github.io/stat-skills-tutorials/
 analyses:
   - title: jamovi Module Guider
     name: askllm

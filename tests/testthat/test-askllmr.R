@@ -190,6 +190,33 @@ test_that('links_html:回傳合法 <a href> 標籤', {
         html, fixed = TRUE))
 })
 
+# ---- .ASKLLM_TUTORIALS_URL:完整教學站(姊妹專案),askLLM 兩頁僅供速查 ------
+
+test_that('.ASKLLM_TUTORIALS_URL 為 stat-skills-tutorials 站網址', {
+    expect_identical(.ASKLLM_TUTORIALS_URL,
+        'https://scgeeker.github.io/stat-skills-tutorials/')
+})
+
+test_that('links_html:含完整教學站連結(tutorial site 置於速查頁之外)', {
+    html <- .askllmr_links_html(TRUE)
+    expect_true(grepl(.ASKLLM_TUTORIALS_URL, html, fixed = TRUE))
+    expect_true(grepl('<a href="https://scgeeker.github.io/stat-skills-tutorials/"',
+        html, fixed = TRUE))
+    # 速查頁仍在
+    expect_true(grepl('learn-r.html', html, fixed = TRUE))
+})
+
+test_that('links_html:tutorials_url 參數可覆寫', {
+    html <- .askllmr_links_html(TRUE, tutorials_url = 'http://example.test/t/')
+    expect_true(grepl('http://example.test/t/', html, fixed = TRUE))
+    expect_false(grepl(.ASKLLM_TUTORIALS_URL, html, fixed = TRUE))
+})
+
+test_that('guide_text:instructions 含完整教學站網址供 learner 參考', {
+    txt <- .askllmr_guide_text()
+    expect_true(grepl(.ASKLLM_TUTORIALS_URL, txt, fixed = TRUE))
+})
+
 # ---- .askllmr_guide_text / .askllmr_no_rj_text:雙語靜態文字 ----------------
 
 test_that('guide_text:含隱私揭露(摘要統計 + Rj 套件名稱,非資料本身)', {

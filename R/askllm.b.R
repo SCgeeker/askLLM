@@ -383,6 +383,9 @@
         '2. Type your question (English or Chinese both work).',
         '3. Tick "Submit" to send; the response appears in a moment.',
         '',
+        'New to the statistics behind your question?',
+        paste0('Full tutorials: ', .ASKLLM_TUTORIALS_URL),
+        '',
         'Privacy:',
         'After you tick Submit, the SUMMARY STATISTICS of the selected',
         'variables (never the raw data rows) are sent to the chosen LLM',
@@ -398,6 +401,9 @@
         '1. 勾選要描述的變項(Variables to describe)。',
         '2. 輸入你的問題(英文或中文皆可)。',
         '3. 勾選「Submit」送出,稍候即可看到回覆。',
+        '',
+        '對背後的統計還不熟?',
+        paste0('完整教學:', .ASKLLM_TUTORIALS_URL),
         '',
         '隱私提醒:',
         '勾選 Submit 後,所選變項的「摘要統計」(非原始資料列)將傳送到',
@@ -418,12 +424,16 @@
 .ASKLLM_CHOOSE_MODEL_URL <- 'https://scgeeker.github.io/askLLM/choose-model.html'
 
 .askllm_guide_links_html <- function(model_url = .ASKLLM_CHOOSE_MODEL_URL,
-                                     learn_url = .ASKLLMR_LEARN_R_URL) {
+                                     learn_url = .ASKLLMR_LEARN_R_URL,
+                                     tutorials_url = .ASKLLM_TUTORIALS_URL) {
     paste0(
+        # 完整教學站(姊妹專案)置頂;下方兩條為模組內速查頁。
+        '<p><a href="', tutorials_url, '" target="_blank" rel="noopener noreferrer">',
+        'Statistics tutorials (full course)</a></p>',
         '<p><a href="', model_url, '" target="_blank" rel="noopener noreferrer">',
         'Choose a model to use with askLLM</a></p>',
         '<p><a href="', learn_url, '" target="_blank" rel="noopener noreferrer">',
-        'Learn R with Rj</a></p>')
+        'Learn R with Rj (quick reference)</a></p>')
 }
 
 # =============================================================================

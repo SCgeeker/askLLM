@@ -285,6 +285,13 @@
 #' R code tutor 常青教材頁網址(M-A3;檔案層常數,字面測試防誤刪)
 .ASKLLMR_LEARN_R_URL <- 'https://scgeeker.github.io/askLLM/learn-r.html'
 
+#' 完整統計教學站(姊妹專案 stat-skills-tutorials)。
+#'
+#' 這是「完整教學」的去處;askLLM 自帶的 learn-r.html / choose-model.html
+#' 只是模組內的**速查**頁。兩個分析的 links 面板都把本站列為首要連結,
+#' instructions 也附上純文字網址供需要學習的使用者參考。
+.ASKLLM_TUTORIALS_URL <- 'https://scgeeker.github.io/stat-skills-tutorials/'
+
 #' `links` 結果項的字面 HTML(M-A3;無 htmltools 依賴)
 #'
 #' 內容:開啟 Rj 的選單路徑 + 常青教材頁連結;`installed = FALSE`(Rj 未裝)
@@ -294,7 +301,8 @@
 #' @param url 教材頁網址,預設 `.ASKLLMR_LEARN_R_URL`(測試可覆寫)。
 #' @return `character(1)` 字面 HTML。
 .askllmr_links_html <- function(installed, url = .ASKLLMR_LEARN_R_URL,
-                                model_url = .ASKLLM_CHOOSE_MODEL_URL) {
+                                model_url = .ASKLLM_CHOOSE_MODEL_URL,
+                                tutorials_url = .ASKLLM_TUTORIALS_URL) {
     install_line <- if (!isTRUE(installed))
         '<p>Install Rj: Modules ▸ jamovi library</p>'
     else
@@ -302,8 +310,11 @@
     paste0(
         '<p>Open Rj: Analyses ▸ R ▸ Rj ▸ Rj Editor</p>',
         install_line,
+        # 完整教學站(姊妹專案)置頂為首要學習去處;下方兩條為模組內速查頁。
+        '<p><a href="', tutorials_url, '" target="_blank" rel="noopener noreferrer">',
+        'Statistics tutorials (full course)</a></p>',
         '<p><a href="', url, '" target="_blank" rel="noopener noreferrer">',
-        'Learn R with Rj</a></p>',
+        'Learn R with Rj (quick reference)</a></p>',
         '<p><a href="', model_url, '" target="_blank" rel="noopener noreferrer">',
         'Choose a model to use with askLLM</a></p>')
 }
@@ -348,6 +359,9 @@
         '2. Describe what the code should do (English or Chinese both work).',
         '3. Tick "Submit" to send; the code appears in a moment.',
         '',
+        'New to the statistics behind your question?',
+        paste0('Full tutorials: ', .ASKLLM_TUTORIALS_URL),
+        '',
         'Privacy:',
         'After you tick Submit, the SUMMARY STATISTICS of the selected',
         'variables (never the raw data rows) are sent to the chosen LLM',
@@ -370,6 +384,9 @@
         '1. 勾選程式碼要處理的變項。',
         '2. 描述你想要的 R 程式碼(英文或中文皆可)。',
         '3. 勾選「Submit」送出,稍候即可看到程式碼。',
+        '',
+        '對背後的統計還不熟?',
+        paste0('完整教學:', .ASKLLM_TUTORIALS_URL),
         '',
         '隱私提醒:',
         '勾選 Submit 後,所選變項的「摘要統計」(非原始資料列)',

@@ -301,3 +301,15 @@ test_that('askllm_guide_links_html: Module Guider 的常青頁真連結', {
     expect_true(grepl('learn-r.html', h, fixed = TRUE))
     expect_true(grepl('<a href=', h, fixed = TRUE))
 })
+
+test_that('askllm_guide_links_html: 含完整教學站(stat-skills-tutorials)連結', {
+    h <- .askllm_guide_links_html()
+    expect_true(grepl(.ASKLLM_TUTORIALS_URL, h, fixed = TRUE))
+    expect_true(grepl('<a href="https://scgeeker.github.io/stat-skills-tutorials/"',
+        h, fixed = TRUE))
+})
+
+test_that('askllm_guide_text: instructions 含完整教學站網址供 learner 參考', {
+    txt <- .askllm_guide_text()
+    expect_true(grepl(.ASKLLM_TUTORIALS_URL, txt, fixed = TRUE))
+})
