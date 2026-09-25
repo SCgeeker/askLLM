@@ -24,6 +24,10 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
       # 明確關閉 live 測試(test-live.R 本就 skip_if,這裡只是雙保險)
       ASKLLM_LIVE_TESTS: '0'
+      # 測試檔含中文識別字與字串(test-data-summary.R 等);C locale 下 R 連
+      # parse 都會失敗(cloud 容器實測),故明確指定 UTF-8。
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
     steps:
       - uses: actions/checkout@v4
 

@@ -175,7 +175,10 @@ test_that('default dirs resolve relative env path', {
 
     expect_true(normalizePath(file.path(env_home, 'rel'), winslash = '/', mustWork = TRUE) %in% dirs)
     expect_true(normalizePath(file.path(libpath_root, 'modules'), winslash = '/', mustWork = TRUE) %in% dirs)
-    expect_true(normalizePath(file.path(appdata_root, 'jamovi', 'modules'), winslash = '/', mustWork = TRUE) %in% dirs)
+    # APPDATA 只在 Windows 被 .platform_dirs() 讀取(macOS/Linux 走各自的慣例路徑),
+    # 此斷言限定 Windows,讓 ubuntu CI(v1.4 起)與本機 Windows 都能跑同一套測試。
+    if (identical(Sys.info()[['sysname']], 'Windows'))
+        expect_true(normalizePath(file.path(appdata_root, 'jamovi', 'modules'), winslash = '/', mustWork = TRUE) %in% dirs)
 
     # dirs 非 NULL 時,scan_modules() 的注入覆寫不經過 default_module_dirs()
     called <- FALSE
