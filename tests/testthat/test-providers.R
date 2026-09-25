@@ -74,6 +74,29 @@ test_that('a.yaml 的 github 選項標題標示 retired(兩個分析一致)', {
     }
 })
 
+# ---- v1.4:預設供應商改為 Google Gemini(gemini-flash-latest 常青別名)------
+
+test_that('a.yaml 預設 provider=gemini、model=provider_spec("gemini")$default_model(兩分析一致)', {
+    for (f in c('askllm.a.yaml', 'askllmr.a.yaml')) {
+        a_yaml <- yaml::read_yaml(file.path('..', '..', 'jamovi', f))
+        opts <- setNames(a_yaml$options, vapply(a_yaml$options, `[[`, character(1), 'name'))
+        expect_equal(opts$provider$default, 'gemini', info = f)
+        expect_equal(opts$model$default, provider_spec('gemini')$default_model, info = f)
+    }
+})
+
+test_that('兩個 js 具備 hideRetiredProviders 並在 loaded 事件呼叫(方案 a:UI 隱藏、enum 保留)', {
+    for (f in c('askllm.js', 'askllmr.js')) {
+        src <- paste(readLines(file.path('..', '..', 'jamovi', 'js', f), warn = FALSE),
+                     collapse = '\n')
+        expect_true(grepl('function hideRetiredProviders', src, fixed = TRUE), info = f)
+        expect_true(grepl("RETIRED_PROVIDERS = ['github']", src, fixed = TRUE), info = f)
+        # loaded 內呼叫(而非只定義)
+        loaded_body <- regmatches(src, regexpr('loaded\\(ui\\) \\{[\\s\\S]*?\\n    \\},', src, perl = TRUE))
+        expect_true(grepl('hideRetiredProviders(ui)', loaded_body, fixed = TRUE), info = f)
+    }
+})
+
 test_that('兩個 js 的 PROVIDER_DEFAULTS.github 為空字串(不再帶入已退役的預設模型)', {
     for (f in c('askllm.js', 'askllmr.js')) {
         lines <- readLines(file.path('..', '..', 'jamovi', 'js', f), warn = FALSE)

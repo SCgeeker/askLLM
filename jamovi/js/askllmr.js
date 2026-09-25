@@ -132,6 +132,49 @@ function init(ui) {
     }
 }
 
+// v1.4 方案 (a):GitHub Models 已退役,從 Provider 下拉「隱藏」該項,但 a.yaml
+// 的 enum 值保留(jmvcore OptionList 會拒絕不在宣告清單內的值,刪 enum 會讓
+// 舊 .omv 失效)。只在目前值不是 github 時移除——若舊檔載入時就是 github,
+// 保留該項讓使用者看得到「(retired)」並照 R 端退役說明改選。
+// 兩條路徑:優先用 ComboBox 的 options property(jamovi client 有註冊、
+// 改動會 updateOptionsList),失敗再退回 DOM 移除 <option>;全程 try/catch。
+const RETIRED_PROVIDERS = ['github'];
+
+function hideRetiredProviders(ui) {
+    try {
+        let current = getOption(ui, 'provider');
+        let toHide = RETIRED_PROVIDERS.filter((p) => p !== current);
+        if (toHide.length === 0)
+            return;
+        let ctrl = ui.provider;
+        let done = false;
+        try {
+            if (ctrl && typeof ctrl.getPropertyValue === 'function' &&
+                typeof ctrl.setPropertyValue === 'function') {
+                let opts = ctrl.getPropertyValue('options');
+                if (Array.isArray(opts)) {
+                    let kept = opts.filter((o) => {
+                        let name = (o && typeof o === 'object') ? (o.name || o.value) : o;
+                        return toHide.indexOf(name) < 0;
+                    });
+                    if (kept.length < opts.length) {
+                        ctrl.setPropertyValue('options', kept);
+                        done = true;
+                    }
+                }
+            }
+        } catch (e) { }
+        if (!done) {
+            let root = (ctrl && ctrl.el) ? ctrl.el : ui.view.el;
+            if (!root) return;
+            let els = Array.from(root.querySelectorAll('option'));
+            els.forEach((el) => {
+                if (toHide.indexOf(el.value) >= 0) el.remove();
+            });
+        }
+    } catch (e) { }
+}
+
 // provider 切換時,若 model 仍是「某個 provider 的預設值」(或空白),
 // 自動帶入新 provider 的預設模型;使用者自訂的 model 值不動。
 function onProviderChanged(ui) {
@@ -152,7 +195,10 @@ module.exports = {
 
     loaded(ui) {
         // 控制項可能尚未渲染完成,延後一輪事件迴圈再注入
-        setTimeout(() => { try { init(ui); } catch (e) { } }, 0);
+        setTimeout(() => {
+            try { init(ui); } catch (e) { }
+            hideRetiredProviders(ui);
+        }, 0);
     },
 
     updated(ui) {
