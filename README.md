@@ -111,6 +111,8 @@ A `.jmo` file is built for one specific **OS × CPU architecture** combination (
 
 Untick **Submit** before editing your question, then re-tick it — this avoids triggering a new (billable) call on every keystroke.
 
+**Add "Before you report" checklist** (jamovi Module Guider, v1.4, on by default) asks the model to end every answer with a short checklist: the assumption checks the suggested analysis needs and where to tick them in jamovi, the effect sizes and confidence intervals to report, how to handle the missing values in your summary, and whether the sample size looks adequate. The data summary now also includes each numeric variable's skewness so that advice has something to stand on. Untick the option if you only want the recommendation.
+
 **Show what will be sent (no LLM call)** (v1.4) prints the exact system prompt and user prompt that *would* be sent — data summary, module list and all — without calling anything. Use it to check before you send, to show students what an LLM actually receives, or to document a data-protection review. Untick it and tick **Submit** to send for real.
 
 **Include installed modules** (jamovi Module Guider only, enabled by default) automatically scans your jamovi modules and feeds them to the LLM, so path suggestions accurately match your installed analyses. Untick this option to revert to v1.0 behavior. R code tutor scans your Rj environment instead, unconditionally, so code suggestions only use packages you actually have.

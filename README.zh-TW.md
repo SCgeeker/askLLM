@@ -106,6 +106,8 @@ askLLM 以側載(side-load)`.jmo` 檔的方式發佈。
 
 修改問題前請先取消勾選 **Submit**,改好再重新勾選——避免每次改動都觸發一次新的(計費)呼叫。
 
+**Add "Before you report" checklist**(jamovi Module Guider,v1.4,預設開啟)要求模型在每則回覆結尾附一段短檢查表:建議分析所需的前提檢驗與在 jamovi 何處勾選、應報告的效果量與信賴區間、摘要中缺失值的處理方式、樣本數是否足夠。資料摘要也新增各數值變項的偏態(skew),讓這些建議有資料根據。只想要分析建議的話取消勾選即可。
+
 **Show what will be sent (no LLM call)**(v1.4)會把*將要*送出的 system prompt 與 user prompt 原文——資料摘要、模組清單等全部——直接印出來,不呼叫任何服務。適合送出前自我檢查、讓學生看 LLM 究竟收到什麼、或作為資料保護審查的佐證。取消勾選後再勾 **Submit** 才會真正送出。
 
 **Include installed modules**(僅 jamovi Module Guider 有,預設開啟)會自動掃描你的 jamovi 模組並供給 LLM,讓路徑建議精準對應你安裝的分析;取消勾選此選項即回到 v1.0 行為。R code tutor 則是無條件掃描你的 Rj 環境,確保產出的程式碼只用你實際有的套件。

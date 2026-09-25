@@ -50,23 +50,37 @@ count_chars <- function(x) {
 
 # ---- 各型態的單變項摘要(回傳多行字串,不含前導空行)----------------------
 
+# 樣本偏態(v1.4 項目 D):g1 = m3 / m2^(3/2)(母體動差版,與 e1071 type 1 同);
+# n < 3 或零變異 → NA。給「前提檢驗」建議一個資料根據(常態性粗判),不做檢定。
+.skewness <- function(x) {
+    x <- x[!is.na(x)]
+    n <- length(x)
+    if (n < 3) return(NA_real_)
+    d <- x - mean(x)
+    m2 <- mean(d^2)
+    if (!is.finite(m2) || m2 <= 0) return(NA_real_)
+    mean(d^3) / m2^1.5
+}
+
 .summ_numeric <- function(name, x, cls) {
     x2 <- x[!is.na(x)]
     n <- length(x2); miss <- sum(is.na(x))
     if (n == 0) {
-        m <- s <- md <- mn <- mx <- NA_real_
+        m <- s <- md <- mn <- mx <- sk <- NA_real_
     } else {
         m  <- mean(x2)
         s  <- if (n < 2) NA_real_ else stats::sd(x2)
         md <- stats::median(x2)
         mn <- min(x2); mx <- max(x2)
+        sk <- .skewness(x2)
     }
     paste0(
         name, ' [', cls, ']:\n',
         '  n: ', n, ', missing: ', miss, '\n',
         '  mean: ', .fmt_num(m), ', sd: ', .fmt_num(s),
         ', median: ', .fmt_num(md),
-        ', min: ', .fmt_num(mn), ', max: ', .fmt_num(mx))
+        ', min: ', .fmt_num(mn), ', max: ', .fmt_num(mx),
+        ', skew: ', .fmt_num(sk))
 }
 
 # ---- 識別碼型欄位守門(v1.4 項目 C:隱私)------------------------------------

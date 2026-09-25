@@ -33,8 +33,9 @@
 .askllm_build_payload <- function(question, summary_text, base_url, model,
                                   context_text = '', role = 'consultant',
                                   prompt_lang = 'en', system_prompt = '',
-                                  system_prompt_var = '', enable_actions = FALSE) {
-    paste(
+                                  system_prompt_var = '', enable_actions = FALSE,
+                                  checklist = FALSE) {
+    out <- paste(
         question %||% '',
         summary_text %||% '',
         base_url %||% '',
@@ -46,6 +47,12 @@
         system_prompt_var %||% '',
         as.character(isTRUE(enable_actions)),  # 格式 v1.4:動作開關納入指紋
         sep = .ASKLLM_SEP)
+    # 格式 v1.5(v1.4 項目 D):checklist 開啟時才追加欄位——關閉時輸出與 v1.4
+    # 逐字相同(既有 byte-identical 測試不動);切換開關必須觸發新呼叫,否則
+    # 防抖快取會回放沒有/有檢查表的舊回覆。
+    if (isTRUE(checklist))
+        out <- paste(out, 'checklist', sep = .ASKLLM_SEP)
+    out
 }
 
 #' includeCatalog 為 TRUE 時掃描本機模組並組出 catalog/available 文字
@@ -268,6 +275,32 @@
             '若使用者要求,你也可以依現有變數的公式建立計算欄。',
             '回覆時請維持蘇格拉底式教學語氣。')))
 
+#' 「Before you report」後記檢查表後綴(v1.4 項目 D;`checklist = TRUE` 時附加)
+#'
+#' 文獻背景:社科研究報告中不到 25% 檢查前提;APA 報告最常見錯誤是漏報效果量。
+#' 本後綴要求 Module Guider 每則回覆結尾固定附一段短檢查表:(a) 前提檢驗與其
+#' 在 jamovi 內的位置(有 catalog 時逐字引用路徑);(b) 該報告的效果量與 CI;
+#' (c) `<summary>` 顯示的缺失值如何處理;(d) 樣本數是否足夠——檢定力工具
+#' (jpower)只在提供的清單中有它時才可提及(維持零捏造規則)。
+#' 純 prompt,不執行任何東西;與人格無關,故不放進 `.ASKLLM_PROMPTS`。
+.ASKLLM_CHECKLIST_SUFFIX <- list(
+    en = paste(
+        'End your answer with a short section titled "Before you report" with',
+        'at most five bullet points: (a) the assumption checks the recommended',
+        'analysis needs and where to tick them in jamovi (quote the menu path',
+        'from <installed_analyses> when a list is provided); (b) the effect',
+        'size(s) and confidence interval(s) to report; (c) how to handle any',
+        'missing values shown in <summary>; (d) whether the sample size looks',
+        'adequate for the design — mention a power-analysis module ONLY if it',
+        'appears literally in the provided lists.',
+        sep = ' '),
+    zh = paste0(
+        '回覆結尾請固定附一段標題為「Before you report(報告前檢查)」的短檢查表,',
+        '最多五點:(a) 建議分析所需的前提檢驗,以及在 jamovi 哪裡勾選',
+        '(有提供清單時逐字引用其中的選單路徑);(b) 應報告的效果量與信賴區間;',
+        '(c) <summary> 中顯示的缺失值該如何處理;(d) 就此設計而言樣本數是否足夠',
+        '——檢定力分析模組只有在提供的清單中逐字出現時才可提及。'))
+
 #' 送給 LLM 的 system prompt
 #'
 #' 優先序:`system_prompt`(去空白後非空)＞ `prompts[[role]][[lang]]`。
@@ -283,9 +316,12 @@
 #' role='consultant'、lang='en'、system_prompt=''、has_catalog=FALSE、
 #' enable_actions=FALSE(預設),回傳字串仍會比 v1.1 多出邊界句這一段;
 #' 回歸測試已改為「base/catalog/action 內容不變 + 含邊界句」而非逐字比對。
+#' @param checklist v1.4 項目 D:TRUE 時於邊界句之前附加
+#'   `.ASKLLM_CHECKLIST_SUFFIX[[lang]]`;預設 FALSE 使既有呼叫輸出逐字不變
+#'   (UI 選項 `addChecklist` 預設開啟,由 `.runInner()` 傳入)。
 .askllm_system_prompt <- function(role = 'consultant', lang = 'en',
                                   system_prompt = '', has_catalog = FALSE,
-                                  enable_actions = FALSE) {
+                                  enable_actions = FALSE, checklist = FALSE) {
     if (is.null(role) || !role %in% names(.ASKLLM_PROMPTS)) role <- 'consultant'
     if (is.null(lang) || !lang %in% c('en', 'zh')) lang <- 'en'
 
@@ -297,6 +333,8 @@
         out <- paste(out, .ASKLLM_CATALOG_SUFFIX[[lang]])
     if (isTRUE(enable_actions))
         out <- paste(out, .ASKLLM_ACTION_SUFFIX[[role]][[lang]])  # role 已落回三者之一
+    if (isTRUE(checklist))
+        out <- paste(out, .ASKLLM_CHECKLIST_SUFFIX[[lang]])
     out <- paste(out, .ASKLLM_R_REDIRECT_SUFFIX[[lang]])  # 雙向邊界,恆附加
     out
 }
@@ -617,18 +655,21 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             }
             custom <- .askllm_resolve_custom(var_desc %||% '', '')
 
+            checklist <- isTRUE(opt$addChecklist)   # v1.4 項目 D
             payload <- .askllm_build_payload(
                 question, summary_text, spec$base_url, model,
                 context_text = context_text,
                 role = opt$role, prompt_lang = opt$promptLang,
                 system_prompt = custom,
-                system_prompt_var = opt$systemPromptVar %||% '')
+                system_prompt_var = opt$systemPromptVar %||% '',
+                checklist = checklist)
 
             # --- 2d. 預覽:原文照排會送出的 system/user prompt,零呼叫 -------
             if (preview) {
                 sys_prompt <- .askllm_system_prompt(
                     role = opt$role, lang = opt$promptLang, system_prompt = custom,
-                    has_catalog = !is.null(catalog_text_value))
+                    has_catalog = !is.null(catalog_text_value),
+                    checklist = checklist)
                 user_prompt <- build_prompt(question, summary_text,
                     catalog_text = catalog_text_value,
                     available_text = available_text_value)
@@ -705,7 +746,8 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                     role          = opt$role,
                     lang          = opt$promptLang,
                     system_prompt = custom,
-                    has_catalog   = !is.null(catalog_text_value)),
+                    has_catalog   = !is.null(catalog_text_value),
+                    checklist     = checklist),
                 max_tokens     = 4096)
 
             # --- 7. 呈現 --------------------------------------------------

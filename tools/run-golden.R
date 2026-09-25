@@ -22,6 +22,7 @@ run_golden <- function(provider = 'gemini',
                        ids = NULL,
                        base_url_option = '',
                        with_catalog = TRUE,
+                       checklist = TRUE,   # v1.4 D:與 UI 預設(addChecklist=TRUE)一致
                        scan_dirs = NULL,
                        max_tokens = 4096,
                        sleep_s = 3,
@@ -102,7 +103,8 @@ run_golden <- function(provider = 'gemini',
                            available_text = available_text_value,
                            base_url = spec$base_url, model = model, api_key = api_key,
                            system_prompt = sys_guider(role = role, lang = lang,
-                               has_catalog = !is.null(catalog_text_value)),
+                               has_catalog = !is.null(catalog_text_value),
+                               checklist = checklist),
                            max_tokens = max_tokens)
         }
 
@@ -131,6 +133,7 @@ run_golden <- function(provider = 'gemini',
     lines <- c(
         paste0('# Golden set report — ', provider, ' / `', model, '` — ', stamp),
         '',
+        paste0('- checklist suffix (v1.4 D): ', checklist),
         paste0('- items: ', length(rows), '; mean score (scored items): ',
                if (all(is.na(scores))) 'n/a' else round(mean(scores, na.rm = TRUE), 1)),
         paste0('- legal paths from local scan: ', length(legal_paths),
@@ -161,6 +164,7 @@ run_golden <- function(provider = 'gemini',
         elapsed_s = r$res$elapsed_s %||% NA_real_, score = r$score$score,
         components = as.list(r$score$components), warnings = r$score$warnings))
     writeLines(jsonlite::toJSON(list(provider = provider, model = model, stamp = stamp,
+                                     checklist = checklist,
                                      legal_paths = length(legal_paths), items = summary),
                                 auto_unbox = TRUE, pretty = TRUE, na = 'null'),
                json_out, useBytes = TRUE)
