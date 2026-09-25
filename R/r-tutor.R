@@ -328,7 +328,7 @@
 #'
 #' @param has_rj_env 見 `.askllm_rj_caveat_lines()`:`TRUE`/`FALSE` 兩態各附
 #'   一句,`NA`(預設)不附加。
-.askllmr_caveat_text <- function(has_rj_env = NA) {
+.askllmr_caveat_text <- function(has_rj_env = NA, pii_flags = NULL) {
     lines <- .askllm_rj_caveat_lines(has_rj_env)
 
     paste(c(
@@ -339,7 +339,9 @@
         '',
         '⚠ 程式碼由 LLM 生成,可能有誤,執行前請務必自行查證:',
         lines$zh,
-        '  • 數值與 jamovi 輸出不符時,以 jamovi 為準。'),
+        '  • 數值與 jamovi 輸出不符時,以 jamovi 為準。',
+        # v1.4 項目 C:疑似個資欄位提示;NULL/空時逐字不變
+        if (length(pii_flags %||% character(0)) > 0) c('', .askllm_pii_lines(pii_flags)) else NULL),
         collapse = '\n')
 }
 
@@ -368,7 +370,8 @@
         'service, together with the NAMES of the R packages bundled with',
         'your installed Rj (environment metadata, none of your data) so the',
         'code fits what you actually have. Use Ollama (local) if you prefer',
-        'zero data to leave your machine.',
+        'zero data to leave your machine. Tick "Show what will be sent',
+        '(no LLM call)" to see the exact prompt before sending anything.',
         '',
         'The guidance text on this panel is bundled with the module;',
         'askLLM does not fetch teaching material over the network on your',
@@ -393,6 +396,7 @@
         '將傳送到所選的 LLM 服務,連同你已安裝 Rj 隨附套件的「名稱」',
         '(環境中繼資料,不含你的任何資料內容),讓程式碼符合你實際擁有的環境。',
         '若不希望任何資料外送,可改用 Ollama(本機)。',
+        '勾選「Show what will be sent (no LLM call)」可在送出前看到完整的 prompt 原文。',
         '',
         '本面板的引導文字為模組內建的靜態內容;',
         'askLLM 不會自動連網抓取教材。',

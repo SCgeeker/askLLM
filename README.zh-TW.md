@@ -106,6 +106,8 @@ askLLM 以側載(side-load)`.jmo` 檔的方式發佈。
 
 修改問題前請先取消勾選 **Submit**,改好再重新勾選——避免每次改動都觸發一次新的(計費)呼叫。
 
+**Show what will be sent (no LLM call)**(v1.4)會把*將要*送出的 system prompt 與 user prompt 原文——資料摘要、模組清單等全部——直接印出來,不呼叫任何服務。適合送出前自我檢查、讓學生看 LLM 究竟收到什麼、或作為資料保護審查的佐證。取消勾選後再勾 **Submit** 才會真正送出。
+
 **Include installed modules**(僅 jamovi Module Guider 有,預設開啟)會自動掃描你的 jamovi 模組並供給 LLM,讓路徑建議精準對應你安裝的分析;取消勾選此選項即回到 v1.0 行為。R code tutor 則是無條件掃描你的 Rj 環境,確保產出的程式碼只用你實際有的套件。
 
 **Use a variable's Description as the system prompt**(在「LLM settings」內)可讓你直接用資料集本身驅動人格,不必在模組裡另外輸入:在 jamovi 變數的 Setup 面板中填入該變數的**Description**(如人格設定或任務指示),在此選取該變數,系統即會以它的 Description 作為 system prompt。兩個分析的優先序都是:該變數的 Description(有選取且非空時)＞ Persona 模板。(早期版本的「Custom system prompt」文字框已移除,現在變數 Description 是唯一的自訂 prompt 管道。)適合已在 codebook 中記錄好各變數情境、想直接讓 LLM 沿用的情境。
@@ -141,6 +143,8 @@ askLLM 以側載(side-load)`.jmo` 檔的方式發佈。
 - **jamovi Module Guider** 還會送出已安裝模組的名稱與選單清單(環境中繼資料,不含資料值),用以確保建議的路徑都真實存在;你可用「Include installed modules」選項關閉此功能。
 - **R code tutor** 還會送出你 Rj 環境隨附的 R 套件**名稱**(絕不含套件內容),確保產出的程式碼只用你實際有的套件。它絕不替你執行 R——程式碼由你貼進 Rj、自己跑。
 - 若你需要**完全零資料外送**,請選擇 **Ollama(本機)** 這個 provider——包含 LLM 本身在內,一切都在你自己的電腦上執行。
+- **識別碼欄位絕不列值**(v1.4):文字或類別欄若幾乎每列都不同(姓名、學號、email),摘要只回報相異值個數、不列出任何值。欄名或值看起來像個資(id、name、email、phone、address……)的變項會在結果面板標示,方便你取消勾選。
+- **送出前可以看到全部內容**:勾選 **Show what will be sent (no LLM call)**。
 
 ## 隱私設計 vs. 代理式 AI
 

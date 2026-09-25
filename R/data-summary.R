@@ -69,12 +69,40 @@ count_chars <- function(x) {
         ', min: ', .fmt_num(mn), ', max: ', .fmt_num(mx))
 }
 
+# ---- 識別碼型欄位守門(v1.4 項目 C:隱私)------------------------------------
+#
+# 現況真實缺口:字元/factor 欄若是姓名、學號、email 這類「幾乎每列都不同」的
+# 識別碼,`.format_counts()` 會把前 max_levels 個「值本身」(即個資)送進 prompt。
+# 守門規則(純函式、決定性):非缺失觀測數 n 中相異值數 k 同時滿足
+#   k > min_distinct(預設 20)且 k / n > ratio(預設 0.9)
+# 即視為識別碼型,只回報「k distinct (identifier-like; values withheld)」,
+# 不列任何值。真正的多水準類別(如 22 個縣市重複出現)k/n 遠小於 0.9,不受影響;
+# `maxLevels` 使用者選項照舊只管「列幾個」。
+.ASKLLM_ID_MIN_DISTINCT <- 20L
+.ASKLLM_ID_RATIO <- 0.9
+
+.askllm_identifier_like <- function(k, n, min_distinct = .ASKLLM_ID_MIN_DISTINCT,
+                                    ratio = .ASKLLM_ID_RATIO) {
+    k <- as.integer(k %||% 0L); n <- as.integer(n %||% 0L)
+    if (is.na(k) || is.na(n) || n <= 0L) return(FALSE)
+    k > min_distinct && (k / n) > ratio
+}
+
+.ASKLLM_ID_WITHHELD <- 'identifier-like; values withheld'
+
 .summ_factor <- function(name, x, max_levels) {
     ordered <- is.ordered(x)
     cls <- if (ordered) 'ordered factor' else 'factor'
     miss <- sum(is.na(x))
     n <- sum(!is.na(x))
     k <- nlevels(x)
+    k_obs <- length(unique(x[!is.na(x)]))
+    if (.askllm_identifier_like(k_obs, n)) {
+        return(paste0(
+            name, ' [', cls, ']:\n',
+            '  n: ', n, ', missing: ', miss, ', ', k, ' levels\n',
+            '  levels: ', k_obs, ' distinct (', .ASKLLM_ID_WITHHELD, ')'))
+    }
     counts <- table(x)                 # 依宣告水準製表(addNA 的 NA 水準也計入)
     line_counts <- .format_counts(counts, max_levels, order_by_count = TRUE)
     out <- paste0(
@@ -94,11 +122,70 @@ count_chars <- function(x) {
     n <- length(x2)
     counts <- table(x2)
     distinct <- length(counts)
+    if (.askllm_identifier_like(distinct, n)) {
+        return(paste0(
+            name, ' [character]:\n',
+            '  n: ', n, ', missing: ', miss, ', ', distinct, ' distinct values\n',
+            '  values: ', .ASKLLM_ID_WITHHELD))
+    }
     line_counts <- .format_counts(counts, max_levels, order_by_count = TRUE)
     paste0(
         name, ' [character]:\n',
         '  n: ', n, ', missing: ', miss, ', ', distinct, ' distinct values\n',
         '  top values: ', line_counts)
+}
+
+# ---- 疑似個資欄位偵測(v1.4 項目 C)-------------------------------------------
+#
+# 只做「提示」,不改變送出內容(送出內容由上方守門與 maxLevels 決定):
+#   (a) 欄名樣式:id/name/email/phone/address/身分證… 等常見個資欄名;
+#   (b) 值樣式(僅 character/factor):非缺失值中 ≥ 50% 長得像 email 或電話;
+#   (c) 基數:識別碼型(同上方守門規則)。
+# 回傳每個被標記變項一行 `var (reason)`;無 → character(0)。純函式、決定性。
+# 兩層欄名規則(皆不分大小寫):
+#   (1) 整個欄名就是個資詞(避免 'paid'/'grid' 這類子字串誤判);
+#   (2) 個資詞作為以 . _ - 空白 分隔的「一節」出現(student_id、first name、
+#       patient.id、Email Address)。
+.ASKLLM_PII_NAME_WORDS <- c(
+    'id', 'uid', 'uuid', 'guid', 'ssn', 'passport', 'ip',
+    'name', 'fullname', 'surname', 'firstname', 'lastname', 'nickname',
+    'email', 'e-mail', 'mail', 'phone', 'tel', 'telephone', 'mobile', 'cell',
+    'address', 'addr', 'street', 'zip', 'postcode',
+    '姓名', '名字', '電話', '手機', '地址', '住址', '身分證', '身份證', '信箱', '學號')
+.ASKLLM_PII_NAME_PATTERN <- paste0(
+    '(^|[._ -])(', paste(gsub('([.\\-])', '\\\\\\1', .ASKLLM_PII_NAME_WORDS), collapse = '|'),
+    ')([._ -]|$)')
+
+.askllm_pii_flags <- function(df, vars) {
+    vars <- as.character(vars %||% character(0))
+    vars <- vars[vars %in% names(df)]
+    flags <- character(0)
+    for (v in vars) {
+        x <- df[[v]]
+        reasons <- character(0)
+        if (grepl(.ASKLLM_PII_NAME_PATTERN, tolower(v), perl = TRUE) ||
+            grepl(.ASKLLM_PII_NAME_PATTERN, v, perl = TRUE))
+            reasons <- c(reasons, 'name looks like an identifier/personal field')
+
+        if (is.character(x) || is.factor(x)) {
+            vals <- as.character(x[!is.na(x)])
+            n <- length(vals)
+            if (n > 0) {
+                k <- length(unique(vals))
+                if (.askllm_identifier_like(k, n))
+                    reasons <- c(reasons, 'nearly every row has a distinct value')
+                email_share <- mean(grepl('^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$', vals))
+                if (email_share >= 0.5)
+                    reasons <- c(reasons, 'values look like email addresses')
+                phone_share <- mean(grepl('^\\+?[0-9][0-9 ()-]{6,}[0-9]$', vals))
+                if (phone_share >= 0.5)
+                    reasons <- c(reasons, 'values look like phone numbers')
+            }
+        }
+        if (length(reasons) > 0)
+            flags <- c(flags, paste0(v, ' (', paste(unique(reasons), collapse = '; '), ')'))
+    }
+    flags
 }
 
 .summ_logical <- function(name, x) {

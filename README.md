@@ -111,6 +111,8 @@ A `.jmo` file is built for one specific **OS × CPU architecture** combination (
 
 Untick **Submit** before editing your question, then re-tick it — this avoids triggering a new (billable) call on every keystroke.
 
+**Show what will be sent (no LLM call)** (v1.4) prints the exact system prompt and user prompt that *would* be sent — data summary, module list and all — without calling anything. Use it to check before you send, to show students what an LLM actually receives, or to document a data-protection review. Untick it and tick **Submit** to send for real.
+
 **Include installed modules** (jamovi Module Guider only, enabled by default) automatically scans your jamovi modules and feeds them to the LLM, so path suggestions accurately match your installed analyses. Untick this option to revert to v1.0 behavior. R code tutor scans your Rj environment instead, unconditionally, so code suggestions only use packages you actually have.
 
 **Use a variable's Description as the system prompt** (under "LLM settings") lets you drive the persona from your dataset instead of typing it in the module: fill in a variable's **Description** in jamovi's variable Setup panel (e.g. a persona or task instruction), pick that variable here, and its Description is used as the system prompt. In both analyses the priority order is: this variable's Description (if selected and non-empty) > the Persona template. (The separate "Custom system prompt" text box from earlier versions has been removed; the variable's Description is now the only custom-prompt channel.) This is handy for codebooks that already document per-variable context you want the LLM to use.
@@ -146,6 +148,8 @@ Both analyses share the same privacy design:
 - **jamovi Module Guider** also sends the names and menu lists of your installed modules (environmental metadata, no data values), so suggestions reference only real paths. You can disable this with the "Include installed modules" option.
 - **R code tutor** also sends the **names** of the R packages bundled with your Rj environment (never their contents), so suggested code only uses packages you actually have. It never runs R for you — you paste the code into Rj and run it yourself.
 - If you need **zero data to leave your machine**, choose the **Ollama (local)** provider — everything, including the LLM itself, runs on your own computer.
+- **Identifier columns are never listed** (v1.4): if a text or factor column has a distinct value in almost every row (names, student IDs, emails), the summary reports only the count of distinct values and withholds the values themselves. Columns whose name or values look like personal data (id, name, email, phone, address…) are flagged in the results panel so you can untick them.
+- **You can see everything before it goes out**: tick **Show what will be sent (no LLM call)**.
 
 ## Privacy by design vs. agentic AI
 

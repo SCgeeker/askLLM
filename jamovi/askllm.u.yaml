@@ -45,6 +45,8 @@ children:
       - type: CheckBox
         name: includeCatalog
       - type: CheckBox
+        name: previewPayload
+      - type: CheckBox
         name: testConnection
       - type: CheckBox
         name: submit

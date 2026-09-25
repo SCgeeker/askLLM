@@ -351,6 +351,59 @@
         sep = '\n')
 }
 
+#' 疑似個資欄位的雙語提示區塊(v1.4 項目 C;供 caveat / 預覽 共用)
+#'
+#' `flags` 為 `.askllm_pii_flags()` 輸出;空時回傳 `character(0)`(呼叫端
+#' 直接 `c()` 進去即逐字不變,維持既有測試的降級保證)。
+.askllm_pii_lines <- function(flags) {
+    flags <- flags %||% character(0)
+    if (length(flags) == 0) return(character(0))
+    c('⚠ Possible personal data in the selected variables — consider',
+      '  unticking them (only counts/levels are sent, never rows, but',
+      '  level names of an identifier column are the data itself):',
+      paste0('  • ', flags),
+      '⚠ 所選變項疑似含個人資料,建議取消勾選',
+      '  (只送出計數/水準,絕不送資料列;但識別碼欄的水準名本身就是資料):',
+      paste0('  • ', flags))
+}
+
+#' 「Show what will be sent」預覽文字(v1.4 項目 C;零網路)
+#'
+#' 把實際會送給 LLM 的 system prompt 與 user prompt 原文照排,供使用者(或
+#' IRB/資料保護審查)親眼確認送出內容。純函式、決定性;顯示端再經
+#' `.askllm_wrap_html()` 逃逸。
+.askllm_preview_text <- function(system_prompt, user_prompt) {
+    paste(
+        '=== System prompt (sent as the "system" message) ===',
+        system_prompt %||% '',
+        '',
+        '=== User prompt (sent as the "user" message) ===',
+        user_prompt %||% '',
+        sep = '\n')
+}
+
+#' 預覽模式的 instructions 文字(先英後中):零呼叫聲明 + 字元數 + 個資提示
+.askllm_preview_instructions <- function(provider_name, model, n_chars,
+                                         pii_flags = NULL) {
+    paste(c(
+        'PREVIEW ONLY — nothing was sent, no API call, no billing.',
+        sprintf('Target: %s · model %s · prompt ≈ %d chars.', provider_name, model, n_chars),
+        'The panel below shows exactly what would be sent. Untick',
+        '"Show what will be sent" and tick "Submit" to actually send it.',
+        '',
+        '僅預覽——尚未送出任何內容、未呼叫 API、不計費。',
+        sprintf('目標:%s · 模型 %s · prompt 約 %d 字元。', provider_name, model, n_chars),
+        '下方面板即實際會送出的內容。取消勾選「Show what will be sent」',
+        '再勾選「Submit」才會真正送出。',
+        if (length(pii_flags %||% character(0)) > 0) c('', .askllm_pii_lines(pii_flags)) else NULL),
+        collapse = '\n')
+}
+
+#' 預覽模式的 meta 行
+.askllm_preview_meta_line <- function(model) {
+    paste0(model, ' · preview only · 0 API calls')
+}
+
 #' 回覆成功後顯示的查證提醒
 #'
 #' 實測(見 docs/LIMITATIONS)顯示各家模型最常編造的是 **jamovi 選單路徑**
@@ -362,7 +415,8 @@
 #' 不得謊稱比對過——這是模組可信度的一部分。
 #'
 #' @param has_catalog 本次呼叫是否附上了本機已安裝模組清單。
-.askllm_caveat_text <- function(has_catalog = TRUE) {
+#' @param pii_flags `.askllm_pii_flags()` 輸出;`NULL`/空時輸出逐字不變(v1.4)。
+.askllm_caveat_text <- function(has_catalog = TRUE, pii_flags = NULL) {
     first_zh <- if (isTRUE(has_catalog))
         '  • 選單路徑已比對本機安裝清單,仍請以實際介面為準。'
     else
@@ -384,7 +438,8 @@
         '⚠ 回覆由 LLM 生成,可能有誤,請務必自行查證:',
         first_zh,
         '  • 統計建議請以你的研究問題與資料條件判斷是否適用。',
-        '  • 回覆中的數值若與 jamovi 實際分析結果不符,以 jamovi 為準。'),
+        '  • 回覆中的數值若與 jamovi 實際分析結果不符,以 jamovi 為準。',
+        if (length(pii_flags %||% character(0)) > 0) c('', .askllm_pii_lines(pii_flags)) else NULL),
         collapse = '\n')
 }
 
@@ -407,6 +462,7 @@
         'variables (never the raw data rows) are sent to the chosen LLM',
         'service. Use Ollama (local) if you prefer zero data to leave your machine.',
         'To ground suggestions in real menus, the NAMES AND MENU PATHS of your installed jamovi modules (environment metadata, none of your data) are also sent; untick "Include installed modules" to disable this.',
+        'Tick "Show what will be sent (no LLM call)" to see the exact prompt before sending anything.',
         '',
         'Debounce:',
         'Untick "Submit" before editing your question, then re-tick it,',
@@ -425,6 +481,7 @@
         '勾選 Submit 後,所選變項的「摘要統計」(非原始資料列)將傳送到',
         '所選的 LLM 服務。若不希望任何資料外送,可改用 Ollama(本機)。',
         '為了讓建議指向真實選單,已安裝 jamovi 模組的「名稱與選單清單」(環境中繼資料,不含你的任何資料內容)也會一併傳送;取消勾選「Include installed modules」即可停用。',
+        '勾選「Show what will be sent (no LLM call)」可在送出前看到完整的 prompt 原文。',
         '',
         '防抖提醒:',
         '修改問題前請先取消「Submit」勾選,改好後再重新勾選,',
@@ -490,12 +547,20 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 return()
             }
 
+            # --- 0b. 預覽模式旗標(v1.4 項目 C)-----------------------------
+            # 勾選「Show what will be sent」時不受 submit 守門限制(預覽的
+            # 意義就是「送出前先看」),但仍走完摘要/catalog/自訂 prompt 的
+            # 組裝,於 payload 組好、快取比對之前提前 return,零呼叫、不動 state。
+            preview <- isTRUE(opt$previewPayload)
+
             # --- 1. 守門 ---------------------------------------------------
             question <- opt$question
-            if (!isTRUE(opt$submit) || !nzchar(trimws(question %||% ''))) {
+            if (!preview &&
+                (!isTRUE(opt$submit) || !nzchar(trimws(question %||% '')))) {
                 self$results$instructions$setContent(.askllm_guide_text())
                 return()
             }
+            question <- question %||% ''
 
             # --- 2. 組 payload --------------------------------------------
             summary_text <- NULL
@@ -558,6 +623,25 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 role = opt$role, prompt_lang = opt$promptLang,
                 system_prompt = custom,
                 system_prompt_var = opt$systemPromptVar %||% '')
+
+            # --- 2d. 預覽:原文照排會送出的 system/user prompt,零呼叫 -------
+            if (preview) {
+                sys_prompt <- .askllm_system_prompt(
+                    role = opt$role, lang = opt$promptLang, system_prompt = custom,
+                    has_catalog = !is.null(catalog_text_value))
+                user_prompt <- build_prompt(question, summary_text,
+                    catalog_text = catalog_text_value,
+                    available_text = available_text_value)
+                pii <- tryCatch(.askllm_pii_flags(self$data, opt$vars),
+                                error = function(e) character(0))
+                preview_txt <- .askllm_preview_text(sys_prompt, user_prompt)
+                self$results$answer$setContent(.askllm_wrap_html(preview_txt))
+                self$results$meta$setContent(.askllm_preview_meta_line(model))
+                self$results$instructions$setContent(.askllm_preview_instructions(
+                    .askllm_provider_name(opt$provider), model,
+                    count_chars(preview_txt), pii))
+                return()
+            }
 
             # --- 3. state 快取比對 ----------------------------------------
             st <- self$results$answer$state
@@ -640,8 +724,10 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                     text        = reply_text,
                     meta_line   = meta_line,
                     has_catalog = has_catalog))
+                pii <- tryCatch(.askllm_pii_flags(self$data, opt$vars),
+                                error = function(e) character(0))
                 self$results$instructions$setContent(
-                    .askllm_caveat_text(has_catalog = has_catalog))
+                    .askllm_caveat_text(has_catalog = has_catalog, pii_flags = pii))
             } else {
                 # 失敗:保留上次成功的 answer/meta(不動),不 setState
                 self$results$instructions$setContent(paste0(

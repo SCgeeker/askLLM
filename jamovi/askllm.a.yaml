@@ -37,6 +37,11 @@ options:
       type: Bool
       default: true
 
+    - name: previewPayload
+      title: 'Show what will be sent (no LLM call)'
+      type: Bool
+      default: false
+
     - name: submit
       title: 'Submit (call the LLM)'
       type: Bool

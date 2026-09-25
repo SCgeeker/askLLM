@@ -53,9 +53,13 @@ askllmrClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             has_rj_env <- !is.null(rj_env_text_value)
             rj_installed <- isTRUE(rj$installed)
 
+            # --- 0b. 預覽模式旗標(v1.4 項目 C;與 askllm.b.R 同設計)-----------
+            preview <- isTRUE(opt$previewPayload)
+
             # --- 1. 守門 -----------------------------------------------------
             question <- opt$question
-            if (!isTRUE(opt$submit) || !nzchar(trimws(question %||% ''))) {
+            if (!preview &&
+                (!isTRUE(opt$submit) || !nzchar(trimws(question %||% '')))) {
                 guide <- .askllmr_guide_text()
                 if (!rj_installed)
                     guide <- paste(.askllmr_no_rj_text(), '', guide, sep = '\n')
@@ -108,6 +112,30 @@ askllmrClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                 role = opt$role, prompt_lang = opt$promptLang,
                 system_prompt = custom,
                 system_prompt_var = opt$systemPromptVar %||% '')
+
+            # --- 5b. 預覽:原文照排會送出的 system/user prompt,零呼叫 ----------
+            if (preview) {
+                question <- question %||% ''
+                sys_prompt <- .askllmr_system_prompt(
+                    role = opt$role, lang = opt$promptLang, system_prompt = custom,
+                    has_rj_env = has_rj_env)
+                user_prompt <- build_prompt(question, summary_text,
+                    rj_env_text = rj_env_text_value)
+                pii <- tryCatch(.askllm_pii_flags(self$data, opt$vars),
+                                error = function(e) character(0))
+                preview_txt <- .askllm_preview_text(sys_prompt, user_prompt)
+                self$results$code$setContent(.askllm_wrap_html(preview_txt))
+                self$results$explanation$setContent('')
+                self$results$meta$setContent(.askllm_preview_meta_line(model))
+                instr <- .askllm_preview_instructions(
+                    .askllm_provider_name(opt$provider), model,
+                    count_chars(preview_txt), pii)
+                if (!rj_installed)
+                    instr <- paste(.askllmr_no_rj_text(), '', instr, sep = '\n')
+                self$results$instructions$setContent(instr)
+                self$results$links$setContent(.askllmr_links_html(rj_installed))
+                return()
+            }
 
             # --- 6. state 快取比對(state 存於 code 結果項)------------------------
             st <- self$results$code$state
@@ -187,8 +215,10 @@ askllmrClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                     .askllm_wrap_html(parts$explanation))
                 meta_line <- .askllm_meta_line(model, res$elapsed_s)
                 self$results$meta$setContent(meta_line)
+                pii <- tryCatch(.askllm_pii_flags(self$data, opt$vars),
+                                error = function(e) character(0))
                 self$results$caveat$setContent(
-                    .askllmr_caveat_text(has_rj_env = has_rj_env))
+                    .askllmr_caveat_text(has_rj_env = has_rj_env, pii_flags = pii))
                 self$results$links$setContent(.askllmr_links_html(rj_installed))
 
                 self$results$code$setState(list(
