@@ -44,8 +44,14 @@
 #' @keywords internal
 .askllm_extract_paths <- function(text) {
     if (is.null(text) || !nzchar(text)) return(character(0))
-    lines <- strsplit(text, '\n')[[1]]
-    m <- regmatches(lines, regexpr('Analyses\\s*>\\s*[^\n]+', lines))
+    # 先切成子句再逐句抓路徑:同一行可能列多條路徑(「A. Or B」、「A;B」、
+    # 「A 或 B」),故以句界切開——換行、句號後空白/行尾、分號、「 or/Or 」、
+    # 中文句讀與「或」。避免整串「Analyses > … . Or Analyses > …」被當成一條。
+    lines <- unlist(strsplit(text, '\n'))
+    clauses <- unlist(strsplit(lines,
+        '\\.\\s+|\\.$|;\\s+|\\s+[Oo]r\\s+|，|。|；|、|或', perl = TRUE))
+    clauses <- clauses[nzchar(clauses)]
+    m <- regmatches(clauses, regexpr('Analyses\\s*>\\s*[^\n]+', clauses))
     m <- m[nzchar(m)]
     if (length(m) == 0) return(character(0))
 
