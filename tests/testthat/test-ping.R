@@ -264,6 +264,22 @@ test_that('custom provider 缺 baseUrl → 顯示 spec 錯誤,不呼叫 ping', {
     expect_true(grepl('custom provider 需要填寫', txt, fixed = TRUE))
 })
 
+test_that('github 已退役 → 顯示退役說明,不載入金鑰、不呼叫 ping(v1.3.2)', {
+    opt <- list(provider = 'github', baseUrl = '', model = '')
+    called_load_key <- FALSE
+    called_ping <- FALSE
+    testthat::local_mocked_bindings(
+        load_api_key = function(env_vars) { called_load_key <<- TRUE; NULL },
+        ping_endpoint = function(...) { called_ping <<- TRUE; NULL })
+    txt <- .askllm_test_connection_text(opt)
+    expect_false(called_load_key)
+    expect_false(called_ping)
+    expect_true(grepl('retired', txt, fixed = TRUE))
+    expect_true(grepl('停止服務', txt, fixed = TRUE))
+    # 退役說明本身已含指引,不得再補 custom 專用的 Base URL 提示
+    expect_false(grepl('Base URL', txt, fixed = TRUE))
+})
+
 test_that('缺金鑰的 provider → 顯示 key_setup_text,不呼叫 ping', {
     opt <- list(provider = 'nim', baseUrl = '', model = '')
     testthat::local_mocked_bindings(

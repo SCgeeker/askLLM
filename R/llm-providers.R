@@ -44,17 +44,24 @@ provider_spec <- function(name, base_url_option = '') {
     }
 
     if (name == 'github') {
+        # GitHub Models 已於 2026-07-30 由 GitHub 全面退役(playground、
+        # catalog、inference API 一併關閉;ellmer 0.5.0 亦將 chat_github()
+        # 標為 defunct)。v1.3.2 起此 provider 只回傳 `error`,呼叫端
+        # (.runInner() / .askllm_test_connection_text())看到 error 即顯示
+        # 並提前 return,絕不發出任何網路請求。
+        #
+        # 選項值 'github' 刻意保留在 a.yaml 的 provider 清單中(標題改為
+        # retired),以免既存 .omv 存檔載入時 provider 值不在 enum 內而失效;
+        # 其餘欄位維持退役前的值,供既有測試與文件對照,實際不再被使用。
         return(list(
             base_url = 'https://models.github.ai/inference',
-            # GITHUB_MODELS_TOKEN 排第一是刻意的:gh CLI 與 git credential
-            # helper 會優先讀 GITHUB_TOKEN,若使用者把「只有 Models 權限」的
-            # token 設在該變數,自己的 git push / gh 操作會被 403 擋下。
-            # 專用名稱不與任何工具相撞;後兩者保留與既有設定的相容性。
             env_vars = c('GITHUB_MODELS_TOKEN', 'GITHUB_PAT', 'GITHUB_TOKEN'),
             needs_key = TRUE,
             default_model = 'openai/gpt-4o-mini',
             signup_url = 'https://github.com/settings/tokens',
-            key_example = 'github_pat_xxxxxxxxxxxxxxxxxxxxxxxx'))
+            key_example = 'github_pat_xxxxxxxxxxxxxxxxxxxxxxxx',
+            retired = TRUE,
+            error = .askllm_github_retired_text()))
     }
 
     if (name == 'ollama') {
@@ -88,4 +95,24 @@ provider_spec <- function(name, base_url_option = '') {
     }
 
     stop(sprintf("provider_spec(): unknown provider name '%s'", name))
+}
+
+#' GitHub Models 退役說明(先英文整段,再中文整段;零網路)
+#'
+#' 供 [provider_spec()] 的 `error` 欄位使用;呼叫端直接顯示於 instructions。
+#' 替代供應商依 docs/choose-model.html 的「免信用卡」分組列出。
+#' @keywords internal
+.askllm_github_retired_text <- function() {
+    paste(
+        'GitHub Models was retired by GitHub on 2026-07-30 and can no longer',
+        'be used. Please switch Provider to OpenRouter, NVIDIA NIM, or Google',
+        'Gemini (all offer a free tier without a credit card), then re-tick',
+        'Submit. Which one to pick:',
+        'https://scgeeker.github.io/askLLM/choose-model.html',
+        '',
+        'GitHub Models 已於 2026-07-30 由 GitHub 停止服務,無法再使用。',
+        '請將 Provider 改為 OpenRouter、NVIDIA NIM 或 Google Gemini',
+        '(皆有免信用卡的免費額度),再重新勾選 Submit。挑選指南:',
+        'https://scgeeker.github.io/askLLM/choose-model.html',
+        sep = '\n')
 }

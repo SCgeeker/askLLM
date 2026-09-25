@@ -1,4 +1,6 @@
-# GitHub Models: models available for free
+# GitHub Models: models available for free (retired)
+
+> ⛔ **GitHub Models was retired by GitHub on 2026-07-30**, so none of the models below can be called any more. This page is kept only as a historical snapshot of what the free tier offered. For current free options see [choose a model](https://scgeeker.github.io/askLLM/choose-model.html) (OpenRouter, NVIDIA NIM, Gemini, or Ollama locally).
 
 With just a **GitHub account** (Copilot Free is enough — no credit card), once your token is configured (see [SETUP-github.en.md](SETUP-github.en.md)) any of the models below can be typed straight into askLLM's **Model** field.
 

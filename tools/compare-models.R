@@ -9,8 +9,9 @@
 # 用法 / Usage:
 #   source('tools/compare-models.R')
 #   compare_models(
-#       models   = c('openai/gpt-4o-mini', 'openai/gpt-4.1-mini', 'microsoft/phi-4'),
-#       provider = 'github')
+#       models   = c('openai/gpt-oss-20b:free', 'meta-llama/llama-3.3-70b-instruct:free'),
+#       provider = 'openrouter')
+#   # (GitHub Models 已於 2026-07-30 退役;provider = 'github' 會直接回退役說明。)
 #
 #   # 換資料與問題 / different data and question:
 #   compare_models(
@@ -23,8 +24,8 @@
 #   # catalog 模式(v1.1):附上本機真實掃描的模組選單樹 / with the real
 #   # locally-scanned module menu tree attached to the prompt:
 #   compare_models(
-#       models      = c('openai/gpt-4o-mini'),
-#       provider    = 'github',
+#       models      = c('openai/gpt-oss-20b:free'),
+#       provider    = 'openrouter',
 #       with_catalog = TRUE)
 #
 # 需求 / Requirements:
@@ -52,7 +53,7 @@
 #     編造選單路徑。
 
 compare_models <- function(models,
-                           provider = 'github',
+                           provider = 'openrouter',
                            data = datasets::iris,
                            vars = names(data),
                            question = paste('What analyses suit this dataset?',

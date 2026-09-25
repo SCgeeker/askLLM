@@ -108,7 +108,7 @@ askLLM 以側載(side-load)`.jmo` 檔的方式發佈。
 
 **Include installed modules**(僅 jamovi Module Guider 有,預設開啟)會自動掃描你的 jamovi 模組並供給 LLM,讓路徑建議精準對應你安裝的分析;取消勾選此選項即回到 v1.0 行為。R code tutor 則是無條件掃描你的 Rj 環境,確保產出的程式碼只用你實際有的套件。
 
-**Use a variable's Description as the system prompt**(在「LLM settings」內)可讓你直接用資料集本身驅動人格,不必在模組裡另外輸入:在 jamovi 變數的 Setup 面板中填入該變數的**Description**(如人格設定或任務指示),在此選取該變數,系統即會以它的 Description 作為 system prompt。在 jamovi Module Guider,優先序是:該變數的 Description(有選取且非空時)＞**Custom system prompt** 文字框 ＞ Persona 模板。R code tutor 沒有 Custom system prompt 文字框,優先序是:該變數的 Description(有選取且非空時)＞ Persona 模板。適合已在 codebook 中記錄好各變數情境、想直接讓 LLM 沿用的情境。
+**Use a variable's Description as the system prompt**(在「LLM settings」內)可讓你直接用資料集本身驅動人格,不必在模組裡另外輸入:在 jamovi 變數的 Setup 面板中填入該變數的**Description**(如人格設定或任務指示),在此選取該變數,系統即會以它的 Description 作為 system prompt。兩個分析的優先序都是:該變數的 Description(有選取且非空時)＞ Persona 模板。(早期版本的「Custom system prompt」文字框已移除,現在變數 Description 是唯一的自訂 prompt 管道。)適合已在 codebook 中記錄好各變數情境、想直接讓 LLM 沿用的情境。
 
 ## 支援的 Provider
 
@@ -117,11 +117,10 @@ askLLM 以側載(side-load)`.jmo` 檔的方式發佈。
 | NVIDIA NIM | 有,免信用卡 | 雲端 | [SETUP-nim.zh-TW.md](docs/SETUP-nim.zh-TW.md) |
 | Google Gemini | 有,免信用卡 | 雲端 | [SETUP-gemini.zh-TW.md](docs/SETUP-gemini.zh-TW.md) |
 | OpenRouter | 有,免信用卡(`:free` 模型) | 雲端 | [SETUP-openrouter.zh-TW.md](docs/SETUP-openrouter.zh-TW.md) |
-| GitHub Models | 有(需 GitHub 帳號) | 雲端 | [SETUP-github.zh-TW.md](docs/SETUP-github.zh-TW.md) |
 | Ollama(本機) | 完全免費,無需金鑰 | 你的電腦 | [SETUP-ollama.zh-TW.md](docs/SETUP-ollama.zh-TW.md) |
 | Custom(自訂端點) | 視端點而定 | 自訂 | [SETUP-custom.zh-TW.md](docs/SETUP-custom.zh-TW.md) |
 
-只要有 GitHub 帳號就能免費使用 **35 個模型**(OpenAI、Meta Llama、Microsoft Phi、Mistral、DeepSeek、Cohere)——完整清單、免費額度與挑選建議見 **[GitHub Models 模型清單](docs/MODELS-github.zh-TW.md)**。
+**GitHub Models 已於 2026-07-30 由 GitHub 停止服務**,任何用戶端都無法再使用。askLLM 的 Provider 下拉仍保留該項(標示 *retired*),是為了讓舊的 `.omv` 檔能正常開啟;選了它只會顯示一段說明,引導你改用 OpenRouter、NVIDIA NIM 或 Gemini(皆免信用卡)。只有 GitHub 帳號的話,可以直接用它登入 OpenRouter 或 NVIDIA。挑選指南見 [choose a model](https://scgeeker.github.io/askLLM/choose-model.html)。
 
 想比較不同模型回答的準確性與完整性,可用 [`tools/compare-models.R`](tools/compare-models.R):同一份資料與問題連續問多個模型,產出並排報告。
 
@@ -152,7 +151,7 @@ JASP 0.98(2026-07-02 起)推出「完全整合 AI」,採取代理型設計:把�
 | 面向 | askLLM | JASP 0.98 代理型 AI |
 |---|---|---|
 | **送給 LLM 的資料** | 所選變項的摘要統計(筆數、平均、標準差、類別頻率等) | 分析結果與完整輸出(含所有細節) |
-| **本機執行選項** | Ollama:完全本機,零外送;其他供應商則送雲端 | 僅限 JASP 內部;無完全本機選項 |
+| **本機執行選項** | Ollama:完全本機,零外送;其他供應商則送雲端 | 亦可接本機模型(任何 OpenAI 相容端點),但代理型架構仍會把完整結果與輸出交給模型 |
 | **適用敏感資料情境** | ✓ 支援(尤其搭配 Ollama 本機執行) | ⚠ 需謹慎 |
 
 ### 為何敏感資料要特別留意?

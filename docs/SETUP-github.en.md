@@ -1,4 +1,10 @@
-# Setting up your GitHub Models API key
+# Setting up your GitHub Models API key (retired)
+
+> ⛔ **GitHub Models was retired by GitHub on 2026-07-30.** The playground, model catalog and inference API were all shut down, with no grace period, so nothing on this page works any more. askLLM 1.3.2+ keeps the provider entry only so that older `.omv` files open cleanly; selecting it shows a notice instead of calling anything.
+>
+> **Use one of these instead** (all free, no credit card): [OpenRouter](SETUP-openrouter.en.md), [NVIDIA NIM](SETUP-nim.en.md), or [Google Gemini](SETUP-gemini.en.md). If a GitHub account is all you have, you can sign in to OpenRouter or NVIDIA with it. Not sure which: [choose a model](https://scgeeker.github.io/askLLM/choose-model.html).
+>
+> The original instructions are kept below for historical reference only.
 
 ## What is this
 

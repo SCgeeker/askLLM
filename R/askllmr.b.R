@@ -73,10 +73,8 @@ askllmrClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
 
             spec <- provider_spec(opt$provider, opt$baseUrl)
             if (!is.null(spec$error)) {
-                self$results$instructions$setContent(paste0(
-                    spec$error, '\n\n',
-                    '請在選項的「Base URL (custom provider)」欄位填入自訂端點,',
-                    '再重新勾選 Submit。'))
+                self$results$instructions$setContent(
+                    .askllm_spec_error_text(spec$error, opt$provider, 'Submit'))
                 return()
             }
 

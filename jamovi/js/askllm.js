@@ -12,7 +12,7 @@ const PROVIDER_DEFAULTS = {
     nim: 'meta/llama-3.1-8b-instruct',
     gemini: 'gemini-flash-latest',
     openrouter: 'openai/gpt-oss-20b:free',
-    github: 'openai/gpt-4o-mini',
+    github: '',   // GitHub Models 已於 2026-07-30 退役;R 端 provider_spec 回 error
     ollama: 'llama3.2',
     custom: ''
 };

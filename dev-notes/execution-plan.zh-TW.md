@@ -5,6 +5,10 @@
 > 基準版本：askLLM 1.1.1 → 目標 1.2.0
 > 規劃：Fable；兩項待決點已由作者裁決（見第四節）
 
+> **勘誤（2026-09-25，v1.3.2；依 `dev-notes/v1.4-extension-proposal.zh-TW.md` §2，原文保留不刪）**
+> - 零、項目 3 兩處「jus 3.0 無按鈕 widget，唯一可行觸發器是仿 `submit` 的 Bool checkbox」已不成立：jamovi 2.7.12（2025-11）起 a.yaml `type: Action` 對應 u.yaml `ActionButton`，是真正的按鈕，server 於分析執行後自動把值清回 FALSE（載入 .omv 時亦清除）。`submit`／`testConnection` 改用它可免除「先取消勾選再勾選」的防抖 UX，列為 v1.4 候選（需真機 spike）。證據：研究 B §2.3、研究 D 附錄 A。
+> - GitHub Models 已於 2026-07-30 由 GitHub 全面退役；本文件與 `jasp-ai-landscape` 內所有把它當作可用供應商的敘述均為歷史紀錄。v1.3.2 已將其標為 retired（`provider_spec('github')` 回 `error`）。
+
 ## 進度（2026-07-29）
 - ✅ **里程碑 A1／項目 1 人格選擇**：已實作＋主迴圈驗收（587→ 當時 556 測試綠、降級保證逐字相同）。role/promptLang/systemPrompt 三選項，emoji 人格，顯式語言選單。
 - ✅ **里程碑 A2／項目 4 隱私文件**：README×2＋LIMITATIONS×2 新增隱私差異化小節，主迴圈驗收（純新增、來源可回溯）。

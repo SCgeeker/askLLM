@@ -95,6 +95,8 @@ id 會腐爛；Gemini 已用 `gemini-flash-latest` 自動更新別名，天然�
    結各供應商官方模型頁。
 
 ### jamovi 錨點（關鍵現實：不是 JASP 的 Qt Preferences 面板）
+> **勘誤（2026-09-25，v1.3.2）**：「無超連結 widget」仍成立，但 jus 3.0 並非沒有按鈕——`type: Action` → `ActionButton` 自 jamovi 2.7.12 起為真按鈕（見 `dev-notes/execution-plan.zh-TW.md` 頂部勘誤）。另本文件第二節「供應商設定追隨 JASP 更新」與各 provider 表中的 GitHub Models 已於 2026-07-30 退役；README 對 JASP「無完全本機選項」的比較句亦已於 v1.3.2 改正（JASP 0.98 支援本機模型，差異在資訊架構而非能否本機）。
+
 jus 3.0 選項側欄**無原生可點超連結 widget**，故連結放在能點的兩處：
 - **分析 Help 頁（`jamovi/askllm.md`，即 `?` 說明）**——對應 JASP 右上「i」圖示；
   內容指引「如何先準備自用 API，安裝完畢後 askLLM 如何取得金鑰」。**只放穩定連結，

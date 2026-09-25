@@ -19,7 +19,7 @@ test_that('gemini provider 全欄位正確', {
     expect_equal(spec$signup_url, 'https://aistudio.google.com/apikey')
 })
 
-test_that('github provider 全欄位正確', {
+test_that('github provider 歷史欄位保留(退役前的值,供文件對照)', {
     spec <- provider_spec('github')
     expect_equal(spec$base_url, 'https://models.github.ai/inference')
     expect_equal(spec$env_vars,
@@ -27,6 +27,60 @@ test_that('github provider 全欄位正確', {
     expect_true(spec$needs_key)
     expect_equal(spec$default_model, 'openai/gpt-4o-mini')
     expect_equal(spec$signup_url, 'https://github.com/settings/tokens')
+})
+
+# ---- v1.3.2:GitHub Models 於 2026-07-30 退役 -----------------------------
+
+test_that('github provider 標記 retired 並帶 error(呼叫端據此提前 return)', {
+    spec <- provider_spec('github')
+    expect_true(isTRUE(spec$retired))
+    expect_true(is.character(spec$error) && nzchar(spec$error))
+    # 雙語:先英後中;點名替代供應商與挑選指南
+    expect_true(grepl('retired', spec$error, fixed = TRUE))
+    expect_true(grepl('2026-07-30', spec$error, fixed = TRUE))
+    expect_true(grepl('停止服務', spec$error, fixed = TRUE))
+    expect_true(grepl('OpenRouter', spec$error, fixed = TRUE))
+    expect_true(grepl('choose-model.html', spec$error, fixed = TRUE))
+})
+
+test_that('其餘 provider 皆無 retired/error(退役只影響 github)', {
+    for (p in c('nim', 'gemini', 'openrouter', 'ollama')) {
+        spec <- provider_spec(p)
+        expect_null(spec$error, info = p)
+        expect_null(spec$retired, info = p)
+    }
+    expect_null(provider_spec('custom', 'https://x/v1')$error)
+})
+
+test_that('.askllm_provider_name("github") 顯示名稱標示 retired', {
+    expect_true(grepl('retired', .askllm_provider_name('github'), fixed = TRUE))
+})
+
+test_that('.askllm_spec_error_text:custom 補 Base URL 提示,其餘原樣', {
+    txt <- .askllm_spec_error_text('E', 'custom', 'Submit')
+    expect_true(grepl('Base URL', txt, fixed = TRUE))
+    expect_true(grepl('重新勾選 Submit', txt, fixed = TRUE))
+    txt2 <- .askllm_spec_error_text('E', 'custom', 'Test Connection')
+    expect_true(grepl('重新勾選 Test Connection', txt2, fixed = TRUE))
+    expect_identical(.askllm_spec_error_text('E', 'github', 'Submit'), 'E')
+})
+
+test_that('a.yaml 的 github 選項標題標示 retired(兩個分析一致)', {
+    for (f in c('askllm.a.yaml', 'askllmr.a.yaml')) {
+        a_yaml <- yaml::read_yaml(file.path('..', '..', 'jamovi', f))
+        provider_opt <- Filter(function(o) o$name == 'provider', a_yaml$options)[[1]]
+        gh <- Filter(function(o) o$name == 'github', provider_opt$options)[[1]]
+        expect_true(grepl('retired', gh$title, fixed = TRUE), info = f)
+    }
+})
+
+test_that('兩個 js 的 PROVIDER_DEFAULTS.github 為空字串(不再帶入已退役的預設模型)', {
+    for (f in c('askllm.js', 'askllmr.js')) {
+        lines <- readLines(file.path('..', '..', 'jamovi', 'js', f), warn = FALSE)
+        gh_line <- grep("^\\s*github:", lines, value = TRUE)
+        expect_length(gh_line, 1)
+        expect_true(grepl("github:\\s*''", gh_line), info = f)
+    }
 })
 
 test_that('ollama provider 全欄位正確,免金鑰', {
@@ -96,7 +150,7 @@ test_that('openrouter env_vars 順序:OPENROUTER_API_KEY 優先,LLM_API_KEY 墊�
     expect_equal(ev[length(ev)], 'LLM_API_KEY')
 })
 
-test_that('既有 5 個 provider spec 全部不變(回歸鎖,新增 openrouter 不應動到既有欄位)', {
+test_that('既有 provider spec 全部不變(回歸鎖;github 另見 v1.3.2 退役測試)', {
     nim <- provider_spec('nim')
     expect_equal(nim$base_url, 'https://integrate.api.nvidia.com/v1')
     expect_equal(nim$env_vars, 'NVIDIA_API_KEY')
@@ -106,11 +160,6 @@ test_that('既有 5 個 provider spec 全部不變(回歸鎖,新增 openrouter �
     expect_equal(gemini$base_url, 'https://generativelanguage.googleapis.com/v1beta/openai')
     expect_equal(gemini$env_vars, c('GEMINI_API_KEY', 'GOOGLE_API_KEY'))
     expect_equal(gemini$default_model, 'gemini-flash-latest')
-
-    github <- provider_spec('github')
-    expect_equal(github$base_url, 'https://models.github.ai/inference')
-    expect_equal(github$env_vars, c('GITHUB_MODELS_TOKEN', 'GITHUB_PAT', 'GITHUB_TOKEN'))
-    expect_equal(github$default_model, 'openai/gpt-4o-mini')
 
     ollama <- provider_spec('ollama')
     expect_equal(ollama$base_url, 'http://localhost:11434/v1')

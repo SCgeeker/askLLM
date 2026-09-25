@@ -8,6 +8,9 @@
 #             401 → 金鑰無效;403 → 權限不足;連線失敗/timeout → 網路問題
 #   github override:404(body 含 "page not found")→ 視為金鑰有效,通;
 #                    401 → 未授權。不 fallback 到 catalog URL。
+#                    (GitHub Models 已於 2026-07-30 退役;provider_spec('github')
+#                    現回傳 error,.askllm_test_connection_text() 會提前 return,
+#                    此 override 只剩純函式層的歷史相容,實務不再被觸發。)
 #   gemini override:400 且 body 含 "api key"(不分大小寫)→ 金鑰無效,
 #                    而非落入預設的「其他狀態碼」桶。
 #   nim/openrouter/custom override:/models 公開、不驗證金鑰,200 只代表
@@ -236,9 +239,9 @@ ping_endpoint <- function(provider, base_url, api_key, needs_key,
 .askllm_test_connection_text <- function(opt) {
     spec <- provider_spec(opt$provider, opt$baseUrl)
     if (!is.null(spec$error)) {
-        return(paste0(spec$error, '\n\n',
-            '請在選項的「Base URL (custom provider)」欄位填入自訂端點,',
-            '再重新勾選 Test Connection。'))
+        # custom 缺 baseUrl → 補操作提示;github 退役 → 原樣顯示退役說明。
+        # 兩者都在此提前 return,不進入金鑰載入與 ping。
+        return(.askllm_spec_error_text(spec$error, opt$provider, 'Test Connection'))
     }
 
     provider_name <- .askllm_provider_name(opt$provider)

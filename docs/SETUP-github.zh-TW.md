@@ -1,4 +1,10 @@
-# 設定 GitHub Models API 金鑰
+# 設定 GitHub Models API 金鑰(已退役)
+
+> ⛔ **GitHub Models 已於 2026-07-30 由 GitHub 停止服務。** playground、模型目錄與 inference API 全部關閉、無寬限期,本頁的所有步驟都已無效。askLLM 1.3.2 起保留該 Provider 選項只是為了讓舊的 `.omv` 檔能正常開啟;選了它只會顯示說明,不會發出任何呼叫。
+>
+> **請改用以下任一供應商**(皆免費、免信用卡):[OpenRouter](SETUP-openrouter.zh-TW.md)、[NVIDIA NIM](SETUP-nim.zh-TW.md)、[Google Gemini](SETUP-gemini.zh-TW.md)。只有 GitHub 帳號的話,可以直接用它登入 OpenRouter 或 NVIDIA。不確定選哪個:[挑選指南](https://scgeeker.github.io/askLLM/choose-model.html)。
+>
+> 以下原始步驟僅供歷史參考。
 
 ## 這是什麼
 

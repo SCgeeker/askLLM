@@ -111,7 +111,7 @@
         nim        = 'NVIDIA NIM',
         gemini     = 'Google Gemini',
         openrouter = 'OpenRouter',
-        github     = 'GitHub Models',
+        github     = 'GitHub Models (retired 2026-07)',
         ollama     = 'Ollama (local)',
         custom     = 'Custom (OpenAI-compatible)',
         name)
@@ -299,6 +299,22 @@
         out <- paste(out, .ASKLLM_ACTION_SUFFIX[[role]][[lang]])  # role 已落回三者之一
     out <- paste(out, .ASKLLM_R_REDIRECT_SUFFIX[[lang]])  # 雙向邊界,恆附加
     out
+}
+
+#' provider spec 帶 `error` 時的顯示文字
+#'
+#' `custom` 缺 baseUrl 時,錯誤句後補「去填 Base URL」的操作提示;其餘
+#' provider 的 error(如 GitHub Models 退役說明)本身已含完整指引,原樣顯示。
+#' `action` 為使用者接下來要重新勾選的選項名(Submit / Test Connection)。
+#' 純函式,供 askllm.b.R / askllmr.b.R / llm-ping.R 三處共用。
+.askllm_spec_error_text <- function(error, provider, action = 'Submit') {
+    if (identical(provider, 'custom')) {
+        return(paste0(
+            error, '\n\n',
+            '請在選項的「Base URL (custom provider)」欄位填入自訂端點,',
+            '再重新勾選 ', action, '。'))
+    }
+    error
 }
 
 #' 解析「custom system prompt」的優先序(項目:變數 Description 當 system prompt)
@@ -496,10 +512,8 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
 
             spec <- provider_spec(opt$provider, opt$baseUrl)
             if (!is.null(spec$error)) {
-                self$results$instructions$setContent(paste0(
-                    spec$error, '\n\n',
-                    '請在選項的「Base URL (custom provider)」欄位填入自訂端點,',
-                    '再重新勾選 Submit。'))
+                self$results$instructions$setContent(
+                    .askllm_spec_error_text(spec$error, opt$provider, 'Submit'))
                 return()
             }
 
@@ -518,11 +532,13 @@ askllmClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
             }
 
             # --- 2c. 變數 Description 當 system prompt(項目:systemPromptVar)---
-            # `jmv-desc` 是官方無文件的隱性通道:在真 jamovi 28.1 實測確認,
-            # engine 執行 .b.R 時會把該變數在 Setup 面板填的 Description
-            # 掛在 attr(self$data[[varName]], 'jmv-desc') 上,但這個機制沒有
-            # 文件保證,headless/單元測試環境也不存在此 attribute,故全程
-            # 防禦性處理:變數未選、attr 不存在、或讀取拋錯,一律靜默降級為 NULL。
+            # `jmv-desc` 是 jamovi engine 原始碼(engine/engine/readdf.cpp)明文
+            # 設定的欄位 attribute:engine 執行 .b.R 時會把該變數在 Setup 面板
+            # 填的 Description 掛在 attr(self$data[[varName]], 'jmv-desc') 上
+            # (真 jamovi 28.1 實測亦確認;同檔另設 jmv-id / jmv-missings /
+            # jmv-weights*)。但它沒有公開文件,headless/單元測試環境也不存在
+            # 此 attribute,故全程防禦性處理:變數未選、attr 不存在、或讀取
+            # 拋錯,一律靜默降級為 NULL。(2026-09-25 v1.3.2 依研究 B §4.3 更正註解)
             # Module Guider 精簡(移除 Enable actions/Custom system prompt UI 後):
             # 自訂 system prompt 只走 systemPromptVar 的 jmv-desc,不再有
             # systemPrompt TextBox 來源(底層 .askllm_resolve_custom() 簽名不變,

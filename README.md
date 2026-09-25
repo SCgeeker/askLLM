@@ -113,7 +113,7 @@ Untick **Submit** before editing your question, then re-tick it — this avoids 
 
 **Include installed modules** (jamovi Module Guider only, enabled by default) automatically scans your jamovi modules and feeds them to the LLM, so path suggestions accurately match your installed analyses. Untick this option to revert to v1.0 behavior. R code tutor scans your Rj environment instead, unconditionally, so code suggestions only use packages you actually have.
 
-**Use a variable's Description as the system prompt** (under "LLM settings") lets you drive the persona from your dataset instead of typing it in the module: fill in a variable's **Description** in jamovi's variable Setup panel (e.g. a persona or task instruction), pick that variable here, and its Description is used as the system prompt. In jamovi Module Guider, priority order is: this variable's Description (if selected and non-empty) > the **Custom system prompt** text box > the Persona template. R code tutor has no Custom system prompt text box — there it's the variable's Description (if selected and non-empty) > the Persona template. This is handy for codebooks that already document per-variable context you want the LLM to use.
+**Use a variable's Description as the system prompt** (under "LLM settings") lets you drive the persona from your dataset instead of typing it in the module: fill in a variable's **Description** in jamovi's variable Setup panel (e.g. a persona or task instruction), pick that variable here, and its Description is used as the system prompt. In both analyses the priority order is: this variable's Description (if selected and non-empty) > the Persona template. (The separate "Custom system prompt" text box from earlier versions has been removed; the variable's Description is now the only custom-prompt channel.) This is handy for codebooks that already document per-variable context you want the LLM to use.
 
 ## Supported providers
 
@@ -122,11 +122,10 @@ Untick **Submit** before editing your question, then re-tick it — this avoids 
 | NVIDIA NIM | Yes, no card | Cloud | [SETUP-nim.en.md](docs/SETUP-nim.en.md) |
 | Google Gemini | Yes, no card | Cloud | [SETUP-gemini.en.md](docs/SETUP-gemini.en.md) |
 | OpenRouter | Yes, no card (`:free` models) | Cloud | [SETUP-openrouter.en.md](docs/SETUP-openrouter.en.md) |
-| GitHub Models | Yes (GitHub account) | Cloud | [SETUP-github.en.md](docs/SETUP-github.en.md) |
 | Ollama (local) | Yes, no key at all | Your machine | [SETUP-ollama.en.md](docs/SETUP-ollama.en.md) |
 | Custom (OpenAI-compatible) | Depends on the endpoint | Your choice | [SETUP-custom.en.md](docs/SETUP-custom.en.md) |
 
-A GitHub account alone unlocks **35 free models** (OpenAI, Meta Llama, Microsoft Phi, Mistral, DeepSeek, Cohere) — see **[GitHub Models catalog](docs/MODELS-github.en.md)** for the full list, free-tier quotas, and picking advice.
+**GitHub Models was retired by GitHub on 2026-07-30** and no longer works with any client. The provider entry is still listed in askLLM (marked *retired*) so that older `.omv` files open cleanly, but selecting it only shows a notice pointing you to OpenRouter, NVIDIA NIM, or Gemini — all free without a credit card. If you only have a GitHub account, you can sign in to OpenRouter or NVIDIA with it. See [choose a model](https://scgeeker.github.io/askLLM/choose-model.html).
 
 To compare how different models answer the same question about the same data, use [`tools/compare-models.R`](tools/compare-models.R): it runs several models in a row and writes a side-by-side report on accuracy and completeness.
 
@@ -157,7 +156,7 @@ JASP 0.98 (released 2026-07-02) introduced "Fully Integrated AI," which uses an 
 | Aspect | askLLM | JASP 0.98 agentic AI |
 |---|---|---|
 | **What is sent to the LLM** | Summary statistics of selected variables (counts, means, SDs, factor frequencies, etc.) | Complete analysis results and outputs (all details) |
-| **Local execution option** | Ollama: fully local, zero transmission; other providers send to cloud | Within JASP only; no fully local option |
+| **Local execution option** | Ollama: fully local, zero transmission; other providers send to cloud | Local models are supported too (any OpenAI-compatible endpoint), but the agentic architecture still hands the model the complete results and outputs |
 | **Suitable for sensitive data** | ✓ Yes (especially with Ollama local execution) | ⚠ Requires caution |
 
 ### Why sensitive data needs special attention

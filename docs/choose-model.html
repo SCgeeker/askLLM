@@ -227,8 +227,8 @@
     <div class="chips" role="group">
       <button class="chip" type="button" aria-pressed="false" data-pick="nim gemini openrouter">
         <span class="en">No credit card</span><span class="zh">沒有信用卡</span></button>
-      <button class="chip" type="button" aria-pressed="false" data-pick="github">
-        <span class="en">Only a GitHub account</span><span class="zh">只有 GitHub 帳號</span></button>
+      <button class="chip" type="button" aria-pressed="false" data-pick="openrouter nim">
+        <span class="en">Only a GitHub account (sign in with it)</span><span class="zh">只有 GitHub 帳號（可用它登入）</span></button>
       <button class="chip" type="button" aria-pressed="false" data-pick="ollama">
         <span class="en">Data must stay on my machine</span><span class="zh">資料必須留在本機</span></button>
       <button class="chip" type="button" aria-pressed="false" data-pick="custom">
@@ -298,21 +298,14 @@
           <span class="zh">免費模型的模型名稱需加 <code>:free</code> 後綴。額度:未儲值每日 50 次,一次性儲值 US$10 以上後每日 1000 次。</span></p>
       </article>
 
-      <!-- GitHub -->
-      <article class="card" id="github">
-        <h3>GitHub Models</h3>
-        <p class="best"><span class="en">Free with any GitHub account — dozens of models from OpenAI, Meta, Mistral, and more.</span>
-          <span class="zh">有 GitHub 帳號就免費——OpenAI、Meta、Mistral 等數十種模型。</span></p>
-        <div class="badges"><span class="badge">Free</span><span class="badge">GitHub account</span><span class="badge">Cloud</span></div>
-        <dl class="spec">
-          <dt>Provider</dt><dd>GitHub Models</dd>
-          <dt>Model</dt><dd><code>openai/gpt-4o-mini</code></dd>
-          <dt>Env var</dt><dd><code>GITHUB_MODELS_TOKEN</code></dd>
-        </dl>
-        <a class="getkey" href="https://github.com/settings/tokens" target="_blank" rel="noopener">
-          <span class="en">Make a token at github.com/settings/tokens</span><span class="zh">到 github.com/settings/tokens 建立 token</span></a>
-        <p class="note"><span class="en">Use the name <code>GITHUB_MODELS_TOKEN</code> (not <code>GITHUB_TOKEN</code>) so it won’t clash with git or the gh CLI.</span>
-          <span class="zh">用 <code>GITHUB_MODELS_TOKEN</code> 這個名稱（別用 <code>GITHUB_TOKEN</code>），才不會撞到 git 或 gh CLI。</span></p>
+      <!-- GitHub (retired 2026-07-30) -->
+      <article class="card" id="github" style="opacity:.72">
+        <h3>GitHub Models <span style="font-weight:normal;font-size:.85em">· retired</span></h3>
+        <p class="best"><span class="en">Shut down by GitHub on 2026-07-30 — the catalog and inference API no longer exist, so this provider cannot be used.</span>
+          <span class="zh">GitHub 已於 2026-07-30 停止服務——模型目錄與 inference API 皆已關閉，此供應商無法再使用。</span></p>
+        <div class="badges"><span class="badge">Retired</span></div>
+        <p class="note"><span class="en">askLLM still lists it (marked <em>retired</em>) only so older <code>.omv</code> files open cleanly. If a GitHub account is all you have, sign in to OpenRouter or NVIDIA with it.</span>
+          <span class="zh">askLLM 仍保留此選項（標示 <em>retired</em>）只是為了讓舊的 <code>.omv</code> 檔能正常開啟。只有 GitHub 帳號的話，可用它登入 OpenRouter 或 NVIDIA。</span></p>
       </article>
 
       <!-- Ollama -->

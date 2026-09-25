@@ -1,4 +1,6 @@
-# GitHub Models:免費可用的模型清單
+# GitHub Models:免費可用的模型清單(已退役)
+
+> ⛔ **GitHub Models 已於 2026-07-30 由 GitHub 停止服務**,下列模型均已無法呼叫。本頁僅保留作為當時免費額度的歷史快照。現行免費選項請見[挑選指南](https://scgeeker.github.io/askLLM/choose-model.html)(OpenRouter、NVIDIA NIM、Gemini,或本機 Ollama)。
 
 只要有 **GitHub 帳號**(Copilot Free 即可,不需信用卡),把權杖設定好之後(見 [SETUP-github.zh-TW.md](SETUP-github.zh-TW.md)),下列模型都能在 askLLM 的 **Model** 欄位直接填入使用。
 
