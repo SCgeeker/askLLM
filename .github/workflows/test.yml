@@ -1,0 +1,45 @@
+# 離線純函式測試(v1.4 項目 F)。
+# askLLM 的 testthat 套件從一開始就設計成「系統 R、不需 jamovi」(見 README
+# For developers),所以 CI 只需要 R + DESCRIPTION 的相依;.h.R 由
+# `requireNamespace('jmvcore')` 守門,jmvcore 在 CRAN 上。
+# live 測試(test-live.R)與 golden 評測需要金鑰,不在此 workflow;見 eval.yml。
+name: tests
+
+on:
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'dist/**'
+      - 'dev-notes/**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  testthat:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      # 明確關閉 live 測試(test-live.R 本就 skip_if,這裡只是雙保險)
+      ASKLLM_LIVE_TESTS: '0'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::testthat
+            any::withr
+            any::pkgload
+          needs: check
+
+      - name: Run testthat (offline)
+        run: |
+          Rscript -e 'testthat::test_local(reporter = "summary", stop_on_failure = TRUE)'

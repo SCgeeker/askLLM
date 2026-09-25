@@ -65,3 +65,7 @@ tests/testthat/Rplots.pdf
 
 # 模型比較報告(本機測試產物)
 dev-notes/model-comparison-*.md
+
+# golden 評測報告(本機/CI 產物)
+dev-notes/golden-*.md
+dev-notes/golden-*.json

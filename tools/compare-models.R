@@ -293,62 +293,15 @@ compare_models <- function(models,
 
 # ---- 路徑命中檢核 helper -----------------------------------------------------
 #
-# 這兩個函式只服務本工具腳本(非套件內部函式的替身):從掃描結果建立「合法
-# 選單路徑集合」,並從 LLM 回覆文字抽取 `Analyses > ...` 路徑後與之比對。
-
-# 以 scan_modules() 的結果重建合法選單路徑字串(格式比照
-# R/module-catalog.R 的 .catalog_analysis_line():'Analyses > menuGroup
-# [> menuSubgroup] > menuTitle',不含 menuSubtitle 後綴)。
-.askllm_legal_paths <- function(scanned) {
-    modules <- scanned$modules %||% list()
-    if (length(modules) == 0) return(character(0))
-
-    paths <- character(0)
-    for (m in modules) {
-        for (a in m$analyses %||% list()) {
-            parts <- c('Analyses', a$menuGroup)
-            if (!is.null(a$menuSubgroup) && nzchar(a$menuSubgroup))
-                parts <- c(parts, a$menuSubgroup)
-            parts <- c(parts, a$menuTitle)
-            paths <- c(paths, paste(parts, collapse = ' > '))
-        }
-    }
-    unique(paths)
+# v1.4:.askllm_legal_paths() / .askllm_extract_paths() / .askllm_check_path_hits()
+# 已搬進套件(R/eval-score.R),供 golden set 與 testthat 共用;此處只保留
+# 對套件版本的轉接(套件已載入時取套件版本,否則需先 source R/eval-score.R)。
+.askllm_pkg_fn <- function(name) {
+    if (requireNamespace('askLLM', quietly = TRUE) &&
+        !is.null(getNamespace('askLLM')[[name]]))
+        return(getNamespace('askLLM')[[name]])
+    get(name, envir = globalenv())
 }
-
-# 從 LLM 回覆文字逐行抽取 `Analyses > ...` 開頭的片段。先在常見的「路徑後
-# 接描述文字」邊界(粗體/code 結束符、行內 ' - '/' — ' 分隔、冒號)截斷,
-# 再去除尾端標點/粗體符號並壓縮空白後回傳(去重)。
-.askllm_extract_paths <- function(text) {
-    if (is.null(text) || !nzchar(text)) return(character(0))
-    lines <- strsplit(text, '\n')[[1]]
-    m <- regmatches(lines, regexpr('Analyses\\s*>\\s*[^\n]+', lines))
-    m <- m[nzchar(m)]
-    if (length(m) == 0) return(character(0))
-
-    cleaned <- vapply(m, function(x) {
-        # 路徑常被包在 **粗體** 或 `code` 裡,或後面接 ' - 描述'/': 描述'——
-        # 在最早出現的邊界處截斷,只留路徑本身。
-        cut_at <- regexpr('\\*\\*|`| [-–—] |: ', x)
-        if (cut_at > 1) x <- substr(x, 1, cut_at - 1)
-        x <- sub('[*_`[:space:]]+$', '', x)          # 尾端粗體/斜體/code 符號
-        x <- sub('[.,;:)，。]+$', '', x)     # 尾端標點(含全形逗號句點)
-        x <- gsub('[[:space:]]+', ' ', x)             # 壓縮空白
-        trimws(x)
-    }, character(1), USE.NAMES = FALSE)
-    unique(cleaned[nzchar(cleaned)])
-}
-
-# 比對「LLM 回覆抽取到的路徑」與「本機實掃的合法路徑集合」。
-#
-# @param text LLM 回覆全文
-# @param legal_paths .askllm_legal_paths() 的輸出
-# @return list(total = 提取路徑數, hits = 命中數, misses = 未命中路徑字元向量)
-.askllm_check_path_hits <- function(text, legal_paths) {
-    extracted <- .askllm_extract_paths(text)
-    legal_norm <- trimws(gsub('\\s+', ' ', legal_paths))
-    ok <- extracted %in% legal_norm
-    list(total = length(extracted),
-         hits  = sum(ok),
-         misses = extracted[!ok])
-}
+.askllm_legal_paths     <- function(...) .askllm_pkg_fn('.askllm_legal_paths')(...)
+.askllm_extract_paths   <- function(...) .askllm_pkg_fn('.askllm_extract_paths')(...)
+.askllm_check_path_hits <- function(...) .askllm_pkg_fn('.askllm_check_path_hits')(...)

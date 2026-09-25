@@ -1,0 +1,147 @@
+# tools/golden/golden-set.yaml — askLLM prompt 品質評測題庫(v1.4 項目 F)
+#
+# 用途:跨版本/跨模型重跑同一批題目,以 R/eval-score.R 的規則量化回覆品質,
+# 抓 prompt 改動或換預設模型造成的回歸。執行:tools/run-golden.R(需金鑰,
+# opt-in);schema 由 testthat 離線鎖住(test-eval-score.R)。
+#
+# 欄位:
+#   id        唯一識別
+#   analysis  askllm(jamovi Module Guider)| askllmr(R code tutor)
+#   dataset   datasets:: 內建資料名(零檔案 I/O、可重現)
+#   vars      要摘要的變項
+#   question  使用者問題
+#   role/lang 人格與語言(預設 consultant / en)
+#   expect    評分規則(見 .askllm_score_answer):
+#     must_mention      每條為固定字串,可用 | 列替代字(不分大小寫)
+#     must_not          任一出現即警示
+#     redirect_expected 應引導至 sibling 分析
+#     paths_expected    應出現 Analyses > ... 路徑(僅在本機掃得到模組時計分)
+#     code_expected     應含 fenced code block
+#
+# 規則是回歸警示,不是絕對對錯;新增題目時以「一個明確的統計判斷」為單位。
+
+items:
+  # ---- jamovi Module Guider ----------------------------------------------
+  - id: guider-iris-oneway
+    analysis: askllm
+    dataset: iris
+    vars: [Sepal.Length, Species]
+    question: "Does Sepal.Length differ across the three Species? Which jamovi analysis should I run?"
+    expect:
+      must_mention: ["ANOVA|analysis of variance|Kruskal"]
+      must_not: ["Machine Learning", "Classification >", "Compare >"]
+      paths_expected: true
+
+  - id: guider-mtcars-regression
+    analysis: askllm
+    dataset: mtcars
+    vars: [mpg, hp, wt]
+    question: "I want to predict mpg from hp and wt. Which analysis and where is it in jamovi?"
+    expect:
+      must_mention: ["regression"]
+      must_not: ["Predict >", "Machine Learning"]
+      paths_expected: true
+
+  - id: guider-toothgrowth-two-groups
+    analysis: askllm
+    dataset: ToothGrowth
+    vars: [len, supp]
+    question: "Compare tooth length between the two supplement types. What should I run?"
+    expect:
+      must_mention: ["t-test|t test|Mann-Whitney|Welch"]
+      must_not: ["Compare >"]
+      paths_expected: true
+
+  - id: guider-plantgrowth-assumptions
+    analysis: askllm
+    dataset: PlantGrowth
+    vars: [weight, group]
+    question: "Before comparing weight across groups, which assumption checks should I do in jamovi and where?"
+    expect:
+      must_mention: ["normality|Shapiro|Q-Q", "homogeneity|Levene|variance"]
+      paths_expected: true
+
+  - id: guider-warpbreaks-twoway
+    analysis: askllm
+    dataset: warpbreaks
+    vars: [breaks, wool, tension]
+    question: "Does the number of breaks depend on wool type and tension, including their interaction?"
+    expect:
+      must_mention: ["ANOVA|analysis of variance", "interaction"]
+      paths_expected: true
+
+  - id: guider-warpbreaks-contingency
+    analysis: askllm
+    dataset: warpbreaks
+    vars: [wool, tension]
+    question: "Are wool type and tension level associated? Both are categorical."
+    expect:
+      must_mention: ["chi|contingency|independence"]
+      paths_expected: true
+
+  - id: guider-airquality-missing
+    analysis: askllm
+    dataset: airquality
+    vars: [Ozone, Temp]
+    question: "Is Ozone related to Temp? Note that some values are missing."
+    expect:
+      must_mention: ["correlation|Pearson|Spearman", "missing"]
+      paths_expected: true
+
+  - id: guider-co2-repeated
+    analysis: askllm
+    dataset: CO2
+    vars: [uptake, Treatment, Plant, conc]
+    question: "Each Plant was measured at several conc levels. How should I analyse uptake by Treatment given the repeated measurements?"
+    expect:
+      must_mention: ["repeated|mixed|within"]
+      paths_expected: true
+
+  - id: guider-redirect-to-rtutor
+    analysis: askllm
+    dataset: iris
+    vars: [Sepal.Length, Species]
+    question: "Give me the R code to run a one-way ANOVA on this data."
+    expect:
+      redirect_expected: true
+      must_not: ["library(", "aov(", "```"]
+
+  # ---- R code tutor ---------------------------------------------------------
+  - id: rtutor-iris-groupmeans
+    analysis: askllmr
+    dataset: iris
+    vars: [Sepal.Length, Species]
+    question: "Compute the mean Sepal.Length for each Species."
+    expect:
+      must_mention: ["tapply|aggregate|group_by|by(|ave("]
+      must_not: ["install.packages", "read.csv", "setwd(", "system("]
+      code_expected: true
+
+  - id: rtutor-mtcars-lm
+    analysis: askllmr
+    dataset: mtcars
+    vars: [mpg, hp, wt]
+    question: "Fit a linear model predicting mpg from hp and wt and show the summary."
+    expect:
+      must_mention: ["lm(", "summary("]
+      must_not: ["install.packages", "read.csv", "setwd("]
+      code_expected: true
+
+  - id: rtutor-toothgrowth-ttest
+    analysis: askllmr
+    dataset: ToothGrowth
+    vars: [len, supp]
+    question: "Run a Welch t-test comparing len between the two supp groups."
+    expect:
+      must_mention: ["t.test("]
+      must_not: ["install.packages", "var.equal = TRUE|var.equal=TRUE"]
+      code_expected: true
+
+  - id: rtutor-redirect-to-guider
+    analysis: askllmr
+    dataset: iris
+    vars: [Sepal.Length, Species]
+    question: "Which jamovi menu should I click to run an ANOVA? I don't want R code."
+    expect:
+      redirect_expected: true
+      must_not: ["Analyses >"]
