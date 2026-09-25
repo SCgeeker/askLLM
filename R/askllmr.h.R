@@ -9,10 +9,11 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             vars = NULL,
             question = "",
             includeSummary = TRUE,
+            previewPayload = FALSE,
             submit = FALSE,
             testConnection = FALSE,
-            provider = "nim",
-            model = "meta/llama-3.1-8b-instruct",
+            provider = "gemini",
+            model = "gemini-flash-latest",
             baseUrl = "",
             role = "consultant",
             promptLang = "en",
@@ -42,6 +43,10 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "includeSummary",
                 includeSummary,
                 default=TRUE)
+            private$..previewPayload <- jmvcore::OptionBool$new(
+                "previewPayload",
+                previewPayload,
+                default=FALSE)
             private$..submit <- jmvcore::OptionBool$new(
                 "submit",
                 submit,
@@ -60,11 +65,11 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "github",
                     "ollama",
                     "custom"),
-                default="nim")
+                default="gemini")
             private$..model <- jmvcore::OptionString$new(
                 "model",
                 model,
-                default="meta/llama-3.1-8b-instruct")
+                default="gemini-flash-latest")
             private$..baseUrl <- jmvcore::OptionString$new(
                 "baseUrl",
                 baseUrl,
@@ -99,6 +104,7 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..vars)
             self$.addOption(private$..question)
             self$.addOption(private$..includeSummary)
+            self$.addOption(private$..previewPayload)
             self$.addOption(private$..submit)
             self$.addOption(private$..testConnection)
             self$.addOption(private$..provider)
@@ -112,6 +118,7 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         vars = function() private$..vars$value,
         question = function() private$..question$value,
         includeSummary = function() private$..includeSummary$value,
+        previewPayload = function() private$..previewPayload$value,
         submit = function() private$..submit$value,
         testConnection = function() private$..testConnection$value,
         provider = function() private$..provider$value,
@@ -124,6 +131,7 @@ askllmrOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..vars = NA,
         ..question = NA,
         ..includeSummary = NA,
+        ..previewPayload = NA,
         ..submit = NA,
         ..testConnection = NA,
         ..provider = NA,
@@ -196,7 +204,7 @@ askllmrBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 package = "askLLM",
                 name = "askllmr",
-                version = c(1,3,2),
+                version = c(1,4,0),
                 options = options,
                 results = askllmrResults$new(options=options),
                 data = data,
@@ -216,6 +224,7 @@ askllmrBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param vars .
 #' @param question .
 #' @param includeSummary .
+#' @param previewPayload .
 #' @param submit .
 #' @param testConnection .
 #' @param provider .
@@ -240,10 +249,11 @@ askllmr <- function(
     vars,
     question = "",
     includeSummary = TRUE,
+    previewPayload = FALSE,
     submit = FALSE,
     testConnection = FALSE,
-    provider = "nim",
-    model = "meta/llama-3.1-8b-instruct",
+    provider = "gemini",
+    model = "gemini-flash-latest",
     baseUrl = "",
     role = "consultant",
     promptLang = "en",
@@ -265,6 +275,7 @@ askllmr <- function(
         vars = vars,
         question = question,
         includeSummary = includeSummary,
+        previewPayload = previewPayload,
         submit = submit,
         testConnection = testConnection,
         provider = provider,

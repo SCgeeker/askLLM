@@ -10,10 +10,11 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             question = "",
             includeSummary = TRUE,
             includeCatalog = TRUE,
+            previewPayload = FALSE,
             submit = FALSE,
             testConnection = FALSE,
-            provider = "nim",
-            model = "meta/llama-3.1-8b-instruct",
+            provider = "gemini",
+            model = "gemini-flash-latest",
             baseUrl = "",
             maxLevels = 10,
             role = "consultant",
@@ -48,6 +49,10 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "includeCatalog",
                 includeCatalog,
                 default=TRUE)
+            private$..previewPayload <- jmvcore::OptionBool$new(
+                "previewPayload",
+                previewPayload,
+                default=FALSE)
             private$..submit <- jmvcore::OptionBool$new(
                 "submit",
                 submit,
@@ -66,11 +71,11 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "github",
                     "ollama",
                     "custom"),
-                default="nim")
+                default="gemini")
             private$..model <- jmvcore::OptionString$new(
                 "model",
                 model,
-                default="meta/llama-3.1-8b-instruct")
+                default="gemini-flash-latest")
             private$..baseUrl <- jmvcore::OptionString$new(
                 "baseUrl",
                 baseUrl,
@@ -112,6 +117,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..question)
             self$.addOption(private$..includeSummary)
             self$.addOption(private$..includeCatalog)
+            self$.addOption(private$..previewPayload)
             self$.addOption(private$..submit)
             self$.addOption(private$..testConnection)
             self$.addOption(private$..provider)
@@ -127,6 +133,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         question = function() private$..question$value,
         includeSummary = function() private$..includeSummary$value,
         includeCatalog = function() private$..includeCatalog$value,
+        previewPayload = function() private$..previewPayload$value,
         submit = function() private$..submit$value,
         testConnection = function() private$..testConnection$value,
         provider = function() private$..provider$value,
@@ -141,6 +148,7 @@ askllmOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..question = NA,
         ..includeSummary = NA,
         ..includeCatalog = NA,
+        ..previewPayload = NA,
         ..submit = NA,
         ..testConnection = NA,
         ..provider = NA,
@@ -196,7 +204,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 package = "askLLM",
                 name = "askllm",
-                version = c(1,3,2),
+                version = c(1,4,0),
                 options = options,
                 results = askllmResults$new(options=options),
                 data = data,
@@ -217,6 +225,7 @@ askllmBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param question .
 #' @param includeSummary .
 #' @param includeCatalog .
+#' @param previewPayload .
 #' @param submit .
 #' @param testConnection .
 #' @param provider .
@@ -241,10 +250,11 @@ askllm <- function(
     question = "",
     includeSummary = TRUE,
     includeCatalog = TRUE,
+    previewPayload = FALSE,
     submit = FALSE,
     testConnection = FALSE,
-    provider = "nim",
-    model = "meta/llama-3.1-8b-instruct",
+    provider = "gemini",
+    model = "gemini-flash-latest",
     baseUrl = "",
     maxLevels = 10,
     role = "consultant",
@@ -268,6 +278,7 @@ askllm <- function(
         question = question,
         includeSummary = includeSummary,
         includeCatalog = includeCatalog,
+        previewPayload = previewPayload,
         submit = submit,
         testConnection = testConnection,
         provider = provider,
