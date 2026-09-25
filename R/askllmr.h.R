@@ -196,7 +196,7 @@ askllmrBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 package = "askLLM",
                 name = "askllmr",
-                version = c(1,3,1),
+                version = c(1,3,2),
                 options = options,
                 results = askllmrResults$new(options=options),
                 data = data,
