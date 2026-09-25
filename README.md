@@ -94,7 +94,7 @@ Select it under "Use a variable's Description as the system prompt", and the ans
 
 askLLM is distributed as a side-loaded `.jmo` file.
 
-**Supported environment (current release):** Windows 64-bit, jamovi 28.2.0.0.
+**Supported environment (current release):** Windows 64-bit, jamovi 28.2.0.0–28.3.0.0.
 
 1. In jamovi, click the `⊕` icon (top right).
 2. Go to the **Side-load** tab.
@@ -181,7 +181,7 @@ JASP 0.98 (released 2026-07-02) introduced "Fully Integrated AI," which uses an 
 Build from source and install into a specific jamovi installation:
 
 ```r
-jmvtools::install(home = "C:/Program Files/jamovi 28.2.0.0")
+jmvtools::install(home = "C:/Program Files/jamovi 28.3.0.0")
 ```
 
 Run the test suite (pure-function unit tests, run under a regular system R — not the jamovi-bundled R):

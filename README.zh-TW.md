@@ -89,7 +89,7 @@ askLLM 是一個模組,底下有兩個分析,都在 **Analyses ▸ askLLM** 下�
 
 askLLM 以側載(side-load)`.jmo` 檔的方式發佈。
 
-**支援環境(目前版本):** Windows 64-bit、jamovi 28.2.0.0。
+**支援環境(目前版本):** Windows 64-bit、jamovi 28.2.0.0–28.3.0.0。
 
 1. 在 jamovi 中點選右上角 `⊕` 圖示。
 2. 切換到 **Side-load** 分頁。
@@ -176,7 +176,7 @@ JASP 0.98(2026-07-02 起)推出「完全整合 AI」,採取代理型設計:把�
 從原始碼建置並安裝到指定的 jamovi 安裝路徑:
 
 ```r
-jmvtools::install(home = "C:/Program Files/jamovi 28.2.0.0")
+jmvtools::install(home = "C:/Program Files/jamovi 28.3.0.0")
 ```
 
 執行測試套件(純函式單元測試,以一般系統 R 執行,非 jamovi 內建 R):
